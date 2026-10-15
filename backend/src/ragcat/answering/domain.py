@@ -19,7 +19,7 @@ MAX_QUESTION = 1000
 class Caller:
     """Who is asking: the owner (any state) or a customer channel (published assistants only)."""
 
-    kind: str  # owner | api_key | discord
+    kind: str  # owner | widget | api_key | discord
     owner_id: str | None = None
 
 

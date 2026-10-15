@@ -1,6 +1,8 @@
-// P06 Publish · step 3 of the create flow. One action publishes; Discord channels come later.
+// P06 Publish · step 3 of the create flow. One action publishes; after that the owner can add the
+// Assistant to their website (panel 2). Discord comes later.
 import { Link, useParams } from 'react-router'
 import { Cat } from '../components/Cat'
+import { WebsitePanel } from '../components/WebsitePanel'
 import { BackLink, Chip, ErrorPanel, Progress, StatusDot, Stepper, errorText } from '../components/ui'
 import { useDocumentTitle } from '../hooks'
 import { useI18n } from '../i18n'
@@ -75,6 +77,8 @@ export function PublishPage() {
             {publish.error != null && <ErrorPanel title={t('publish.failed')}>{errorText(publish.error)}</ErrorPanel>}
           </div>
         </section>
+
+        <WebsitePanel assistant={assistant} title={t('publish.websiteTitle')} locked={!assistant.published} />
 
         <div className="row between">
           {done ? <span /> : (

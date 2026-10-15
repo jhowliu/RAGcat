@@ -1,0 +1,184 @@
+/* Website widget frame (docs/api-design.md §7). It shares styles.css with the app, so the question
+   bubble, answer card, [n] marker and composer are the Test pane's own. This file only lays out the
+   panel inside the iframe: header, transcript on the canvas, composer, and the RAGcat line. */
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  overflow: hidden;
+  background: var(--rc-surface);
+}
+.w-app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* header: the Assistant's mark, its name, the promise, and close */
+.w-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--rc-space-3);
+  min-height: var(--rc-header-height);
+  padding: 10px 12px 10px var(--rc-space-4);
+  border-bottom: var(--rc-border-hairline);
+  background: var(--rc-surface);
+}
+.w-avatar {
+  width: 36px;
+  height: 36px;
+}
+.w-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.w-name {
+  overflow: hidden;
+  font-size: var(--rc-text-ui);
+  font-weight: 700;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.w-title .hint {
+  line-height: 1.4;
+}
+.w-close {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* transcript */
+.w-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--rc-space-4);
+  background: var(--rc-bg);
+  overscroll-behavior: contain;
+}
+.w-empty {
+  margin: auto;
+  max-width: 290px;
+  padding: var(--rc-space-4) 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--rc-space-2);
+  text-align: center;
+}
+.w-empty .cat {
+  margin-bottom: var(--rc-space-2);
+}
+.w-empty p {
+  text-wrap: pretty;
+}
+.w-empty-title {
+  font-size: var(--rc-text-title);
+  line-height: 1.3;
+}
+.w-empty-body {
+  font-size: var(--rc-text-label);
+  line-height: 1.6;
+  color: var(--rc-text-secondary);
+}
+.w-note {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding-top: 6px;
+}
+.w-note svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+/* A failed answer sits in the transcript at the answer card's size, not a page-level alert's. */
+.bot-turn > .error-panel .pbody {
+  gap: 6px;
+  padding: 14px 16px;
+}
+.bot-turn > .error-panel p {
+  font-size: var(--rc-text-label);
+  color: var(--rc-text-secondary);
+}
+
+/* sources: the Document and page behind each [n] */
+.w-sources {
+  margin: 0;
+  padding: var(--rc-space-2) 0 0;
+  list-style: none;
+}
+.w-source {
+  display: flex;
+  gap: 6px;
+  font-family: var(--rc-font-mono);
+  font-size: var(--rc-text-chip);
+  font-variant-numeric: tabular-nums;
+  color: var(--rc-text-secondary);
+}
+.w-source-n {
+  font-weight: 600;
+  color: var(--rc-ink);
+}
+.w-source mark.cite {
+  margin: 0 -3px;
+  padding: 0 3px;
+}
+.w-contact {
+  display: flex;
+  align-items: center;
+  gap: var(--rc-space-2);
+  font-size: var(--rc-text-label);
+}
+.w-contact svg {
+  flex: none;
+  color: var(--rc-text-subtle);
+}
+
+/* composer and the RAGcat line */
+.w-ask {
+  flex: none;
+  flex-wrap: wrap;
+  padding: var(--rc-space-3) var(--rc-space-4) var(--rc-space-2);
+}
+/* Once a conversation starts, the single-turn rule stays in view above the input. */
+.w-ask-hint {
+  flex: 1 0 100%;
+  line-height: 1.4;
+}
+.w-ask .input {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.w-ask .btn {
+  flex: none;
+  min-width: 68px;
+}
+.w-foot {
+  flex: none;
+  padding: 2px 0 var(--rc-space-2);
+  background: var(--rc-surface);
+  text-align: center;
+}
+.w-body + .w-foot {
+  padding-top: var(--rc-space-2);
+  border-top: var(--rc-border-hairline);
+}
+.w-foot a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  font-size: var(--rc-text-hint);
+  color: var(--rc-text-subtle);
+  text-decoration: none;
+  transition: color var(--rc-duration) var(--rc-ease);
+}
+.w-foot a:hover {
+  color: var(--rc-ink);
+}

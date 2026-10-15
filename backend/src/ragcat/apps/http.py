@@ -4,20 +4,30 @@ from __future__ import annotations
 
 import hashlib
 import json
+import time
 from typing import Any, Iterator, Literal
 
 from fastapi import APIRouter, Depends, FastAPI, Header, Query, Request, Response
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from ragcat.answering.domain import Caller
 from ragcat.answering.service import collect
 from ragcat.apps.container import Container
+from ragcat.apps.widget import WidgetPage, public_events, visitor_ip
+from ragcat.assistants.domain import AssistantConfig
 from ragcat.assistants.service import AssistantSummary
 from ragcat.curation.domain import ChangeSet, Document, Passage, PassageCounts
 from ragcat.identity.domain import Principal, Tokens, User
-from ragcat.shared.errors import AppError, ValidationError
+from ragcat.infra.cache import fixed_window
+from ragcat.shared.errors import AppError, NotFound, ValidationError
+
+WIDGET_ASKS_PER_MINUTE = 10  # per Assistant and visitor IP (api-design.md §7)
+
+
+def _now() -> float:
+    return time.time()
 
 
 # ---------------------------------------------------------------- request bodies
@@ -31,6 +41,7 @@ class UpdateAssistant(BaseModel):
     name: str | None = Field(default=None, max_length=80)
     fallback_contact: str | None = Field(default=None, max_length=200)
     published: bool | None = None
+    widget_origins: list[str] | None = Field(default=None, max_length=50)  # the domain allows 10
 
 
 class UpdateMe(BaseModel):
@@ -81,6 +92,10 @@ class Ask(BaseModel):
     preview: bool = False  # owner's test: unpublished edits answer too
 
 
+class WidgetAsk(BaseModel):
+    question: str = Field(max_length=2000)
+    stream: bool = True
+
 
 # ---------------------------------------------------------------- views
 
@@ -125,6 +140,7 @@ def assistant_view(s: AssistantSummary) -> dict[str, Any]:
         "content_version": a.content_version,
         "processing": s.processing,
         "channels": [],
+        "widget_origins": a.widget_origins,
         "created_at": a.created_at,
         "updated_at": a.updated_at,
     }
@@ -253,8 +269,23 @@ def create_app(c: Container, *, api: bool = True, qa: bool = True) -> FastAPI:
 
         @router.patch("/assistants/{aid}")
         def update_assistant(aid: str, body: UpdateAssistant, p: Principal = Depends(owner)) -> dict[str, Any]:
-            a = c.assistants.update(p.sub, aid, name=body.name, fallback_contact=body.fallback_contact, published=body.published)
+            a = c.assistants.update(
+                p.sub, aid, name=body.name, fallback_contact=body.fallback_contact, published=body.published, widget_origins=body.widget_origins
+            )
             return assistant_view(c.assistants.summarize(a))
+
+        # -------------------------------------------------------- website widget (public, api-design.md §7)
+
+        widget_page = WidgetPage(c.settings.widget_template_url)
+
+        @router.get("/widget/{aid}/frame", response_class=HTMLResponse)
+        def widget_frame(aid: str) -> HTMLResponse:
+            try:
+                config: AssistantConfig | None = c.assistants.config(aid)
+            except NotFound:
+                config = None
+            body, headers = widget_page.render(aid, config)
+            return HTMLResponse(body, status_code=200 if config else 404, headers=headers)
 
         # -------------------------------------------------------- documents
 
@@ -384,6 +415,17 @@ def create_app(c: Container, *, api: bool = True, qa: bool = True) -> FastAPI:
         @router.post("/assistants/{aid}/ask")
         def ask(aid: str, body: Ask, p: Principal = Depends(owner)) -> Response:
             events = c.answering.ask(Caller("owner", p.sub), aid, body.question, preview=body.preview)
+            if not body.stream:
+                return JSONResponse(collect(events))
+            return StreamingResponse(_sse(events), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+        @router.post("/widget/{aid}/ask")
+        def widget_ask(aid: str, body: WidgetAsk, request: Request) -> Response:
+            wait = fixed_window(c.cache, f"rl:w:{aid}:{visitor_ip(request)}", WIDGET_ASKS_PER_MINUTE, 60, _now())
+            if wait:
+                error = {"code": "RATE_LIMITED", "message": "Too many questions. Try again shortly.", "details": {"retry_after": wait}}
+                return JSONResponse({"error": error}, status_code=429, headers={"Retry-After": str(wait)})
+            events = public_events(c.answering.ask(Caller("widget"), aid, body.question))
             if not body.stream:
                 return JSONResponse(collect(events))
             return StreamingResponse(_sse(events), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})

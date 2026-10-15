@@ -75,7 +75,16 @@ class AssistantsService:
         assistants = sorted(self.repo.list_for(owner_id), key=lambda a: a.created_at)
         return [self.summarize(a) for a in assistants]
 
-    def update(self, owner_id: str, aid: str, *, name: str | None = None, fallback_contact: str | None = None, published: bool | None = None) -> Assistant:
+    def update(
+        self,
+        owner_id: str,
+        aid: str,
+        *,
+        name: str | None = None,
+        fallback_contact: str | None = None,
+        published: bool | None = None,
+        widget_origins: list[str] | None = None,
+    ) -> Assistant:
         assistant = self.get(owner_id, aid)
         if name is not None:
             assistant.rename(name)
@@ -83,6 +92,8 @@ class AssistantsService:
             assistant.set_fallback(fallback_contact)
         if published is not None:
             assistant.set_published(published, any(d.has_embedded for d in self.documents(aid)))
+        if widget_origins is not None:
+            assistant.set_widget_origins(widget_origins)
         assistant.updated_at = self.now()
         self.repo.save_settings(assistant)
         self.cache.delete(f"ast:{aid}")
@@ -105,6 +116,7 @@ class AssistantsService:
             assistant.published,
             assistant.content_version,
             tuple(sorted(assistant.excluded_document_ids)),
+            tuple(assistant.widget_origins),
         )
         set_json(self.cache, f"ast:{aid}", config.to_dict(), CONFIG_TTL)
         return config

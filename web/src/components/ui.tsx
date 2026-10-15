@@ -12,6 +12,9 @@ const PATHS = {
   book: ['M12 7c-2-1.5-4.5-2-8-2v12.5c3.5 0 6 .5 8 2 2-1.5 4.5-2 8-2V5c-3.5 0-6 .5-8 2z', 'M12 7v12.5'],
   check: ['m5 12.5 4.5 4.5L19 7'],
   chev: ['m9 6 6 6-6 6'],
+  close: ['M6.5 6.5l11 11M17.5 6.5l-11 11'],
+  copy: ['M9 9h10v11H9z', 'M15 9V5H5v11h4'],
+  down: ['m6 9 6 6 6-6'],
   clock: ['M12 8v4l3 2'],
   doc: ['M14 4H7v16h10V7z', 'M14 4v3h3', 'M9.5 12h5M9.5 15h5'],
   layers: ['m12 4 8 4-8 4-8-4z', 'm4 12 8 4 8-4', 'm4 16 8 4 8-4'],
@@ -19,6 +22,7 @@ const PATHS = {
   lens: ['m15 15 5 5'],
   link: ['M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1', 'M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1', 'M4 4l16 16'],
   lock: ['M8 11V8a4 4 0 0 1 8 0v3'],
+  mail: ['m4 7 8 6 8-6'],
   person: ['M5 20a7 7 0 0 1 14 0'],
   plus: ['M12 5v14M5 12h14'],
   // A speech bubble with a footnote mark: an answer that cites its source.
@@ -31,6 +35,7 @@ const EXTRA: Partial<Record<keyof typeof PATHS, ReactNode>> = {
   clock: <circle cx="12" cy="12" r="8" />,
   lens: <circle cx="10.5" cy="10.5" r="6" />,
   lock: <rect x="5" y="11" width="14" height="9" rx="2" />,
+  mail: <rect x="3.5" y="5.5" width="17" height="13" rx="2" />,
   person: <circle cx="12" cy="8.5" r="3.5" />,
 }
 export type IconName = keyof typeof PATHS

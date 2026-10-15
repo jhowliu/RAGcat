@@ -1,5 +1,12 @@
 # Recap
 
+## 2026-10-15
+
+- Website widget (docs/api-design.md §7) designed and built. Decisions: single-turn; required site list (empty = off); rate limit in `qa` (Valkey fixed window, 10/min per Assistant + visitor IP from `CloudFront-Viewer-Address`); built before Discord. PRODUCT.md, README, infra/README and DESIGN.md (approved additions) updated.
+- Frontend: `web/public/widget.js` loader (shadow-root launcher, lazy iframe), frame app `web/src/widget/`, owner setup `WebsitePanel` on Publish panel 2 and the Assistant Channels tab, dev demo host `web/widget-demo.html` (`demo…` aids answer from a script). `widget.html` is a second Vite build input. Impeccable finish review: ship after three fixes.
+- Backend: `widget_origins` on Assistant (validated whole https sites, localhost http, ≤10), `GET /v1/widget/{aid}/frame` (api; fills the built `widget.html` from `RAGCAT_WIDGET_TEMPLATE_URL`, CSP `frame-ancestors`), `POST /v1/widget/{aid}/ask` (qa; no sign-in, published + sites required, citations trimmed to n/document_title/page/para, 429 + Retry-After). Terraform: qa ALB rule adds `/v1/widget/*/ask`; ECS/Lambda env adds the template URL.
+- Validation: backend 156 passed (8 widget unit tests + 1 widget HTTP flow); web typecheck, 30 tests and production build passed. Isolated offline stack (fake models, temporary table, ports 8012/5175, torn down afterwards): listed site answered with citations, unlisted origin refused by CSP, Channels add/remove persisted, 11th question in a minute → 429. The user's data and the 8010 backend were not touched beyond its auto-reload. Terraform still not installed, so HCL is unvalidated.
+
 ## 2026-10-14
 
 - User approved proceeding toward local integration verification and an AWS P0 deployment. Deployment code is implemented; no cloud resources were created/applied in this session.
