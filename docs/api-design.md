@@ -10,8 +10,8 @@ CloudFront 作為單一網域入口，SPA 與 API 同源（不需要 CORS）。
 
 | Path | 目的地 | Cache |
 |---|---|---|
-| `/*`（預設） | S3：React SPA | 長快取（檔名帶 hash） |
-| `/v1/assistants/*/ask` | ALB → `qa` service | 不快取 |
+| `/*`（預設） | S3：React SPA | 長快取（檔名帶 hash）；`widget.js` 等固定檔名 5 分鐘 |
+| `/v1/assistants/*/ask`、`/v1/widget/*/ask` | ALB → `qa` service | 不快取 |
 | `/v1/*` | ALB → `api` service | 不快取 |
 | `/internal/*` | 不對外；只在 VPC 內提供給 `discord-bot` | — |
 
@@ -20,7 +20,7 @@ CloudFront 作為單一網域入口，SPA 與 API 同源（不需要 CORS）。
 | Service | 執行環境 | 職責 | 擴縮 |
 |---|---|---|---|
 | `api` | ECS Fargate | Assistant / Document / Chunk CRUD、publish 開關 | target tracking：ALB request 數 / target，1–2 個 task |
-| `qa` | ECS Fargate | 檢索 + 生成，web、HTTP、Discord 共用 | target tracking：ALB request 數 / target，1–4 個 task（I/O bound，不用 CPU 當指標） |
+| `qa` | ECS Fargate | 檢索 + 生成，web、widget、HTTP、Discord 共用 | target tracking：ALB request 數 / target，1–4 個 task（I/O bound，不用 CPU 當指標） |
 | `ingest` | Lambda（container image） | 解析 PDF、render 頁面縮圖、切 chunk | SQS 觸發，最大並行 5 |
 | `embed` | Lambda（同一個 image） | reconcile：embed 有變動的 chunk、刪除向量 | SQS 觸發，最大並行 2（避免 Bedrock 限流） |
 | `discord-bot` | ECS Fargate | Discord Gateway 轉接層（P2） | 固定 1 個 task |
@@ -34,6 +34,7 @@ A3 的 auto-scaling 與 load distribution 由 ALB + `api` / `qa` 負責；Lambda
 | Owner（web） | `Authorization: Bearer <Cognito access token>`（Google 登入） | 自己擁有的 Assistant；不論是否 published 都能 `ask` |
 | 外部 HTTP client | `Authorization: Bearer rk_live_...`（API key） | 只能對綁定的 Assistant 呼叫 `ask`，且 Assistant 必須 published |
 | `discord-bot` | `Authorization: Bearer <service token>`（Secrets Manager） | 只能 `ask`，且 Assistant 必須 published |
+| Widget 訪客 | 無 | 只能呼叫 `/v1/widget/{aid}/ask`；Assistant 必須 published 且有 `widget_origins`；依 IP 限流（§7） |
 
 存取不屬於自己的資源一律回 `404`（不洩漏資源是否存在）。
 
@@ -56,7 +57,7 @@ A3 的 auto-scaling 與 load distribution 由 ALB + `api` / `qa` 負責；Lambda
    PATCH/POST/DELETE chunks                       編輯 / 切分 / 合併 / 新增 / 刪除
 5. POST  /v1/documents/{id}/embed                  reconcile → status=ready，內容立即生效
    POST  /v1/assistants/{id}/ask                   在 reading room 測試（owner 不受 published 限制）
-6. PATCH /v1/assistants/{id}  { published: true }  開放 Discord 和 API key 發問
+6. PATCH /v1/assistants/{id}  { published: true }  開放 widget、Discord 和 API key 發問
 ```
 
 ---
@@ -77,7 +78,7 @@ A3 的 auto-scaling 與 load distribution 由 ALB + `api` / `qa` 負責；Lambda
 ```
 
 - 只有一種帳號角色：**owner**，只能存取自己的 Assistants。
-- **Customer**（在 Discord 發問的人、外部網站的訪客）沒有帳號。系統透過 channel 綁定或 API key 決定他們能問哪個 Assistant，而且只能問 published 的 Assistant。
+- **Customer**（在 Discord 發問的人、外部網站的訪客）沒有帳號。系統透過 widget、channel 綁定或 API key 決定他們能問哪個 Assistant，而且只能問 published 的 Assistant。
 - 註冊、登入、refresh、登出都在 RAGcat 自己的登入頁完成，api 透過 Cognito API 處理（不跳轉到 Cognito 登入頁，所以沒有 callback URL 和網域設定）。見下方「登入」。
 - JIT provisioning：任何 `/v1/*` 請求都會依 JWT 的 `sub` 確保 user 記錄存在（conditional put），所以不需要 Cognito 的 Lambda trigger。登入和註冊時改用 ID token 建立記錄，因為 access token 沒有 email。
 
@@ -116,13 +117,15 @@ POST /v1/auth/logout    { "refresh_token": "..." }              → 204
   "pending_changes": 1,
   "content_version": 23,
   "channels": [{ "platform": "discord", "guild_name": "Mochi Pet Co.", "channel_name": "help-desk" }],
+  "widget_origins": ["https://mochipet.example"],
   "created_at": "...",
   "updated_at": "..."
 }
 ```
 
 - `status`：`empty | processing | needs_review | ready | live`（給列表卡片的狀態標籤用）。依序判斷：沒有文件 → `empty`；有文件在 parsing / embedding → `processing`；有 `pending_changes` → `needs_review`；其餘依 `published` 為 `live` 或 `ready`。
-- `published`：開放 Discord 和 API key 發問的開關，不影響內容。內容在每次 embed 完成後就生效。
+- `published`：開放 widget、Discord 和 API key 發問的開關，不影響內容。內容在每次 embed 完成後就生效。
+- `widget_origins`：可以嵌入 widget 的網域；空的代表 widget 關閉（見 §7）。
 - `content_version`：每次 embed 完成、文件停用或刪除時 +1，只用在 answer cache 的 key（見 §6）。
 - `pending_changes`：所有文件 `pending_changes` 的總和。
 
@@ -227,7 +230,7 @@ parsing → failed
 | GET | `/v1/assistants` | 列出我的 Assistants | P0 |
 | POST | `/v1/assistants` | `{ name, fallback_contact }` → `201` | P0 |
 | GET | `/v1/assistants/{aid}` | 單一 Assistant 詳細資料 | P0 |
-| PATCH | `/v1/assistants/{aid}` | `{ name?, fallback_contact?, published? }`；`published` 見 §5 | P0 |
+| PATCH | `/v1/assistants/{aid}` | `{ name?, fallback_contact?, published?, widget_origins? }`；`published` 見 §5，`widget_origins` 見 §7 | P0 |
 | DELETE | `/v1/assistants/{aid}` | `202`；非同步刪除 S3 檔案與向量 | P1 |
 
 **Quota（P1）**：`ingest` 在步驟 I 先檢查 `pages_read + page_count` 是否超過上限，超過就直接 `failed`（`QUOTA_EXCEEDED`）；步驟 II 每讀一頁用 DynamoDB atomic counter 把 `pages_read + 1`。qa 每次回答都累加 `answers`，超過上限回 `403 QUOTA_EXCEEDED`。
@@ -400,7 +403,7 @@ PATCH /v1/assistants/{aid}
 { "published": true }
 ```
 
-- 只是開關，決定 Discord 和 API key 能不能發問，不涉及內容版本。
+- 只是開關，決定 widget、Discord 和 API key 能不能發問，不涉及內容版本。
 - 開啟時至少要有一份 `ready` 的文件，否則回 `409 INVALID_STATE`。
 - 上線後的修改，embed 完就直接生效。要在發布前測試修改，用 ask 的 `preview`：只有 owner 看得到，不寫入向量庫，也沒有另一份 draft 索引。
 
@@ -414,7 +417,7 @@ Accept: text/event-stream
 { "question": "Can I return an opened bag of kibble?", "stream": true, "preview": false }
 ```
 
-- Owner 一律可以問；API key 和 `discord-bot` 問未 published 的 Assistant 會回 `403 NOT_PUBLISHED`。
+- Owner 一律可以問；API key、widget 和 `discord-bot` 問未 published 的 Assistant 會回 `403 NOT_PUBLISHED`。
 - `preview: true`（只限 owner，Test 用）：還沒發布的修改也參與回答，客人看到的不受影響。做法見下方「預覽」。
 - `stream: false` → 回一次性的 JSON（給 Discord bot 和一般 HTTP client 用）。
 
@@ -455,10 +458,10 @@ data: {"answered":true,"fallback":null,"usage":{"input_tokens":812,"output_token
 - 最多 3 個引用；`edited: true` 對應 RAGcat 的「as edited by you」。
 - 找不到答案時：`answered: false`，`fallback: { "contact": "help@mochipet.example", "message": "..." }`。
 - 錯誤：串流進行中出錯時送 `event: error` `{code, message}`；Bedrock 被限流時回 `503 UPSTREAM_UNAVAILABLE` + `Retry-After`。
-- Rate limit：以 API key 或 Assistant 為單位，在 Valkey 做 token bucket，超過回 `429` + `Retry-After`。
+- Rate limit：widget 依 IP 在 Valkey 做固定時間窗（見 §7）；API key 之後沿用同一套，改以 key 為單位。超過回 `429` + `Retry-After`。
 
 **內部處理（不影響 API 介面，列出供實作參考）**
-1. Assistant config：`published`、`content_version`、要排除的 document id（停用或刪除中）。採 cache-aside，key 為 `ast:{aid}`；api 在相關寫入後刪除這個 key。
+1. Assistant config：`published`、`content_version`、`widget_origins`、要排除的 document id（停用或刪除中）。採 cache-aside，key 為 `ast:{aid}`；api 在相關寫入後刪除這個 key。
 2. Answer cache：`ans:{aid}:{content_version}:{sha256(normalized question)}`，TTL 24 小時。embed 完 `content_version` 改變，舊 key 自然不會再被讀到。
 3. Query embedding cache：`qemb:{sha256(question)}`。
 4. S3 Vectors `QueryVectors`：filter `assistant_id = aid`，且 `document_id` 不在排除清單（`$nin`），topK = 5。
@@ -474,7 +477,54 @@ data: {"answered":true,"fallback":null,"usage":{"input_tokens":812,"output_token
 
 ---
 
-## 7. Discord 整合 — `api` + `discord-bot`（P2）
+## 7. Website widget — `api` + `qa`（P1）
+
+讓業主把 Assistant 放到自己的網站。客人不需要帳號；只有已發布、而且網域在白名單裡的網站能嵌入。先做單輪問答，跟 `ask` 一樣。
+
+業主貼到網站的程式碼：
+
+```html
+<script src="https://<RAGcat 網域>/widget.js" data-assistant="ast_01J9Z..." async></script>
+```
+
+| Method | Path | 服務 | 說明 |
+|---|---|---|---|
+| GET | `/v1/widget/{aid}/frame` | `api` | iframe 頁面（HTML），帶 `frame-ancestors` |
+| POST | `/v1/widget/{aid}/ask` | `qa` | `{ question, stream }`，不需驗證 |
+
+設定在 Assistant 上：`PATCH /v1/assistants/{aid}` `{ "widget_origins": ["https://mochipet.example"] }`。
+
+**網域白名單（必填）**
+- `widget_origins` 是空的就代表 widget 關閉，至少要有一個網域才能用。
+- 每一筆都是完整的 origin：`https://host[:port]`，不收路徑和萬用字元，最多 10 筆，存成小寫並去除重複。例外是 `http://localhost[:port]`，讓業主在本機測試。格式不符回 `400 VALIDATION_ERROR`。
+- frame 頁面回 `Content-Security-Policy: frame-ancestors <widget_origins>`（清單是空的時候為 `'none'`），由瀏覽器擋掉不在名單上的網站。這只能防止別人把 bot 掛到他們的網站，擋不了直接呼叫 API；那部分靠下面的 rate limit 和 quota。
+
+**流程**
+1. `widget.js`（載入器）從自己的 `src` 取得 RAGcat 的網域，在頁面右下角放一顆按鈕。第一次點開才建立 `<iframe src="/v1/widget/{aid}/frame">`，沒點的訪客不會產生請求。
+2. frame 頁面是 api 產生的一小段 HTML：Assistant 名稱和 fallback contact 直接寫進頁面（escape 過），不需要另外的設定 API；設定從 `ast:{aid}` 讀，JS 和 CSS 從 S3 載入，回應帶 `Cache-Control: no-store`。Assistant 不存在回 `404`；還沒發布或沒有網域時照樣回頁面，但顯示「目前無法使用」。
+3. iframe 呼叫 `/v1/widget/{aid}/ask`，跟頁面同網域，所以不需要 CORS。其他網站的瀏覽器 JS 呼叫不到：JSON 請求要先過 preflight，而我們不回 CORS header。
+4. 關閉面板用 `postMessage`，只有 `close` 一種訊息，不帶對話內容；收發雙方都檢查 `event.origin`。
+
+**ask**
+- 走 `answering.ask`，`Caller("widget")`：Assistant 必須 published 且 `widget_origins` 不是空的，否則回 `403 NOT_PUBLISHED`。不支援 `preview`。
+- 回應格式跟 §6 相同，但 `citations` 只留 `{ n, document_title, page, para }`（`para` 用來區分同一頁的兩個出處）：不回 `boxes`、`chunk_id`，也不提供頁面縮圖。
+- 回答一律當純文字顯示。frame 頁面和 owner 的 app 在同一個網域，文件內容不能變成 HTML。
+- 計入業主的 `answers` quota（命中 answer cache 不算），跟其他管道一樣。
+
+**Rate limit**
+- 在 `qa` 裡、查 answer cache 之前做，每個請求都算。Valkey 固定時間窗：key 為 `rl:w:{aid}:{ip}:{分鐘}`，`INCR`，第一次時 `EXPIRE 60`；超過 10 次回 `429 RATE_LIMITED`，`Retry-After` 為到下一分鐘的秒數。
+- IP 取自 `CloudFront-Viewer-Address`（去掉結尾的 `:port`）。ALB 是 private，只有 CloudFront 進得來，所以可以信任這個 header；本機沒有 CloudFront，改用連線的 IP。不用 `X-Forwarded-For`，因為客戶端可以偽造。
+- Valkey 無法使用時放行（quota 仍然有效），避免 cache 故障讓 widget 整個停擺。
+- 目的不是擋 DDoS（由 CloudFront 內建的 Shield Standard 處理），而是避免單一訪客幾分鐘就用光業主整個月的 quota；quota 用完時，owner 自己的 Test 也會被擋。
+- 不放在 Caddy 這類 sidecar：qa 有 1–4 個 task，各自計數會讓實際上限變成好幾倍。之後可以在 CloudFront 再加一層 AWS WAF rate-based rule，視帳號權限和費用決定。
+
+**部署**
+- frame 頁面：Vite 多 build 一個 `widget.html`（JS、CSS 照常帶 hash 檔名），跟 SPA 一起上傳到 S3。api 從 `RAGCAT_WIDGET_TEMPLATE_URL`（雲端是 `https://<CloudFront>/widget.html`，本機是 Vite 的 `http://localhost:5173/widget.html`）讀這份 HTML，在程序內快取 60 秒；每次請求在 `#root` 寫入 `data-aid`、`data-name`、`data-contact`、`data-available`（escape 過），再加上 `frame-ancestors` header。
+- `widget.js` 放在 `web/public/`，檔名固定（業主貼上的網址不能變）。部署時跟 `index.html` 一樣設 `Cache-Control: no-cache`，沿用既有的 S3 預設 behavior：檔名有副檔名，不會被 SPA rewrite 改寫，不用新增 CloudFront behavior。
+- frame 頁面在 `/v1/*` 底下，沿用既有的 CloudFront behavior 和 ALB 的 api 規則；ALB 的 qa 規則加上 `/v1/widget/*/ask`。
+- 本機試用：`web/widget-demo.html` 是一個虛構商店的網站。`demo…` 開頭的 Assistant 不經過後端，直接開 `widget.html`，用腳本回答（只在 dev 有效）；換成真的 Assistant id 就走上面的完整路徑。
+
+## 8. Discord 整合 — `api` + `discord-bot`（P2）
 
 | Method | Path | 說明 |
 |---|---|---|
@@ -486,7 +536,7 @@ data: {"answered":true,"fallback":null,"usage":{"input_tokens":812,"output_token
 
 Bot 流程：收到 @mention → 查 channel 綁定（在記憶體 cache 60 秒）→ 呼叫 `qa` 的 `ask`（`stream:false`）→ 把引用排成註腳回覆。
 
-## 8. API Keys — `api`（P1）
+## 9. API Keys — `api`（P1）
 
 | Method | Path | 說明 |
 |---|---|---|
@@ -498,7 +548,7 @@ Bot 流程：收到 @mention → 查 channel 綁定（在記憶體 cache 60 秒�
 
 ---
 
-## 9. 內部訊息（SQS → Lambda）
+## 10. 內部訊息（SQS → Lambda）
 
 | Queue | 生產者 | 消費者 | 訊息 |
 |---|---|---|---|
@@ -511,7 +561,7 @@ Bot 流程：收到 @mention → 查 channel 綁定（在記憶體 cache 60 秒�
 - 兩個 queue 都有 DLQ（`maxReceiveCount=3`）。
 - Idempotency：`ingest` 用 conditional write 把 status 從 `awaiting_upload` 切到 `parsing`，重送的訊息會被略過；`embed` 的 reconcile 本身就是 idempotent。
 
-## 10. 錯誤格式
+## 11. 錯誤格式
 
 ```json
 { "error": { "code": "PRECONDITION_FAILED", "message": "Document has changed", "details": { "current_edit_version": 15 } } }
@@ -532,8 +582,8 @@ Bot 流程：收到 @mention → 查 channel 綁定（在記憶體 cache 60 秒�
 
 ---
 
-## 11. 實作優先順序
+## 12. 實作優先順序
 
 - **P0（web MVP）**：`GET /v1/me`、Assistants CRUD、上傳與進度、頁面縮圖、chunk 編輯（list/add/edit/delete/split/merge/restore）、刪除文件、embed（reconcile）、publish 開關、`ask`（SSE）
-- **P1**：jobs、undo、enabled 開關、刪除 Assistant、API keys、rate limit、quota
-- **P2**：Discord、未回答問題紀錄（Questions 分頁）
+- **P1**：jobs、undo、enabled 開關、刪除 Assistant、API keys、quota（Website widget 與它的 rate limit 已完成，見 §7）
+- **P2**：Discord（排在 widget 之後）、未回答問題紀錄（Questions 分頁）

@@ -33,6 +33,8 @@ export interface Assistant {
   pending_changes: number
   content_version: number
   processing: Progress | null
+  /** Sites allowed to embed the Website widget; empty means the widget is off (api-design.md §7). */
+  widget_origins: string[]
   created_at: string
   updated_at: string
 }
@@ -175,7 +177,7 @@ export const api = {
   assistants: () => request<{ items: Assistant[] }>('GET', '/v1/assistants').then((r) => r.items),
   assistant: (aid: string) => request<Assistant>('GET', `/v1/assistants/${aid}`),
   createAssistant: (name: string, fallback_contact = '') => request<Assistant>('POST', '/v1/assistants', { name, fallback_contact }),
-  updateAssistant: (aid: string, patch: Partial<Pick<Assistant, 'name' | 'fallback_contact' | 'published'>>) =>
+  updateAssistant: (aid: string, patch: Partial<Pick<Assistant, 'name' | 'fallback_contact' | 'published' | 'widget_origins'>>) =>
     request<Assistant>('PATCH', `/v1/assistants/${aid}`, patch),
 
   documents: (aid: string) => request<{ items: Doc[] }>('GET', `/v1/assistants/${aid}/documents`).then((r) => r.items),

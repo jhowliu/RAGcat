@@ -1,0 +1,185 @@
+<!doctype html>
+<!-- Dev only: a fictional shop's own website with the RAGcat Website widget pasted in, so the widget
+     can be tried in a host page that isn't RAGcat (docs/api-design.md §7). Not part of the build.
+     The "demo" Assistants answer from a short script based on samples/mochi-returns-policy.pdf. -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Mochi Pet Co. · demo site</title>
+    <style>
+      /* Deliberately not RAGcat's style: this stands in for an owner's own site. */
+      :root {
+        --shop-ink: #2b2620;
+        --shop-muted: #6b6258;
+        --shop-paper: #ffffff;
+        --shop-accent: #2f6b4f;
+        --shop-line: #e6ddd0;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--shop-paper);
+        color: var(--shop-ink);
+        font: 17px/1.55 Georgia, 'Times New Roman', serif;
+      }
+      .dev {
+        padding: 10px 20px;
+        background: var(--shop-ink);
+        color: #f3eee6;
+        font: 13px/1.5 ui-monospace, Menlo, monospace;
+      }
+      .dev a {
+        color: #ffd43b;
+      }
+      .dev strong {
+        color: #fff;
+      }
+      header,
+      main,
+      footer {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding-top: 22px;
+        padding-bottom: 22px;
+        border-bottom: 1px solid var(--shop-line);
+      }
+      .brand {
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+      }
+      nav {
+        display: flex;
+        gap: 22px;
+        flex-wrap: wrap;
+        font-size: 15px;
+      }
+      nav a {
+        color: var(--shop-ink);
+        text-decoration: none;
+      }
+      .hero {
+        display: grid;
+        gap: 24px;
+        padding: 64px 0 40px;
+      }
+      .hero h1 {
+        max-width: 14ch;
+        margin: 0;
+        font-size: clamp(36px, 6vw, 60px);
+        line-height: 1.05;
+      }
+      .hero p {
+        max-width: 52ch;
+        margin: 0;
+        color: var(--shop-muted);
+      }
+      .shop-btn {
+        justify-self: start;
+        padding: 12px 22px;
+        border-radius: 2px;
+        background: var(--shop-accent);
+        color: #fff;
+        text-decoration: none;
+        font-size: 15px;
+      }
+      .grid {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        padding-bottom: 64px;
+      }
+      .item {
+        padding: 0 0 16px;
+        border-bottom: 1px solid var(--shop-line);
+      }
+      .item .swatch {
+        aspect-ratio: 4 / 3;
+        margin-bottom: 14px;
+        background: var(--tone);
+      }
+      .item h2 {
+        margin: 0 0 4px;
+        font-size: 19px;
+      }
+      .item p {
+        margin: 0;
+        color: var(--shop-muted);
+        font-size: 15px;
+      }
+      footer {
+        padding-top: 24px;
+        padding-bottom: 120px;
+        border-top: 1px solid var(--shop-line);
+        color: var(--shop-muted);
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dev">
+      <strong>Demo site for the RAGcat Website widget.</strong> Mochi Pet Co. is fictional.
+      Assistant: <a href="?aid=demo">live</a> · <a href="?aid=demo-off">not available</a> · <a href="?aid=demo-quota">out of answers</a>
+      · Language: <a href="?lang=en">EN</a> · <a href="?lang=zh">中文</a>
+      <br />Try “Can I return an opened bag of kibble?”, a question the documents don't cover, or <strong>/error</strong>.
+      More than 4 questions a minute shows the rate limit.
+    </div>
+    <header>
+      <span class="brand">Mochi Pet Co.</span>
+      <nav aria-label="Shop">
+        <a href="#">Food</a>
+        <a href="#">Treats</a>
+        <a href="#">Care</a>
+        <a href="#">Shipping &amp; returns</a>
+      </nav>
+    </header>
+    <main>
+      <section class="hero">
+        <h1>Good food for small companions.</h1>
+        <p>Kibble, wet food and treats for cats and small dogs, shipped across Australia. Orders over $89 ship free.</p>
+        <a class="shop-btn" href="#">Shop food</a>
+      </section>
+      <section class="grid" aria-label="Featured">
+        <article class="item" style="--tone: #e9d9c2">
+          <div class="swatch"></div>
+          <h2>Salmon kibble, 2 kg</h2>
+          <p>Grain-free, for adult cats.</p>
+        </article>
+        <article class="item" style="--tone: #d7e2d2">
+          <div class="swatch"></div>
+          <h2>Chicken pâté, 12 pack</h2>
+          <p>Wet food in single-serve tins.</p>
+        </article>
+        <article class="item" style="--tone: #ecd3cb">
+          <div class="swatch"></div>
+          <h2>Dental treats</h2>
+          <p>Crunchy bites for clean teeth.</p>
+        </article>
+      </section>
+    </main>
+    <footer>© Mochi Pet Co. (fictional) · help@mochipet.example</footer>
+
+    <script>
+      // The owner's pasted line, built here so the links above can switch the demo Assistant.
+      const params = new URLSearchParams(location.search)
+      const lang = params.get('lang')
+      if (lang) document.documentElement.lang = lang === 'zh' ? 'zh-Hant' : 'en'
+      const tag = document.createElement('script')
+      tag.src = '/widget.js'
+      tag.async = true
+      tag.dataset.assistant = params.get('aid') || 'demo'
+      document.body.appendChild(tag)
+    </script>
+  </body>
+</html>

@@ -23,6 +23,7 @@ def _to_item(a: Assistant) -> dict[str, Any]:
         "published": a.published,
         "content_version": a.content_version,
         "excluded_document_ids": a.excluded_document_ids or None,
+        "widget_origins": a.widget_origins,
         "created_at": a.created_at,
         "updated_at": a.updated_at,
     }
@@ -38,6 +39,7 @@ def _from_item(item: dict[str, Any]) -> Assistant:
         published=bool(item.get("published", False)),
         content_version=plain(item.get("content_version", 0)),
         excluded_document_ids=set(item.get("excluded_document_ids") or ()),
+        widget_origins=list(item.get("widget_origins") or ()),
         created_at=item.get("created_at", ""),
         updated_at=item.get("updated_at", ""),
     )
@@ -61,7 +63,13 @@ class DynamoAssistantRepo:
         self.table.update(
             f"AST#{a.id}",
             "META",
-            set_fields={"name": a.name, "fallback_contact": a.fallback_contact, "published": a.published, "updated_at": a.updated_at},
+            set_fields={
+                "name": a.name,
+                "fallback_contact": a.fallback_contact,
+                "published": a.published,
+                "widget_origins": a.widget_origins,
+                "updated_at": a.updated_at,
+            },
         )
 
     def bump_content_version(self, aid: str, updated_at: str) -> None:

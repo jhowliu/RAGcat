@@ -42,8 +42,10 @@ export interface I18n {
 
 const Ctx = createContext<I18n | null>(null)
 
-export function I18nProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>(storedLang)
+/** `initialLang` lets an embedded surface (the Website widget) follow its host page instead of the
+ * language saved for the app. */
+export function I18nProvider({ children, initialLang }: { children: ReactNode; initialLang?: Lang }) {
+  const [lang, setLangState] = useState<Lang>(() => initialLang ?? storedLang())
   const setLang = useCallback((next: Lang) => {
     setLangState(next)
     try {

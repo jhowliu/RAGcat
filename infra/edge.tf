@@ -43,7 +43,7 @@ resource "aws_lb_listener_rule" "qa" {
     target_group_arn = aws_lb_target_group.main["qa"].arn
   }
   condition {
-    path_pattern { values = ["/v1/assistants/*/ask"] }
+    path_pattern { values = ["/v1/assistants/*/ask", "/v1/widget/*/ask"] } # owner Test and Website widget
   }
 }
 

@@ -14,6 +14,9 @@ class Cache(Protocol):
     def get(self, key: str) -> str | None: ...
     def set(self, key: str, value: str, ttl: int) -> None: ...
     def delete(self, key: str) -> None: ...
+    def incr(self, key: str, ttl: int) -> int | None:
+        """Add one to a counter that expires `ttl` seconds after it starts; None when the cache is down."""
+        ...
 
 
 def get_json(cache: Cache, key: str) -> Any | None:
@@ -24,6 +27,16 @@ def get_json(cache: Cache, key: str) -> Any | None:
 def set_json(cache: Cache, key: str, value: Any, ttl: int) -> None:
     cache.set(key, json.dumps(value), ttl)
 
+
+def fixed_window(cache: Cache, key: str, limit: int, window: int, now: float) -> int | None:
+    """Count one request in the current `window`-second slot. Returns the seconds until the next
+    slot once more than `limit` requests have been counted, else None. A cache outage lets the
+    request through: the owner's monthly answer quota still applies."""
+    slot = int(now // window)
+    count = cache.incr(f"{key}:{slot}", window)
+    if count is None or count <= limit:
+        return None
+    return max(1, window - int(now % window))
 
 
 class MemoryCache:
@@ -50,6 +63,15 @@ class MemoryCache:
         with self._lock:
             self._data.pop(key, None)
 
+    def incr(self, key: str, ttl: int) -> int | None:
+        with self._lock:
+            entry = self._data.get(key)
+            if entry is None or entry[0] < time.monotonic():
+                entry = (time.monotonic() + ttl, "0")
+            count = int(entry[1]) + 1
+            self._data[key] = (entry[0], str(count))
+            return count
+
 
 class ValkeyCache:
     def __init__(self, url: str) -> None:
@@ -72,3 +94,13 @@ class ValkeyCache:
             self.client.delete(key)
         except redis.RedisError:
             pass
+
+    def incr(self, key: str, ttl: int) -> int | None:
+        try:
+            pipe = self.client.pipeline()
+            pipe.incr(key)
+            pipe.expire(key, ttl, nx=True)
+            count, _ = pipe.execute()
+            return int(count)
+        except redis.RedisError:
+            return None
