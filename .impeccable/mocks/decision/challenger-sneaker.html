@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Stock wall sketch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--board:#C8742E;--board-d:#B0631F;--ink:#161210;--tissue:#F4F1EA;--live:#2F6B4F;--warn:#E0B43A}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1440px;height:900px;overflow:hidden}
+  body{background:var(--board);color:var(--ink);font-family:Archivo,system-ui,sans-serif;position:relative}
+  header{position:absolute;left:72px;right:72px;top:26px;display:flex;align-items:center;gap:28px;font-weight:700;font-size:15px}
+  header b{font-weight:900;font-stretch:65%;font-size:34px;margin-right:auto}
+  header .cta{background:var(--ink);color:var(--board);padding:9px 16px;border-radius:3px}
+  h1{position:absolute;left:72px;top:120px;width:640px;font-weight:900;font-stretch:62%;font-size:170px;line-height:.84;text-transform:uppercase}
+  .rule{position:absolute;left:72px;top:600px;width:560px;height:4px;background:var(--ink)}
+  .lead{position:absolute;left:72px;top:628px;width:520px;font-family:'Martian Mono',monospace;font-size:17px;line-height:1.6}
+  .btns{position:absolute;left:72px;top:740px;display:flex;gap:14px}
+  .btn{height:54px;padding:0 26px;display:flex;align-items:center;font-weight:800;font-size:17px;letter-spacing:.06em;border:3px solid var(--ink);border-radius:3px;text-transform:uppercase}
+  .btn.p{background:var(--ink);color:var(--board)}
+  .wall{position:absolute;left:760px;top:96px;width:720px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .box{height:170px;background:var(--board-d);border:2px solid rgba(0,0,0,.35);padding:16px 18px;position:relative}
+  .box::before{content:"";position:absolute;top:-2px;left:50%;width:46px;height:20px;margin-left:-23px;background:rgba(0,0,0,.45);border-radius:0 0 23px 23px}
+  .box b{display:block;font-weight:900;font-stretch:65%;font-size:28px;text-transform:uppercase}
+  .box small{font-family:'Martian Mono',monospace;font-size:14px}
+  .box .chips{position:absolute;right:14px;top:16px;bottom:16px;width:14px;display:flex;flex-direction:column;gap:3px}
+  .box .chips i{flex:1}
+  .open{position:absolute;left:700px;top:500px;width:640px;height:330px;background:var(--board-d);border:3px solid var(--ink);box-shadow:0 20px 40px rgba(0,0,0,.35);padding:20px}
+  .open .page{position:absolute;left:30px;top:-150px;width:390px;height:260px;background:var(--tissue);transform:rotate(-3deg);padding:22px;font-size:15px;line-height:1.5;box-shadow:0 6px 14px rgba(0,0,0,.25)}
+  .open .page mark{background:var(--warn);padding:0 4px}
+  .open .end{position:absolute;bottom:20px;left:24px}
+  .open .end b{font-weight:900;font-stretch:65%;font-size:44px;text-transform:uppercase}
+</style>
+</head>
+<body>
+<header><b>RAGcat</b><span>How it works</span><span>Trust</span><span>Pricing</span><span>EN / 中文</span><span class="cta">Start free</span></header>
+<h1>Every answer has a source</h1>
+<div class="rule"></div>
+<p class="lead">Your policies and manuals, shelved as Documents. Every reply cites the one it came from.</p>
+<div class="btns"><span class="btn p">Upload a PDF →</span><span class="btn">See the product</span></div>
+<div class="wall">
+  <div class="box"><b>Shipping rules</b><small>shipping.pdf · 12 pp</small><div class="chips"><i style="background:var(--live)"></i><i style="background:var(--live)"></i><i style="background:var(--ink)"></i></div></div>
+  <div class="box"><b>Care guide</b><small>care-guide-zh.pdf · 8 pp</small><div class="chips"><i style="background:var(--live)"></i><i style="background:var(--warn)"></i><i style="background:var(--ink)"></i></div></div>
+  <div class="box"><b>Warranty</b><small>warranty.pdf · 4 pp</small><div class="chips"><i style="background:var(--live)"></i><i style="background:var(--ink)"></i></div></div>
+  <div class="box" style="opacity:.0"></div>
+</div>
+<div class="open">
+  <div class="page"><b>2. Opened items</b><br>Unopened items can be returned within 30 days. <mark>Opened items cannot be returned unless the item is defective.</mark> [1]</div>
+  <div class="end"><b>Returns policy</b><br><span style="font-family:'Martian Mono',monospace;font-size:15px">returns-policy.pdf · p. 3 · cited</span></div>
+</div>
+</body>
+</html>

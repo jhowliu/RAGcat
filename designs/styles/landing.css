@@ -1,0 +1,56 @@
+/* RAGcat landing page
+   As built in the H3 prototypes (prototypes/01-landing.html), with values replaced by tokens.
+   Requires tokens/tokens.css. Treat as a reference implementation: port the rules into your
+   component system (CSS modules, Tailwind, etc.) rather than copying class names blindly. */
+body{margin:0;background:var(--rc-bg)}
+a{color:var(--rc-ink)}
+a:hover{color:var(--rc-ink)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--rc-ink);outline-offset:3px}
+.wrap{max-width:1160px;margin:0 auto;padding-left:20px;padding-right:20px}
+.serif{font-family:var(--rc-font-serif);font-weight:600;letter-spacing:-0.015em}
+.mono{font-family:var(--rc-font-mono)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 20px;box-sizing:border-box;border:1px solid var(--rc-ink);border-radius:8px;font:inherit;font-weight:500;font-size:15px;text-decoration:none;cursor:pointer;transition:background-color var(--rc-duration) var(--rc-ease)}
+.btn-dark{background:var(--rc-ink);color:var(--rc-on-ink)}
+.btn-dark:hover{background:var(--rc-ink-hover);color:var(--rc-on-ink)}
+.btn-line{background:var(--rc-surface);color:var(--rc-ink)}
+.btn-line:hover{background:var(--rc-surface-hover)}
+.btn-light{background:var(--rc-bg);color:var(--rc-ink);border-color:var(--rc-on-ink)}
+.btn-light:hover{background:var(--rc-on-ink-hover)}
+.navlink{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:6px;font-size:15px;text-decoration:none;color:var(--rc-text-control);white-space:nowrap}
+.navlink:hover{background:var(--rc-bg-hover);color:var(--rc-ink)}
+.seg{min-height:34px;padding:0 11px;border:0;border-radius:5px;background:transparent;font:inherit;font-size:13px;font-weight:500;color:var(--rc-text-control);cursor:pointer}
+.seg[aria-pressed="true"]{background:var(--rc-ink);color:var(--rc-on-ink)}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--rc-accent-eyebrow)}
+.h1{margin:0;font-size:42px;line-height:1.05}
+.h2{margin:0;font-size:32px;line-height:1.15}
+.lead{margin:0;font-size:18px;line-height:1.7;color:var(--rc-text-secondary)}
+.fn{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 3px;box-sizing:border-box;border-radius:3px;background:var(--rc-ink);color:var(--rc-on-ink);font-family:var(--rc-font-mono);font-size:10px;font-weight:500;line-height:1;vertical-align:2px}
+.panel{background:var(--rc-surface);border:1px solid var(--rc-border);border-radius:12px}
+.hero,.preview{display:grid;gap:40px;align-items:center}
+.steps,.plans{display:grid;gap:28px;margin:0;padding:0;list-style:none}
+.trust{display:grid;gap:40px}
+.pane2{display:grid}
+.sc-page{grid-column:2 / 13;grid-row:1}
+.sc-chat{grid-column:1 / 12;grid-row:2;margin-top:-28px}
+.landnav{order:3;width:100%;overflow-x:auto}
+.signin{display:none}
+@media (min-width:640px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+.plans{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (min-width:768px){.wrap{padding-left:40px;padding-right:40px}
+.h1{font-size:64px}
+.h2{font-size:42px}
+.landnav{order:0;width:auto}
+.signin{display:inline-flex}
+.sc-page{grid-column:4 / 13}
+.sc-chat{grid-column:1 / 10;margin-top:-48px}
+.trust{grid-template-columns:repeat(2,minmax(0,1fr));gap:56px}
+}
+@media (min-width:960px){.hero{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:64px}
+.preview{grid-template-columns:minmax(0,0.8fr) minmax(0,1.2fr);gap:64px}
+.steps{grid-template-columns:repeat(4,minmax(0,1fr))}
+.plans{grid-template-columns:repeat(3,minmax(0,1fr))}
+.pane2{grid-template-columns:minmax(0,0.9fr) minmax(0,1.1fr)}
+}
+@media (prefers-reduced-motion: reduce){.btn{transition:none}
+}

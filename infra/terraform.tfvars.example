@@ -1,0 +1,14 @@
+qut_username     = "YOUR_QUT_USERNAME@qut.edu.au"
+cognito_pool_id  = "ap-southeast-2_EXISTING_POOL_ID"
+
+# Optional: verified shared ECS cluster and existing network with private-subnet egress.
+# existing_cluster_arn = "arn:aws:ecs:ap-southeast-2:ACCOUNT_ID:cluster/EXISTING_CLUSTER"
+# existing_network = {
+#   vpc_id             = "vpc-..."
+#   public_subnet_ids  = ["subnet-...", "subnet-..."]
+#   private_subnet_ids = ["subnet-...", "subnet-..."]
+# }
+
+deploy_workloads = false
+# After publishing both immutable ECR tags, set deploy_workloads = true and image_tag below.
+image_tag = "unpublished"

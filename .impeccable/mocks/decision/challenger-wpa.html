@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Park poster sketch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Extra+Condensed:wght@800;900&family=Figtree:wght@500;800&display=swap" rel="stylesheet">
+<style>
+  :root{--sky:#2C7A7B;--mustard:#E0A526;--pine:#3E6B48;--brick:#B5462E;--ink:#1C1C1C;--stock:#F4EBD0}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1440px;height:900px;overflow:hidden}
+  body{background:var(--sky);font-family:Figtree,system-ui,sans-serif;position:relative;color:var(--ink)}
+  header{position:absolute;left:96px;right:96px;top:24px;display:flex;gap:28px;align-items:center;color:var(--stock);font-weight:800;font-size:16px}
+  header b{margin-right:auto;font-family:'Sofia Sans Extra Condensed';font-size:34px;letter-spacing:.04em}
+  .sun{position:absolute;left:1040px;top:110px;width:200px;height:200px;border-radius:50%;background:var(--mustard)}
+  .stack{position:absolute;bottom:250px}
+  .stack i{display:block;height:34px;margin:0 auto;border-radius:3px}
+  .cat{position:absolute;left:600px;top:200px;width:220px;height:230px}
+  .cap{position:absolute;left:0;right:0;bottom:0;height:250px;background:var(--ink);color:var(--stock);padding:30px 96px;display:flex;align-items:center;justify-content:space-between}
+  .cap h1{font-family:'Sofia Sans Extra Condensed';font-weight:900;font-size:120px;line-height:.86;letter-spacing:.01em;text-transform:uppercase;width:820px}
+  .cap .act{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+  .btn{height:56px;padding:0 28px;display:flex;align-items:center;font-weight:800;font-size:18px;border:3px solid var(--stock);border-radius:4px}
+  .btn.p{background:var(--mustard);color:var(--ink);border-color:var(--mustard)}
+</style>
+</head>
+<body>
+<header><b>RAGCAT</b><span>How it works</span><span>Trust</span><span>Pricing</span><span>EN / 中文</span><span>Start free</span></header>
+<div class="sun"></div>
+<div class="stack" style="left:60px;width:520px"><i style="width:60%;background:var(--pine)"></i><i style="width:70%;background:var(--brick)"></i><i style="width:80%;background:var(--mustard)"></i><i style="width:90%;background:var(--pine)"></i><i style="width:100%;background:var(--brick)"></i></div>
+<div class="stack" style="left:520px;width:420px"><i style="width:56%;background:var(--mustard)"></i><i style="width:64%;background:var(--pine)"></i><i style="width:72%;background:var(--brick)"></i><i style="width:80%;background:var(--mustard)"></i><i style="width:88%;background:var(--pine)"></i><i style="width:96%;background:var(--brick)"></i><i style="width:100%;background:var(--mustard)"></i></div>
+<div class="stack" style="left:900px;width:520px"><i style="width:70%;background:var(--brick)"></i><i style="width:80%;background:var(--pine)"></i><i style="width:90%;background:var(--mustard)"></i><i style="width:100%;background:var(--pine)"></i></div>
+<svg class="cat" viewBox="0 0 220 230" aria-hidden="true"><path d="M60 230 C50 170 64 120 110 112 C156 120 170 170 160 230 Z" fill="#1C1C1C"/><path d="M158 220 C200 214 204 170 184 150" stroke="#1C1C1C" stroke-width="14" fill="none" stroke-linecap="round"/><g transform="translate(60,22) scale(3.1)"><path d="M5 14V4.5l6.5 4.5h9L27 4.5V14c0 7.2-4.9 13-11 13S5 21.2 5 14z" fill="#1C1C1C"/><circle cx="12.2" cy="16" r="3" fill="#E0A526"/><circle cx="19.8" cy="16" r="3" fill="#E0A526"/></g></svg>
+<section class="cap"><h1>Every answer, with its source</h1><div class="act"><span class="btn p">Upload a PDF</span><span class="btn">See the product</span></div></section>
+</body>
+</html>

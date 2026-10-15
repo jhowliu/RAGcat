@@ -1,0 +1,7 @@
+# Only pyproject.toml, uv.lock and src/ are needed in the image.
+.venv/
+.data/
+.pytest_cache/
+tests/
+**/__pycache__/
+*.pyc

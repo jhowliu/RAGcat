@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Reviewed copy sketch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<style>
+  :root{--paper:#FFFFFF;--toner:#141414;--hl:#F7F34B;--pink:#FF6FAE;--blue:#3B6CF6;--green:#3CCB7F;--desk:#E9E6E1}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1440px;height:900px;overflow:hidden}
+  body{background:var(--desk);font-family:Archivo,system-ui,sans-serif;color:var(--toner);position:relative}
+  .sheet{position:absolute;left:80px;top:40px;width:1140px;height:900px;background:var(--paper);box-shadow:0 2px 0 rgba(0,0,0,.06),0 18px 40px rgba(0,0,0,.1);padding:56px 96px}
+  .top{display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:600}
+  .top b{font-weight:900;font-size:24px}
+  .top .r{display:flex;gap:20px;align-items:center}
+  .top .cta{background:var(--toner);color:#fff;padding:9px 16px;border-radius:3px}
+  .doc{margin-top:70px;display:grid;grid-template-columns:1fr 300px;gap:56px}
+  .eyebrow{font-weight:700;font-size:15px;letter-spacing:.1em}
+  h1{margin-top:18px;font-size:104px;line-height:.98;font-weight:800;font-stretch:88%;letter-spacing:-.02em}
+  h1 .m{background:linear-gradient(transparent 18%,var(--hl) 18% 88%,transparent 88%);padding:0 6px;margin:0 -6px}
+  .lead{margin-top:28px;font-size:20px;line-height:1.5;max-width:640px}
+  .btns{margin-top:34px;display:flex;gap:14px}
+  .btn{height:52px;padding:0 24px;display:flex;align-items:center;font-weight:800;font-size:18px;border:2px solid var(--toner);border-radius:3px}
+  .btn.p{background:var(--toner);color:#fff}
+  .note{border-left:3px solid var(--pink);padding:6px 0 6px 18px;font-size:16px;line-height:1.5;margin-top:150px}
+  .note b{display:block;font-size:14px;letter-spacing:.08em;margin-bottom:6px}
+  .note .q{font-style:italic}
+  .ln{height:10px;background:#e3e1dc;margin-top:12px;border-radius:2px}
+  .tabs{position:absolute;left:1220px;top:120px;display:flex;flex-direction:column;gap:14px}
+  .tab{width:150px;height:62px;border-radius:0 8px 8px 0;display:flex;align-items:center;padding-left:18px;font-weight:800;font-size:17px}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="top"><b>RAGcat</b><div class="r"><span>EN / 中文</span><span>Sign in</span><span class="cta">Start free</span></div></div>
+  <div class="doc">
+    <div>
+      <div class="eyebrow">GROUNDED CUSTOMER SUPPORT · p. 1</div>
+      <h1>Every answer, <span class="m">with its source.</span></h1>
+      <p class="lead">RAGcat turns your return policies, shipping rules and product manuals into a Discord support assistant. Every reply cites the document and page it relied on.</p>
+      <div class="btns"><span class="btn p">Upload a PDF</span><span class="btn">See the product</span></div>
+      <div class="ln" style="width:90%;margin-top:60px"></div><div class="ln" style="width:80%"></div>
+    </div>
+    <div class="note"><b>CUSTOMER ASKED</b><span class="q">Can I return an opened bag of kibble?</span><br><br><b>RAGCAT · p. 3</b>Only if the item is defective.</div>
+  </div>
+</div>
+<div class="tabs">
+  <div class="tab" style="background:var(--hl)">How it works</div>
+  <div class="tab" style="background:var(--pink)">Review</div>
+  <div class="tab" style="background:var(--blue);color:#fff">Trust</div>
+  <div class="tab" style="background:var(--green)">Pricing</div>
+</div>
+</body>
+</html>

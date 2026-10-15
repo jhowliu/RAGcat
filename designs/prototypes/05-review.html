@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAGcat · Review & test · Step 2</title>
+<!-- Source of truth for tokens: ../tokens/tokens.css · component specs: ../DESIGN.md -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Noto+Serif+TC:wght@500;600&amp;family=Noto+Sans+TC:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0;background:#FAF8F4}
+a{color:#1F1D1C}a:hover{color:#1F1D1C}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,label:focus-within{outline:2px solid #1F1D1C;outline-offset:2px}
+.wrap{max-width:1200px;margin:0 auto;padding-left:16px;padding-right:16px}
+.serif{font-family:'Source Serif 4','Noto Serif TC',serif;font-weight:600;letter-spacing:-0.015em}
+.mono{font-family:'IBM Plex Mono',monospace}
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;box-sizing:border-box;border:1px solid #1F1D1C;border-radius:8px;font:inherit;font-weight:500;font-size:15px;text-decoration:none;cursor:pointer;white-space:nowrap;transition:background-color 140ms ease-out}
+.btn-dark{background:#1F1D1C;color:#FAF8F4}.btn-dark:hover{background:#3A3634;color:#FAF8F4}
+.btn-line{background:#FFFFFF;color:#1F1D1C}.btn-line:hover{background:#F2EEE7}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+.btn-text{min-height:44px;padding:0 4px;border:0;background:transparent;font:inherit;font-size:15px;color:#1F1D1C;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+.navlink{display:inline-flex;align-items:center;min-height:44px;padding:0 4px;margin-right:18px;border-bottom:2px solid transparent;font-size:15px;text-decoration:none;color:#5C5754;white-space:nowrap}
+.navlink[aria-current="page"]{border-bottom-color:#1F1D1C;color:#1F1D1C;font-weight:600}
+.navlink:hover{color:#1F1D1C}
+.app-nav{order:3;width:100%;overflow-x:auto}
+.ibtn{width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;border:1px solid #D9D2C7;border-radius:8px;background:#FFFFFF;cursor:pointer}
+.ibtn:disabled{opacity:0.4;cursor:not-allowed}
+.panel{background:#FFFFFF;border:1px solid #E4DED5;border-radius:12px}
+.phead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid #E4DED5}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:1px 8px;border-radius:4px;white-space:nowrap}
+.chip-warn{background:#FBF0D2;color:#6B4A12}
+.chip-info{background:#E7F1F6;color:#2C556A}
+.chip-neutral{background:#EFEAE2;color:#4B4643}
+.chip-attn{background:#FFFFFF;box-shadow:inset 0 0 0 1px #1F1D1C;color:#1F1D1C}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.field{width:100%;min-height:44px;padding:0 12px;box-sizing:border-box;border:1px solid #CFC6BA;border-radius:8px;background:#FFFFFF;font:inherit;font-size:16px;color:#1F1D1C}
+.lbl{font-size:14px;font-weight:500}
+.hint{font-size:13px;color:#6B6561}
+.seg{min-height:34px;padding:0 12px;border:0;border-radius:5px;background:transparent;font:inherit;font-size:13px;font-weight:500;color:#3F3B39;cursor:pointer;white-space:nowrap}
+.seg[aria-pressed="true"],.seg[aria-selected="true"]{background:#1F1D1C;color:#FAF8F4}
+.tabbtn{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 2px;margin-right:22px;margin-bottom:-1px;border:0;border-bottom:2px solid transparent;background:transparent;font:inherit;font-size:15px;color:#5C5754;cursor:pointer;white-space:nowrap}
+.tabbtn[aria-selected="true"]{border-bottom-color:#1F1D1C;color:#1F1D1C;font-weight:600}
+.cnt{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;padding:0 6px;border-radius:4px;background:#EFEAE2;color:#4B4643}
+.cnt-attn{background:#FFFFFF;box-shadow:inset 0 0 0 1px #1F1D1C;color:#1F1D1C}
+.tool{min-height:32px;padding:0 10px;border:1px solid #CFC6BA;border-radius:6px;background:#FFFFFF;font:inherit;font-size:13px;color:#1F1D1C;cursor:pointer}
+.tool:disabled{opacity:0.4;cursor:not-allowed}
+.st-lbl{display:none;font-size:14px;white-space:nowrap}
+.st-lbl.cur{display:inline}
+.two{display:grid;gap:20px;align-items:start}
+.cards{display:grid;gap:16px;margin:0;padding:0;list-style:none;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+.acard{display:flex;flex-direction:column;justify-content:space-between;gap:18px;min-height:210px;box-sizing:border-box;padding:20px;text-decoration:none;transition:border-color 140ms ease-out}
+.acard:hover{border-color:#1F1D1C}
+.desk-flex,.desk-grid,.desk-inline{display:none}
+.phone-flex{display:flex}
+.phone-block{display:block}
+.drow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center}
+.drow.desk-grid{display:none}
+.pane{display:none;flex-direction:column;min-width:0}
+.pane.on{display:flex}
+.panes{display:grid}
+@media (min-width:768px){
+.wrap{padding-left:32px;padding-right:32px}
+.app-nav{order:0;width:auto}
+.st-lbl{display:inline}
+.desk-grid{display:grid}.drow.desk-grid{display:grid}.desk-inline{display:inline-flex}
+.phone-block{display:none}
+.drow{grid-template-columns:minmax(0,1fr) 70px 110px 200px 56px}
+}
+@media (min-width:1024px){
+.two{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:24px}
+.desk-flex{display:flex}
+.phone-flex{display:none}
+.panes{grid-template-columns:minmax(0,0.95fr) minmax(0,1.05fr)}
+.pane-src{display:flex;border-right:1px solid #E4DED5}
+.pane-psg.dk{display:flex}
+.pane{height:700px}
+.scroll{overflow:auto}
+}
+@media (min-width:1024px){.pane.pane-r{height:654px}}
+@media (prefers-reduced-motion: reduce){.btn,.acard{transition:none}}
+</style>
+</head>
+<body>
+<div id="dc-root"></div>
+<template id="dc-template">
+<div style="min-height: 100vh; background: #FAF8F4; color: #1F1D1C; font-family: 'IBM Plex Sans', 'Noto Sans TC', sans-serif; font-size: 16px; line-height: 1.6">
+<header style="position: sticky; top: 0; z-index: 10; background: rgba(250, 248, 244, 0.96); backdrop-filter: blur(8px); border-bottom: 1px solid #E4DED5">
+<div class="wrap" style="min-height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 0 20px; flex-wrap: wrap; padding-top: 6px; padding-bottom: 6px">
+<a href="#home" style="display: flex; align-items: center; gap: 10px; text-decoration: none"><svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 14V4.5l6.5 4.5h9L27 4.5V14c0 7.2-4.9 13-11 13S5 21.2 5 14z" fill="#1F1D1C"></path><circle cx="12.2" cy="16" r="3" fill="#FAF8F4"></circle><circle cx="19.8" cy="16" r="3" fill="#FAF8F4"></circle><rect x="15" y="15.3" width="2" height="1.4" fill="#FAF8F4"></rect></svg><span style="font-size: 18px; font-weight: 600">RAGcat</span></a>
+<nav aria-label="App" class="app-nav" style="display: flex">
+<a href="#assistants" class="navlink" aria-current="page">Assistants</a>
+<a href="#usage" class="navlink">Usage</a>
+<a href="#billing" class="navlink">Billing</a>
+</nav>
+<div style="display: flex; align-items: center; gap: 8px">
+<button type="button" class="ibtn" aria-label="Notifications"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 10a6 6 0 0 1 12 0v4l2 3H4l2-3z"></path><path d="M10 20h4"></path></svg></button>
+<span aria-label="Account: Jay" style="width: 36px; height: 36px; border-radius: 50%; background: #1F1D1C; color: #FAF8F4; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500">J</span>
+</div>
+</div>
+</header>
+<main class="wrap" style="max-width: 1320px; padding-top: 24px; padding-bottom: 48px; display: flex; flex-direction: column; gap: 18px">
+<a href="#assistants" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; font-size: 14px; color: #5C5754; text-decoration: none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5C5754" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"></path></svg>Assistants</a><nav aria-label="New Assistant steps"><ol style="margin: 0; padding: 0; list-style: none; display: flex; align-items: center; gap: 10px"><li style="display: flex; align-items: center; gap: 8px"><a href="#setup" style="display: flex; align-items: center; gap: 8px; text-decoration: none"><span style="width: 26px; height: 26px; box-sizing: border-box; flex-shrink: 0; border-radius: 50%; border: 1px solid #1F1D1C; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"></path></svg></span><span class="st-lbl">Setup</span></a></li><li aria-hidden="true" style="flex: 1 1 24px; min-width: 16px; height: 1px; background: #D9D2C7"></li><li aria-current="step" style="display: flex; align-items: center; gap: 8px"><span style="width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; background: #1F1D1C; color: #FAF8F4; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600">2</span><span class="st-lbl cur" style="font-weight: 600">Review &amp; test</span><span class="hint" style="white-space: nowrap">· Step 2 of 3</span></li><li aria-hidden="true" style="flex: 1 1 24px; min-width: 16px; height: 1px; background: #D9D2C7"></li><li style="display: flex; align-items: center; gap: 8px; color: #8A837E"><span style="width: 26px; height: 26px; box-sizing: border-box; flex-shrink: 0; border-radius: 50%; border: 1px solid #CFC6BA; color: #8A837E; display: inline-flex; align-items: center; justify-content: center; font-size: 13px">3</span><span class="st-lbl">Publish &amp; connect</span></li></ol></nav>
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+<div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+<label for="doc-pick" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Document</label>
+<select id="doc-pick" class="field mono" style="width: auto; min-height: 40px; font-size: 14px"><option>returns-policy.pdf · 24 pages</option><option>shipping-policy.pdf · 12 pages</option></select>
+<span aria-live="polite" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #4B4643"><span class="dot" style="background: #5E9A55"></span>{{saveLabel}}</span>
+</div>
+<div style="display: flex; align-items: center; gap: 8px">
+<button type="button" class="ibtn" aria-label="Undo" disabled="{{cannotUndo}}" onClick="{{undo}}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"></path><path d="M4 9h11a5 5 0 0 1 0 10h-3"></path></svg></button>
+<a href="#publish" class="btn btn-dark">Next: Publish &amp; connect<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FAF8F4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></a>
+</div>
+</div>
+
+<div role="tablist" aria-label="View" class="phone-flex" style="gap: 2px; padding: 2px; border: 1px solid #D9D2C7; border-radius: 7px; background: #FFFFFF; align-self: flex-start">
+<button type="button" class="seg" role="tab" aria-selected="{{vSrc}}" onClick="{{showSrc}}">Source</button>
+<button type="button" class="seg" role="tab" aria-selected="{{vPsg}}" onClick="{{showPsg}}">Passages {{count}}</button>
+<button type="button" class="seg" role="tab" aria-selected="{{vTest}}" onClick="{{showTest}}">Test</button>
+</div>
+
+<div class="panel panes" style="overflow: hidden">
+<section aria-label="Source PDF" class="{{srcClass}}" style="background: #F4F0E9">
+<div class="phead" style="background: #FFFFFF"><span style="font-size: 14px; font-weight: 600">Source</span><span style="display: flex; align-items: center; gap: 4px"><button type="button" class="ibtn" aria-label="Previous page" style="width: 34px; height: 34px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"></path></svg></button><span class="mono" style="font-size: 13px; min-width: 70px; text-align: center">p. {{page}} / 24</span><button type="button" class="ibtn" aria-label="Next page" style="width: 34px; height: 34px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></button></span></div>
+<div class="scroll" style="flex-grow: 1; padding: 22px; display: flex; justify-content: center">
+<div role="img" aria-label="{{pdfLabel}}" style="position: relative; width: 100%; max-width: 460px; aspect-ratio: 8.5 / 11; background: #FFFFFF; border: 1px solid #E4DED5; box-shadow: 0 8px 24px rgba(31, 29, 28, 0.06)">
+<span class="mono" style="position: absolute; left: 8%; right: 8%; top: 3%; display: flex; justify-content: space-between; font-size: 9px; color: #A39C95"><span>Mochi Pet Co. · Returns policy</span><span>{{page}}</span></span>
+<span style="position: absolute; left: 8%; top: 6%; width: 36%; height: 1.4%; background: #3F3B39"></span>
+<template data-for="{{lines}}" data-as="ln"><span style="{{ln}}"></span></template>
+<template data-if="{{hasTable}}"><div style="position: absolute; left: 8%; top: 31%; width: 84%; height: 22%; border: 1px solid #A39C95; display: grid; grid-template-rows: repeat(4, minmax(0, 1fr))"><span style="background: #F1ECE4; border-bottom: 1px solid #A39C95"></span><span style="border-bottom: 1px solid #E4DED5"></span><span style="border-bottom: 1px solid #E4DED5"></span><span></span></div></template>
+<div style="{{hlStyle}}"><span class="mono" style="position: absolute; left: -1px; top: -22px; padding: 1px 6px; border-radius: 3px; background: #1F1D1C; color: #FAF8F4; font-size: 10px">{{selId}}</span></div>
+</div>
+</div>
+</section>
+
+<div style="display: flex; flex-direction: column; min-width: 0">
+<div role="tablist" aria-label="Panels" class="desk-flex" style="padding: 0 18px; border-bottom: 1px solid #E4DED5; background: #FFFFFF">
+<button type="button" class="tabbtn" role="tab" aria-selected="{{dPsg}}" onClick="{{showPsg}}">Passages <span class="cnt">{{count}}</span></button>
+<button type="button" class="tabbtn" role="tab" aria-selected="{{dTest}}" onClick="{{showTest}}">Test</button>
+</div>
+
+<section aria-label="Passages" class="{{psgClass}}">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 18px; border-bottom: 1px solid #EDE8E0">
+<div role="group" aria-label="Filter" style="display: flex; gap: 2px; padding: 2px; border: 1px solid #D9D2C7; border-radius: 7px">
+<button type="button" class="seg" aria-pressed="{{fAllSel}}" onClick="{{fAll}}">All</button>
+<button type="button" class="seg" aria-pressed="{{fWarnSel}}" onClick="{{fWarn}}">Warnings {{warnCount}}</button>
+<button type="button" class="seg" aria-pressed="{{fEditSel}}" onClick="{{fEdit}}">Edited {{editCount}}</button>
+</div>
+<span class="hint">One topic per Passage improves answers.</span>
+</div>
+<ol class="scroll" style="margin: 0; padding: 16px 18px; list-style: none; flex-grow: 1; display: flex; flex-direction: column; background: #FAF8F4">
+<template data-for="{{items}}" data-as="p">
+<li style="display: flex; flex-direction: column">
+<article style="{{p.cardStyle}}">
+<button type="button" aria-pressed="{{p.selAttr}}" onClick="{{p.select}}" style="all: unset; display: flex; justify-content: space-between; align-items: center; gap: 8px; cursor: pointer">
+<span class="mono" style="font-size: 12px; color: #5C5754"><span style="color: #1F1D1C; font-weight: 500">{{p.id}}</span> · {{p.loc}}</span>
+<span style="display: flex; gap: 6px"><template data-if="{{p.isTable}}"><span class="chip chip-neutral">Table</span></template><template data-if="{{p.edited}}"><span class="chip chip-info">Edited</span></template></span>
+</button>
+<template data-if="{{p.isTable}}"><table style="width: 100%; border-collapse: collapse; font-size: 13px"><template data-for="{{p.rows}}" data-as="r"><tr><td style="{{r.style}}">{{r.a}}</td><td style="{{r.style}}">{{r.b}}</td></tr></template></table></template>
+<template data-if="{{p.showPlain}}"><p style="margin: 0; font-size: 14px; line-height: 1.7; white-space: pre-line">{{p.text}}</p></template>
+<template data-if="{{p.showSplit}}"><p style="margin: 0; font-size: 14px; line-height: 1.7; white-space: pre-line">{{p.before}}<button type="button" onClick="{{p.split}}" aria-label="Split this Passage here" style="display: inline-flex; align-items: center; margin: 0 4px; padding: 0 8px; min-height: 22px; vertical-align: 1px; border: 1px dashed #1F1D1C; border-radius: 4px; background: #FFFFFF; font: inherit; font-size: 11px; font-weight: 500; cursor: pointer">Split here</button>{{p.after}}</p></template>
+<template data-if="{{p.hasWarn}}"><p style="margin: 0; display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: 6px; background: #FBF7EC; border: 1px solid #EADBB4; font-size: 13px; color: #6B4A12"><span style="flex-shrink: 0; margin-top: 2px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8A6216" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4 3 20h18z"></path><path d="M12 10v4"></path><path d="M12 17v.5"></path></svg></span><span>{{p.warn}}</span></p></template>
+<template data-if="{{p.isSel}}"><div style="display: flex; gap: 6px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid #EDE8E0">
+<button type="button" class="tool">Edit text</button>
+<button type="button" class="tool" disabled="{{p.cannotSplit}}" onClick="{{p.split}}">Split at cursor</button>
+<button type="button" class="tool" disabled="{{p.cannotMerge}}" onClick="{{p.merge}}">Merge with next</button>
+<template data-if="{{p.edited}}"><button type="button" class="tool">Restore original</button></template>
+<button type="button" class="tool phone-flex" onClick="{{showSrc}}" style="align-items: center">Show on page</button>
+</div></template>
+</article>
+<template data-if="{{p.showSeam}}"><div style="display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 6px"><span style="flex-grow: 1; border-top: 1px dashed #D9D2C7"></span><template data-if="{{p.canMerge}}"><button type="button" onClick="{{p.merge}}" aria-label="{{p.mergeLabel}}" style="min-height: 24px; padding: 0 10px; border: 1px solid #CFC6BA; border-radius: 4px; background: #FFFFFF; font: inherit; font-size: 11px; cursor: pointer">Merge</button></template><template data-if="{{p.tableSeam}}"><span class="hint" style="font-size: 11px">Tables stay separate</span></template><span style="flex-grow: 1; border-top: 1px dashed #D9D2C7"></span></div></template>
+<template data-if="{{p.gap}}"><span style="height: 10px"></span></template>
+</li>
+</template>
+</ol>
+</section>
+
+<section aria-label="Test" class="{{testClass}}" style="background: #FAF8F4">
+<p class="hint" style="margin: 0; padding: 12px 18px; border-bottom: 1px solid #EDE8E0">Testing your draft. Customers still see the live version.</p>
+<div class="scroll" style="flex-grow: 1; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+<div style="align-self: flex-end; max-width: 82%; padding: 10px 14px; border-radius: 10px; background: #1F1D1C; color: #FAF8F4; font-size: 14px">Can I return an opened bag of kibble?</div>
+<div class="panel" style="align-self: flex-start; max-width: 94%; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 14px; line-height: 1.7">Only if the item is defective, for example damaged or spoiled on arrival.<span class="mono" style="margin-left: 3px; padding: 0 4px; border-radius: 3px; background: #1F1D1C; color: #FAF8F4; font-size: 10px; vertical-align: 2px">1</span> Contact support within 7 days with a photo.<span class="mono" style="margin-left: 3px; padding: 0 4px; border-radius: 3px; background: #1F1D1C; color: #FAF8F4; font-size: 10px; vertical-align: 2px">2</span></span>
+<div style="display: flex; flex-direction: column; gap: 4px; padding-top: 8px; border-top: 1px dashed #E4DED5">
+<button type="button" onClick="{{openP14}}" class="mono" style="all: unset; cursor: pointer; font-family: 'IBM Plex Mono', monospace; font-size: 12px; text-decoration: underline; text-underline-offset: 3px">[1] P-14 · p. 3 ¶2 · edited</button>
+<button type="button" onClick="{{openP15}}" class="mono" style="all: unset; cursor: pointer; font-family: 'IBM Plex Mono', monospace; font-size: 12px; text-decoration: underline; text-underline-offset: 3px">[2] P-15 · p. 3 ¶3</button>
+</div>
+<span class="hint">Wrong answer? Open a source to correct that Passage.</span>
+</div>
+</div>
+<div style="display: flex; gap: 8px; padding: 12px 18px; border-top: 1px solid #E4DED5; background: #FFFFFF">
+<label for="ask" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Ask a question</label>
+<input id="ask" class="field" type="text" placeholder="Ask what a customer would ask">
+<button type="button" class="btn btn-dark">Ask</button>
+</div>
+</section>
+</div>
+</div>
+</main>
+</div>
+</template>
+<script src="dc-runtime.js"></script>
+<script>
+const LONG = "To request a return, contact support within 7 days with your order number and a photo of the item and its packaging. We review requests within 2 business days. If a return is approved, we email a prepaid shipping label. Refunds go back to the original payment method after we receive the item. Shipping fees are refunded only when the item was defective.";
+const INITIAL = [
+  { id: "P-12", page: 2, loc: "p. 2 ¶4", top: 58, h: 12, text: "1. Who can return\nOrders placed on mochipet.example can be returned by the original buyer within 30 days of delivery." },
+  { id: "P-13", page: 3, loc: "p. 3 ¶1", top: 5, h: 4, text: "2. Opened items", warn: "Heading only. Merge it with the next Passage so the heading stays with its content." },
+  { id: "P-14", page: 3, loc: "p. 3 ¶2", top: 10.5, h: 12, edited: true, text: "Opened items cannot be returned unless the item is defective. A defective item arrives damaged, spoiled, or different from the listing." },
+  { id: "P-15", page: 3, loc: "p. 3 ¶3–4", top: 25, h: 30, text: LONG, splitAt: LONG.indexOf("If a return"), warn: "Covers several topics: requests, labels and refunds. Split where the topic changes." },
+  { id: "P-16", page: 4, loc: "p. 4 table 1", top: 31, h: 22, table: [["Payment method", "Refund arrives in"], ["Credit card", "5–7 business days"], ["LINE Pay", "3–5 business days"], ["Bank transfer", "7–10 business days"]] }
+];
+
+function pageLines(page) {
+  const out = [];
+  let t = 10.5;
+  let n = 0;
+  const widths = [84, 80, 86, 62, 84, 78, 70];
+  while (t < 93) {
+    const inTable = page === 4 && t > 29 && t < 54;
+    if (!inTable) out.push("position: absolute; left: 8%; top: " + t + "%; width: " + widths[n % widths.length] + "%; height: 0.8%; background: #E1DBD2");
+    n += 1;
+    t += (n % 5 === 0) ? 4.4 : 2.4;
+  }
+  return out;
+}
+
+class Component extends DCLogic {
+  state = { passages: INITIAL, sel: 2, view: "psg", filter: "all", history: [], savedAt: "11:04" };
+
+  commit(next, sel) {
+    const d = new Date();
+    const stamp = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+    this.setState({ history: this.state.history.concat([{ passages: this.state.passages, sel: this.state.sel }]), passages: next, sel: sel, savedAt: stamp });
+  }
+
+  merge(i) {
+    const ps = this.state.passages;
+    const a = ps[i];
+    const b = ps[i + 1];
+    if (!a || !b || a.table || b.table) return;
+    const merged = { id: a.id, page: a.page, loc: a.loc + "–" + b.loc.split("¶")[1], top: a.top, h: a.page === b.page ? (b.top + b.h - a.top) : a.h, edited: a.edited || b.edited, text: a.text + "\n" + b.text };
+    this.commit(ps.slice(0, i).concat([merged], ps.slice(i + 2)), i);
+  }
+
+  split(i) {
+    const ps = this.state.passages;
+    const p = ps[i];
+    if (!p || p.splitAt == null) return;
+    const first = { id: p.id, page: p.page, loc: "p. 3 ¶3", top: p.top, h: 14, edited: p.edited, text: p.text.slice(0, p.splitAt).trim() };
+    const second = { id: p.id + "b", page: p.page, loc: "p. 3 ¶4", top: p.top + 16, h: 14, edited: p.edited, text: p.text.slice(p.splitAt).trim() };
+    this.commit(ps.slice(0, i).concat([first, second], ps.slice(i + 1)), i + 1);
+  }
+
+  renderVals() {
+    const ps = this.state.passages;
+    const sel = Math.min(this.state.sel, ps.length - 1);
+    const cur = ps[sel];
+    const f = this.state.filter;
+    const view = this.state.view;
+    const visible = ps.map((p, i) => ({ p, i })).filter(({ p }) => f === "all" || (f === "warn" && p.warn) || (f === "edit" && p.edited));
+    const items = visible.map(({ p, i }, k) => {
+      const next = ps[i + 1];
+      const isSel = i === sel;
+      const isTable = !!p.table;
+      const hasSplit = p.splitAt != null;
+      const canMerge = !!next && !isTable && !next.table;
+      const last = k === visible.length - 1;
+      return {
+        id: p.id, loc: p.loc, isSel, selAttr: isSel ? "true" : "false", isTable, edited: !!p.edited,
+        rows: isTable ? p.table.map((r, ri) => ({ a: r[0], b: r[1], style: "padding: 6px 8px; border: 1px solid #E4DED5; " + (ri === 0 ? "background: #F4F0E9; font-weight: 600; font-size: 12px" : "") })) : [],
+        text: p.text, showPlain: !isTable && !(isSel && hasSplit), showSplit: !isTable && isSel && hasSplit,
+        before: hasSplit ? p.text.slice(0, p.splitAt) : "", after: hasSplit ? p.text.slice(p.splitAt) : "",
+        hasWarn: !!p.warn, warn: p.warn || "", cannotSplit: !hasSplit, cannotMerge: !canMerge,
+        showSeam: f === "all" && !last, gap: f !== "all" && !last, canMerge, tableSeam: !!next && !canMerge,
+        mergeLabel: next ? "Merge " + p.id + " with " + next.id : "",
+        select: () => this.setState({ sel: i }), merge: () => this.merge(i), split: () => this.split(i),
+        cardStyle: "display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; border-radius: 8px; background: #FFFFFF; " + (isSel ? "border: 1.5px solid #1F1D1C" : "border: 1px solid #E4DED5")
+      };
+    });
+    const find = (id) => Math.max(0, ps.findIndex((p) => p.id === id));
+    return {
+      page: cur.page, selId: cur.id, lines: pageLines(cur.page), hasTable: cur.page === 4,
+      pdfLabel: "Page " + cur.page + " of returns-policy.pdf. Highlighted: " + cur.id + ", " + cur.loc + ".",
+      hlStyle: "position: absolute; left: 6%; width: 88%; top: " + cur.top + "%; height: " + cur.h + "%; border: 1.5px solid #D98A7E; border-radius: 3px; background: rgba(217, 138, 126, 0.12); box-sizing: border-box",
+      items, count: ps.length,
+      warnCount: ps.filter((p) => p.warn).length, editCount: ps.filter((p) => p.edited).length,
+      saveLabel: "Saved " + this.state.savedAt, cannotUndo: this.state.history.length === 0,
+      undo: () => { const h = this.state.history; if (!h.length) return; const last = h[h.length - 1]; this.setState({ passages: last.passages, sel: last.sel, history: h.slice(0, -1) }); },
+      srcClass: "pane pane-src" + (view === "src" ? " on" : ""),
+      psgClass: "pane pane-psg pane-r" + (view === "psg" ? " on" : "") + (view !== "test" ? " dk" : ""),
+      testClass: "pane pane-r" + (view === "test" ? " on" : ""),
+      vSrc: view === "src" ? "true" : "false", vPsg: view === "psg" ? "true" : "false", vTest: view === "test" ? "true" : "false",
+      dPsg: view !== "test" ? "true" : "false", dTest: view === "test" ? "true" : "false",
+      showSrc: () => this.setState({ view: "src" }), showPsg: () => this.setState({ view: "psg" }), showTest: () => this.setState({ view: "test" }),
+      openP14: () => this.setState({ view: "psg", filter: "all", sel: find("P-14") }),
+      openP15: () => this.setState({ view: "psg", filter: "all", sel: find("P-15") }),
+      fAllSel: f === "all" ? "true" : "false", fWarnSel: f === "warn" ? "true" : "false", fEditSel: f === "edit" ? "true" : "false",
+      fAll: () => this.setState({ filter: "all" }), fWarn: () => this.setState({ filter: "warn" }), fEdit: () => this.setState({ filter: "edit" })
+    };
+  }
+}
+DC.mount(Component, {});
+</script>
+</body>
+</html>

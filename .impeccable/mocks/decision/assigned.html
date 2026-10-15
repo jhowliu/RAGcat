@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Shipping label sketch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --kraft:#C49A6C; --kraft-deep:#A9804F; --kraft-line:#B38758;
+    --label:#FBFAF6; --ink:#121110; --fluoro:#FFF04D; --live:#2E9E5B; --review:#FF7A1A;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1440px;height:900px;overflow:hidden}
+  body{background:var(--kraft);color:var(--ink);font-family:Archivo,system-ui,sans-serif;position:relative}
+  /* corrugation: faint vertical flutes */
+  body::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 9px,rgba(0,0,0,.025) 9px 10px);pointer-events:none}
+  header{position:absolute;top:0;left:0;right:0;height:72px;display:flex;align-items:center;padding:0 96px;gap:40px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:900;font-stretch:75%;font-size:28px;letter-spacing:.01em}
+  .brand i{display:block;width:26px;height:26px;background:var(--ink);border-radius:5px}
+  nav{display:flex;gap:28px;margin-left:auto;font-weight:600;font-size:15px}
+  .lang{display:flex;border:2px solid var(--ink);border-radius:4px;font-weight:700;font-size:13px}
+  .lang span{padding:5px 10px}.lang span:first-child{background:var(--ink);color:var(--label)}
+  .start{background:var(--ink);color:var(--label);padding:10px 18px;border-radius:4px;font-weight:800;font-size:15px}
+  /* tape */
+  .tape{position:absolute;background:rgba(214,170,110,.55);border-left:1px dashed rgba(0,0,0,.12);border-right:1px dashed rgba(0,0,0,.12)}
+  /* the label */
+  .label{position:absolute;left:96px;top:104px;width:700px;height:760px;background:var(--label);border-radius:14px;box-shadow:0 1px 0 rgba(0,0,0,.15),0 10px 24px rgba(60,35,10,.18);border:3px solid var(--ink);display:grid;grid-template-rows:52px 108px 1fr 150px 104px 150px;overflow:hidden}
+  .row{border-bottom:3px solid var(--ink);position:relative}
+  .bar{background:var(--ink);color:var(--label);display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-weight:900;font-stretch:80%;font-size:22px;letter-spacing:.06em}
+  .bar b{font-family:'Martian Mono',monospace;font-size:20px;letter-spacing:0}
+  .route{display:grid;grid-template-columns:1fr 1fr}
+  .route>div{padding:14px 22px}.route>div+div{border-left:3px solid var(--ink)}
+  .k{font-weight:900;font-stretch:80%;font-size:15px;letter-spacing:.12em}
+  .v{font-family:'Martian Mono',monospace;font-size:22px;font-weight:600;margin-top:6px}
+  .v small{display:block;font-size:15px;font-weight:400;margin-top:4px}
+  .sort{padding:22px 22px 18px;display:flex;flex-direction:column;justify-content:flex-end}
+  h1{font-weight:900;font-stretch:62%;font-size:132px;line-height:.86;letter-spacing:-.005em;text-transform:none}
+  .qa{padding:16px 22px;display:grid;grid-template-columns:120px 1fr;gap:6px 14px;font-size:16px;line-height:1.45}
+  .qa .k{padding-top:3px}
+  mark{background:var(--fluoro);padding:0 3px;box-shadow:0 0 0 1.5px var(--ink) inset}
+  .cite{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--fluoro);border:2px solid var(--ink);font-family:'Martian Mono',monospace;font-size:13px;font-weight:600;vertical-align:-4px}
+  .code{display:flex;align-items:center;gap:22px;padding:0 22px}
+  .barcode{height:66px;width:330px;background:repeating-linear-gradient(90deg,var(--ink) 0 3px,transparent 3px 5px,var(--ink) 5px 6px,transparent 6px 10px,var(--ink) 10px 14px,transparent 14px 16px,var(--ink) 16px 17px,transparent 17px 21px)}
+  .code .v{margin:0;font-size:20px}
+  .stub{border-top:3px dashed var(--ink);padding:24px 22px;display:flex;flex-direction:column;gap:14px;background:var(--label)}
+  .stub .k{display:flex;justify-content:space-between}
+  .btns{display:flex;gap:12px}
+  .btn{height:52px;padding:0 24px;display:flex;align-items:center;border-radius:6px;font-weight:800;font-size:18px;border:3px solid var(--ink)}
+  .btn.p{background:var(--ink);color:var(--label)}
+  .fine{font-size:14px}
+  /* the packing-list pouch with the source page */
+  .pouch{position:absolute;left:860px;top:150px;width:500px;height:660px;border-radius:10px;background:rgba(255,255,255,.28);border:2px solid rgba(255,255,255,.6);box-shadow:0 8px 20px rgba(60,35,10,.15);transform:rotate(1.6deg);padding:54px 26px 26px}
+  .pouch .head{position:absolute;top:0;left:0;right:0;height:42px;background:rgba(18,17,16,.88);color:var(--label);border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:center;font-weight:900;font-stretch:75%;letter-spacing:.14em;font-size:15px}
+  .page{background:#fff;height:100%;padding:30px 32px;display:flex;flex-direction:column;gap:14px;font-size:15px;line-height:1.55;color:#1d1c1b}
+  .page .meta{display:flex;justify-content:space-between;font-family:'Martian Mono',monospace;font-size:13px}
+  .page h3{font-size:24px;font-weight:800;font-stretch:90%}
+  .ln{height:9px;background:#d8d4cc;border-radius:2px}
+  .page .hit{background:var(--fluoro);box-shadow:0 0 0 2px var(--ink);padding:6px 8px;position:relative;font-weight:600}
+  .page .hit .cite{position:absolute;right:-14px;top:-14px}
+  /* tracking line (raise: one unbroken line) */
+  .track{position:absolute;left:860px;right:80px;top:836px;height:30px;display:flex;align-items:center;gap:0}
+  .track .line{position:absolute;left:0;right:0;top:14px;height:3px;background:var(--ink)}
+  .stop{position:relative;flex:1;display:flex;align-items:center;gap:8px;font-weight:800;font-stretch:80%;font-size:14px;letter-spacing:.08em}
+  .stop i{width:14px;height:14px;border-radius:50%;background:var(--ink);border:3px solid var(--kraft)}
+  .stop.now i{width:22px;height:22px;background:var(--fluoro);border:3px solid var(--ink)}
+  .stop span{background:var(--kraft);padding-right:8px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><i></i>RAGcat</div>
+  <nav><span>How it works</span><span>Trust</span><span>Pricing</span></nav>
+  <div class="lang"><span>EN</span><span>中文</span></div>
+  <span style="font-weight:700">Sign in</span>
+  <span class="start">Start free</span>
+</header>
+
+<div class="tape" style="left:360px;top:88px;width:170px;height:40px;transform:rotate(-2deg)"></div>
+
+<section class="label" aria-label="Shipping label">
+  <div class="row bar"><span>GROUNDED SUPPORT</span><b>P-14</b></div>
+  <div class="row route">
+    <div><div class="k">FROM · SOURCE</div><div class="v">returns-policy.pdf<small>p. 3 ¶2</small></div></div>
+    <div><div class="k">TO · #help-desk</div><div class="v">Customer<small>Discord</small></div></div>
+  </div>
+  <div class="row sort"><h1>Every answer,<br>with its source.</h1></div>
+  <div class="row qa">
+    <div class="k">ASKED</div><div>Can I return an opened bag of kibble?</div>
+    <div class="k">ANSWERED</div><div>Only if the item is defective, for example damaged or spoiled on arrival. <mark>Opened items cannot be returned unless the item is defective</mark> <span class="cite">1</span></div>
+  </div>
+  <div class="row code"><div class="barcode"></div><div><div class="k">GROUNDED IN 1 SOURCE</div><div class="v">returns-policy.pdf, p. 3</div></div></div>
+  <div class="stub">
+    <div class="k"><span>START HERE</span><span>✂ TEAR ALONG LINE</span></div>
+    <div class="btns"><span class="btn p">↑ Upload a PDF</span><span class="btn">See the product</span></div>
+    <div class="fine">Free to start. No card required. PDF up to 50 MB and 300 pages.</div>
+  </div>
+</section>
+
+<aside class="pouch" aria-label="Source page">
+  <div class="head">PACKING LIST ENCLOSED · SOURCE</div>
+  <div class="page">
+    <div class="meta"><span>Mochi Pet Co. · Returns policy</span><span>p. 3</span></div>
+    <h3>2. Opened items</h3>
+    <p>Unopened items can be returned within 30 days of delivery for a full refund.</p>
+    <p class="hit">Opened items cannot be returned unless the item is defective.<span class="cite">1</span></p>
+    <p>A defective item arrives damaged, spoiled or not as described.</p>
+    <div class="ln" style="width:92%"></div><div class="ln" style="width:86%"></div><div class="ln" style="width:70%"></div>
+    <h3 style="font-size:19px;margin-top:8px">3. How to request a return</h3>
+    <div class="ln" style="width:94%"></div><div class="ln" style="width:88%"></div><div class="ln" style="width:60%"></div>
+  </div>
+</aside>
+
+<div class="track" aria-label="Journey">
+  <div class="line"></div>
+  <div class="stop"><i></i><span>UPLOAD</span></div>
+  <div class="stop"><i></i><span>REVIEW</span></div>
+  <div class="stop"><i></i><span>PUBLISH</span></div>
+  <div class="stop now"><i></i><span>ANSWER</span></div>
+</div>
+</body>
+</html>

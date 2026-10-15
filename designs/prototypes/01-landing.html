@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAGcat · Landing</title>
+<!-- Source of truth for tokens: ../tokens/tokens.css · component specs: ../DESIGN.md -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Noto+Serif+TC:wght@500;600&amp;family=Noto+Sans+TC:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0;background:#FAF8F4}
+a{color:#1F1D1C}a:hover{color:#1F1D1C}
+a:focus-visible,button:focus-visible{outline:2px solid #1F1D1C;outline-offset:3px}
+.wrap{max-width:1160px;margin:0 auto;padding-left:20px;padding-right:20px}
+.serif{font-family:'Source Serif 4','Noto Serif TC',serif;font-weight:600;letter-spacing:-0.015em}
+.mono{font-family:'IBM Plex Mono',monospace}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 20px;box-sizing:border-box;border:1px solid #1F1D1C;border-radius:8px;font:inherit;font-weight:500;font-size:15px;text-decoration:none;cursor:pointer;transition:background-color 140ms ease-out}
+.btn-dark{background:#1F1D1C;color:#FAF8F4}.btn-dark:hover{background:#3A3634;color:#FAF8F4}
+.btn-line{background:#FFFFFF;color:#1F1D1C}.btn-line:hover{background:#F2EEE7}
+.btn-light{background:#FAF8F4;color:#1F1D1C;border-color:#FAF8F4}.btn-light:hover{background:#EDE8DF}
+.navlink{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:6px;font-size:15px;text-decoration:none;color:#3F3B39;white-space:nowrap}
+.navlink:hover{background:#F0ECE5;color:#1F1D1C}
+.seg{min-height:34px;padding:0 11px;border:0;border-radius:5px;background:transparent;font:inherit;font-size:13px;font-weight:500;color:#3F3B39;cursor:pointer}
+.seg[aria-pressed="true"]{background:#1F1D1C;color:#FAF8F4}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#A4544A}
+.h1{margin:0;font-size:42px;line-height:1.05}
+.h2{margin:0;font-size:32px;line-height:1.15}
+.lead{margin:0;font-size:18px;line-height:1.7;color:#4B4643}
+.fn{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 3px;box-sizing:border-box;border-radius:3px;background:#1F1D1C;color:#FAF8F4;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;line-height:1;vertical-align:2px}
+.panel{background:#FFFFFF;border:1px solid #E4DED5;border-radius:12px}
+.hero,.preview{display:grid;gap:40px;align-items:center}
+.steps,.plans{display:grid;gap:28px;margin:0;padding:0;list-style:none}
+.trust{display:grid;gap:40px}
+.pane2{display:grid}
+.sc-page{grid-column:2 / 13;grid-row:1}
+.sc-chat{grid-column:1 / 12;grid-row:2;margin-top:-28px}
+.landnav{order:3;width:100%;overflow-x:auto}
+.signin{display:none}
+@media (min-width:640px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}.plans{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:768px){.wrap{padding-left:40px;padding-right:40px}.h1{font-size:64px}.h2{font-size:42px}.landnav{order:0;width:auto}.signin{display:inline-flex}.sc-page{grid-column:4 / 13}.sc-chat{grid-column:1 / 10;margin-top:-48px}.trust{grid-template-columns:repeat(2,minmax(0,1fr));gap:56px}}
+@media (min-width:960px){.hero{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:64px}.preview{grid-template-columns:minmax(0,0.8fr) minmax(0,1.2fr);gap:64px}.steps{grid-template-columns:repeat(4,minmax(0,1fr))}.plans{grid-template-columns:repeat(3,minmax(0,1fr))}.pane2{grid-template-columns:minmax(0,0.9fr) minmax(0,1.1fr)}}
+@media (prefers-reduced-motion: reduce){.btn{transition:none}}
+</style>
+</head>
+<body>
+<div id="dc-root"></div>
+<template id="dc-template">
+<div style="min-height: 100vh; background: #FAF8F4; color: #1F1D1C; font-family: 'IBM Plex Sans', 'Noto Sans TC', sans-serif; font-size: 16px; line-height: 1.6">
+<template data-if="{{en}}">
+<header style="position: sticky; top: 0; z-index: 10; background: rgba(250, 248, 244, 0.95); backdrop-filter: blur(8px); border-bottom: 1px solid #E4DED5">
+<div class="wrap" style="min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 4px 16px; flex-wrap: wrap; padding-top: 8px; padding-bottom: 8px">
+<a href="#top" style="display: flex; align-items: center; gap: 10px; text-decoration: none"><svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 14V4.5l6.5 4.5h9L27 4.5V14c0 7.2-4.9 13-11 13S5 21.2 5 14z" fill="#1F1D1C"></path><circle cx="12.2" cy="16" r="3" fill="#FAF8F4"></circle><circle cx="19.8" cy="16" r="3" fill="#FAF8F4"></circle><rect x="15" y="15.3" width="2" height="1.4" fill="#FAF8F4"></rect></svg><span style="font-size: 19px; font-weight: 600; letter-spacing: -0.01em">RAGcat</span></a>
+<nav aria-label="Main" class="landnav" style="display: flex; gap: 2px">
+<a href="#product" class="navlink">Product</a>
+<a href="#how" class="navlink">How it works</a>
+<a href="#trust" class="navlink">Trust</a>
+<a href="#pricing" class="navlink">Pricing</a>
+</nav>
+<div style="display: flex; align-items: center; gap: 8px">
+<div role="group" aria-label="Language / 語言" style="display: flex; gap: 2px; padding: 2px; border: 1px solid #D9D2C7; border-radius: 7px; background: #FFFFFF"><button type="button" class="seg" lang="en" aria-pressed="{{enPressed}}" onClick="{{setEn}}">EN</button><button type="button" class="seg" lang="zh-Hant" aria-pressed="{{zhPressed}}" onClick="{{setZh}}">中文</button></div>
+<a href="#signin" class="navlink signin">Sign in</a>
+<a href="#start" class="btn btn-dark" style="min-height: 42px; padding: 0 16px; font-size: 14px">Start free</a>
+</div>
+</div>
+</header>
+
+<main lang="en">
+<section id="top" class="wrap" style="padding-top: 64px; padding-bottom: 88px">
+<div class="hero">
+<div style="display: flex; flex-direction: column; gap: 24px">
+<span class="eyebrow">Grounded customer support</span>
+<h1 class="h1 serif">Every answer,<br>with its source.</h1>
+<p class="lead">RAGcat turns your return policies, shipping rules and product manuals into a Discord support assistant. Every reply cites the document and page it relied on, so customers and your team can verify it.</p>
+<div style="display: flex; gap: 10px; flex-wrap: wrap">
+<a href="#start" class="btn btn-dark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FAF8F4" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5"></path><path d="m7 10 5-5 5 5"></path><path d="M5 19h14"></path></svg>Upload a PDF</a>
+<a href="#product" class="btn btn-line">See the product</a>
+</div>
+<p style="margin: 0; font-size: 14px; color: #6B6561">Free to start. No card required. PDF up to 50 MB and 300 pages.</p>
+</div>
+
+<div role="img" aria-label="A Discord answer citing returns-policy.pdf page 3, above that page with the cited sentence highlighted" style="padding: 28px 22px 26px; border: 1px solid #E4DED5; border-radius: 16px; background: #F1ECE4; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr))">
+<div class="panel sc-page" style="padding: 18px 20px; box-shadow: 0 1px 2px rgba(31, 29, 28, 0.04), 0 10px 28px rgba(31, 29, 28, 0.06)">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid #EDE8E0; font-size: 13px; color: #6B6561"><span style="display: flex; align-items: center; gap: 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B6561" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4H7v16h10V7z"></path><path d="M14 4v3h3"></path><path d="M9.5 12h5M9.5 15h5"></path></svg><span class="mono">returns-policy.pdf</span></span><span class="mono">p. 3</span></div>
+<p class="serif" style="margin: 14px 0 0; font-size: 16px">2. Opened items</p>
+<p style="margin: 6px 0 0; font-size: 14px; line-height: 1.75; color: #6B6561">Unopened items can be returned within 30 days of delivery for a full refund.</p>
+<p style="margin: 6px 0 0; font-size: 14px; line-height: 1.75; color: #6B6561">Opened items cannot be returned <mark style="background: #F6D27A; color: #1F1D1C; padding: 1px 3px; border-radius: 3px">unless the item is defective</mark><span class="fn" style="margin-left: 4px">1</span>.</p>
+<div aria-hidden="true" style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px"><span style="height: 6px; width: 88%; border-radius: 3px; background: #EDE8E0"></span><span style="height: 6px; width: 62%; border-radius: 3px; background: #EDE8E0"></span></div>
+</div>
+<div class="panel sc-chat" style="padding: 14px 16px 16px; box-shadow: 0 1px 2px rgba(31, 29, 28, 0.04), 0 14px 32px rgba(31, 29, 28, 0.10)">
+<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #EDE8E0"><span class="mono" style="font-size: 13px; font-weight: 500"># help-desk</span><span style="font-size: 12px; color: #6B6561">Discord</span></div>
+<div style="display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; padding-top: 12px">
+<span aria-hidden="true" style="width: 28px; height: 28px; border-radius: 50%; background: #E9E3DA; display: inline-flex; align-items: center; justify-content: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6B6561" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"></circle><path d="M5 20a7 7 0 0 1 14 0"></path></svg></span>
+<div style="display: flex; flex-direction: column"><span style="font-size: 12px; color: #6B6561">Customer</span><span style="font-size: 14px">Can I return an opened bag of kibble?</span></div>
+</div>
+<div style="display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; padding-top: 12px">
+<span aria-hidden="true" style="width: 28px; height: 28px; border-radius: 6px; background: #1F1D1C; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 14V4.5l6.5 4.5h9L27 4.5V14c0 7.2-4.9 13-11 13S5 21.2 5 14z" fill="#FAF8F4"></path><circle cx="12.2" cy="16" r="3" fill="#1F1D1C"></circle><circle cx="19.8" cy="16" r="3" fill="#1F1D1C"></circle><rect x="15" y="15.3" width="2" height="1.4" fill="#1F1D1C"></rect></svg></span>
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; color: #6B6561">RAGcat</span><span style="font-size: 14px; line-height: 1.65">Only if the item is defective, for example damaged or spoiled on arrival. Please contact support within 7 days with a photo.<span class="fn" style="margin-left: 4px">1</span></span>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 12px; padding-top: 8px; border-top: 1px dashed #E4DED5; font-size: 12px; color: #4B4643"><span style="display: flex; align-items: center; gap: 6px"><span class="fn">1</span><span class="mono">returns-policy.pdf, p. 3</span></span><span style="display: inline-flex; align-items: center; gap: 6px"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: #5E9A55"></span>Grounded in 1 source</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<section id="how" style="border-top: 1px solid #E4DED5; background: #FFFFFF">
+<div class="wrap" style="padding-top: 80px; padding-bottom: 88px; display: flex; flex-direction: column; gap: 40px">
+<div style="display: flex; flex-direction: column; gap: 14px; max-width: 660px">
+<span class="eyebrow">How it works</span>
+<h2 class="h2 serif">From a PDF to verified answers</h2>
+<p class="lead">Four steps. No models, prompts or settings to configure.</p>
+</div>
+<ol class="steps"><li style="display: flex; flex-direction: column; gap: 10px; padding-top: 18px; border-top: 1px solid #1F1D1C"><span class="mono" style="font-size: 13px; color: #8A837E">01</span><h3 class="serif" style="margin: 0; font-size: 22px; line-height: 1.25">Upload a PDF</h3><p style="margin: 0; font-size: 15px; line-height: 1.65; color: #5C5754">Headings, lists and tables are read page by page. Processing continues if you leave.</p></li><li style="display: flex; flex-direction: column; gap: 10px; padding-top: 18px; border-top: 1px solid #1F1D1C"><span class="mono" style="font-size: 13px; color: #8A837E">02</span><h3 class="serif" style="margin: 0; font-size: 22px; line-height: 1.25">Review against the source</h3><p style="margin: 0; font-size: 15px; line-height: 1.65; color: #5C5754">Each Passage is shown beside its page. Correct, split or merge where needed.</p></li><li style="display: flex; flex-direction: column; gap: 10px; padding-top: 18px; border-top: 1px solid #1F1D1C"><span class="mono" style="font-size: 13px; color: #8A837E">03</span><h3 class="serif" style="margin: 0; font-size: 22px; line-height: 1.25">Publish changes</h3><p style="margin: 0; font-size: 15px; line-height: 1.65; color: #5C5754">A single action. The live version keeps answering until the new one is ready.</p></li><li style="display: flex; flex-direction: column; gap: 10px; padding-top: 18px; border-top: 1px solid #1F1D1C"><span class="mono" style="font-size: 13px; color: #8A837E">04</span><h3 class="serif" style="margin: 0; font-size: 22px; line-height: 1.25">Connect Discord</h3><p style="margin: 0; font-size: 15px; line-height: 1.65; color: #5C5754">The assistant replies when mentioned and cites the document and page.</p></li></ol>
+</div>
+</section>
+
+<section id="product" class="wrap" style="padding-top: 88px; padding-bottom: 88px">
+<div class="preview">
+<div style="display: flex; flex-direction: column; gap: 18px">
+<span class="eyebrow">Review workspace</span>
+<h2 class="h2 serif">Know exactly what your assistant reads</h2>
+<p class="lead">Every Passage sits beside the page it came from. Quality warnings identify the ones that need attention.</p>
+<ul style="margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px"><li style="display: flex; gap: 10px; align-items: flex-start"><span style="margin-top: 2px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"></path></svg></span><span>Edits are tracked; the original text is preserved</span></li><li style="display: flex; gap: 10px; align-items: flex-start"><span style="margin-top: 2px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"></path></svg></span><span>Tables are kept intact</span></li><li style="display: flex; gap: 10px; align-items: flex-start"><span style="margin-top: 2px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"></path></svg></span><span>Test questions open the cited Passage</span></li></ul>
+</div>
+<div class="panel" role="img" aria-label="Review workspace with the PDF page on the left and Passages with warnings and edits on the right" style="overflow: hidden; box-shadow: 0 1px 2px rgba(31, 29, 28, 0.04), 0 18px 40px rgba(31, 29, 28, 0.07)">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 16px; border-bottom: 1px solid #E4DED5">
+<span style="display: flex; align-items: center; gap: 8px; font-size: 13px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4H7v16h10V7z"></path><path d="M14 4v3h3"></path><path d="M9.5 12h5M9.5 15h5"></path></svg><span class="mono">returns-policy.pdf</span></span>
+<span style="display: flex; gap: 2px; padding: 2px; border: 1px solid #D9D2C7; border-radius: 6px; font-size: 12px; font-weight: 500"><span style="padding: 2px 10px; border-radius: 4px; background: #1F1D1C; color: #FAF8F4">Passages 47</span><span style="padding: 2px 10px; color: #4B4643">Test</span></span>
+<span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #4B4643"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: #5E9A55"></span>Saved</span>
+</div>
+<div class="pane2">
+<div style="background: #F4F0E9; padding: 18px; border-bottom: 1px solid #E4DED5">
+<div style="background: #FFFFFF; border: 1px solid #E4DED5; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 8px; font-size: 12px; line-height: 1.65; color: #6B6561">
+<span class="mono" style="font-size: 10px; color: #8A837E">p. 3</span>
+<span class="serif" style="font-size: 14px; color: #1F1D1C">2. Opened items</span>
+<span>Unopened items can be returned within 30 days of delivery for a full refund.</span>
+<span style="padding: 2px 4px; margin: 0 -4px; border-radius: 4px; background: #FBEFEC; box-shadow: inset 0 0 0 1.5px #D98A7E; color: #1F1D1C">Opened items cannot be returned unless the item is defective.</span>
+<span aria-hidden="true" style="height: 5px; width: 90%; border-radius: 3px; background: #EDE8E0"></span><span aria-hidden="true" style="height: 5px; width: 74%; border-radius: 3px; background: #EDE8E0"></span><span aria-hidden="true" style="height: 5px; width: 84%; border-radius: 3px; background: #EDE8E0"></span>
+</div>
+</div>
+<div style="padding: 14px; display: flex; flex-direction: column; gap: 10px">
+<div style="border: 1px solid #E4DED5; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap"><span class="mono" style="font-size: 11px; color: #6B6561">P-13 · p. 3 ¶1</span><span style="font-size: 11px; font-weight: 500; padding: 1px 8px; border-radius: 4px; background: #FBF0D2; color: #6B4A12">Heading only</span></div>
+<span style="font-size: 13px; font-weight: 600">2. Opened items</span>
+<span style="align-self: flex-start; font-size: 11px; font-weight: 500; padding: 2px 8px; border: 1px solid #1F1D1C; border-radius: 4px">Merge with next</span>
+</div>
+<div style="border: 1.5px solid #D98A7E; background: #FFFBFA; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap"><span class="mono" style="font-size: 11px; color: #6B6561">P-14 · p. 3 ¶2</span><span style="font-size: 11px; font-weight: 500; padding: 1px 8px; border-radius: 4px; background: #E7F1F6; color: #2C556A">Edited</span></div>
+<span style="font-size: 13px; line-height: 1.6">Opened items cannot be returned unless the item is defective. A defective item arrives damaged, spoiled or not as described.</span>
+</div>
+<div style="border: 1px solid #E4DED5; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap"><span class="mono" style="font-size: 11px; color: #6B6561">P-15 · p. 3 ¶3–4</span><span style="font-size: 11px; font-weight: 500; padding: 1px 8px; border-radius: 4px; background: #FBF0D2; color: #6B4A12">Multiple topics</span></div>
+<span style="font-size: 13px; line-height: 1.6">Contact support within 7 days with your order number and a photo. We review requests within 2 business days.<span style="display: inline-block; margin: 0 4px; padding: 0 6px; border: 1px dashed #1F1D1C; border-radius: 4px; font-size: 10px; font-weight: 500; vertical-align: 1px">Split here</span>If approved, we email a prepaid label.</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<section id="trust" style="border-top: 1px solid #E4DED5; background: #FFFFFF">
+<div class="wrap" style="padding-top: 80px; padding-bottom: 88px; display: flex; flex-direction: column; gap: 40px">
+<div style="display: flex; flex-direction: column; gap: 14px; max-width: 660px">
+<span class="eyebrow">Trust</span>
+<h2 class="h2 serif">Accurate by design. Private by default.</h2>
+</div>
+<div class="trust">
+<div><h3 class="serif" style="margin: 0 0 8px; font-size: 22px">Accuracy</h3><ul style="margin: 0; padding: 0; list-style: none"><li style="display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; padding: 18px 0; border-top: 1px solid #E4DED5"><span aria-hidden="true" style="width: 36px; height: 36px; box-sizing: border-box; border: 1px solid #D9D2C7; border-radius: 8px; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6.5A1.5 1.5 0 0 1 6.5 5H11v14H6.5A1.5 1.5 0 0 1 5 17.5z"></path><path d="M19 6.5A1.5 1.5 0 0 0 17.5 5H13v14h4.5a1.5 1.5 0 0 0 1.5-1.5z"></path></svg></span><div style="display: flex; flex-direction: column; gap: 2px"><h4 style="margin: 0; font-size: 16px; font-weight: 600">Answers only from published content</h4><p style="margin: 0; font-size: 15px; color: #5C5754">Drafts and paused Documents are never used.</p></div></li><li style="display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; padding: 18px 0; border-top: 1px solid #E4DED5"><span aria-hidden="true" style="width: 36px; height: 36px; box-sizing: border-box; border: 1px solid #D9D2C7; border-radius: 8px; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h4v4H8v2a2 2 0 0 0 2 2"></path><path d="M14 7h4v4h-3v2a2 2 0 0 0 2 2"></path></svg></span><div style="display: flex; flex-direction: column; gap: 2px"><h4 style="margin: 0; font-size: 16px; font-weight: 600">Up to three sources per answer</h4><p style="margin: 0; font-size: 15px; color: #5C5754">Each cites the document name and page.</p></div></li><li style="display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; padding: 18px 0; border-top: 1px solid #E4DED5"><span aria-hidden="true" style="width: 36px; height: 36px; box-sizing: border-box; border: 1px solid #D9D2C7; border-radius: 8px; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"></circle><path d="M5 20a7 7 0 0 1 14 0"></path></svg></span><div style="display: flex; flex-direction: column; gap: 2px"><h4 style="margin: 0; font-size: 16px; font-weight: 600">Declines when the documents don't cover it</h4><p style="margin: 0; font-size: 15px; color: #5C5754">Customers are referred to your team instead.</p></div></li><li style="display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; padding: 18px 0; border-top: 1px solid #E4DED5"><span aria-hidden="true" style="width: 36px; height: 36px; box-sizing: border-box; border: 1px solid #D9D2C7; border-radius: 8px; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 4 8 4-8 4-8-4z"></path><path d="m4 12 8 4 8-4"></path><path d="m4 16 8 4 8-4"></path></svg></span><div style="display: flex; flex-direction: column; gap: 2px"><h4 style="margin: 0; font-size: 16px; font-weight: 600">Updates without downtime</h4><p style="margin: 0; font-size: 15px; color: #5C5754">The live version keeps answering until a new one is ready.</p></div></li></ul></div>
+<div><h3 class="serif" style="margin: 0 0 8px; font-size: 22px">Privacy and control</h3><ul style="margin: 0; padding: 0; list-style: none"><li style="display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; padding: 18px 0; border-top: 1px solid #E4DED5"><span aria-hidden="true" style="width: 36px; height: 36px; box-sizing: border-box; border: 1px solid #D9D2C7; border-radius: 8px; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></span><div style="display: flex; flex-direction: column; gap: 2px"><h4 style="margin: 0; font-size: 16px; font-weight: 600">Private document storage</h4><p style="margin: 0; font-size: 15px; color: #5C5754">PDFs are opened only through short-lived, signed links.</p></div></li><li style="display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; padding: 18px 0; border-top: 1px solid #E4DED5"><span aria-hidden="true" style="width: 36px; height: 36px; box-sizing: border-box; border: 1px solid #D9D2C7; border-radius: 8px; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"></path><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"></path><path d="M4 4l16 16"></path></svg></span><div style="display: flex; flex-direction: column; gap: 2px"><h4 style="margin: 0; font-size: 16px; font-weight: 600">No file links in chat</h4><p style="margin: 0; font-size: 15px; color: #5C5754">Discord answers name the document and page, never a URL.</p></div></li><li style="display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; padding: 18px 0; border-top: 1px solid #E4DED5"><span aria-hidden="true" style="width: 36px; height: 36px; box-sizing: border-box; border: 1px solid #D9D2C7; border-radius: 8px; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l3 2"></path></svg></span><div style="display: flex; flex-direction: column; gap: 2px"><h4 style="margin: 0; font-size: 16px; font-weight: 600">Anonymous question history</h4><p style="margin: 0; font-size: 15px; color: #5C5754">Recent questions are stored without Discord names and removed after 30 days.</p></div></li><li style="display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; padding: 18px 0; border-top: 1px solid #E4DED5"><span aria-hidden="true" style="width: 36px; height: 36px; box-sizing: border-box; border: 1px solid #D9D2C7; border-radius: 8px; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14"></path><path d="M10 7V5h4v2"></path><path d="M7 7l1 13h8l1-13"></path></svg></span><div style="display: flex; flex-direction: column; gap: 2px"><h4 style="margin: 0; font-size: 16px; font-weight: 600">Permanent deletion</h4><p style="margin: 0; font-size: 15px; color: #5C5754">Deleting a Document removes the file, drafts, versions and search data.</p></div></li></ul></div>
+</div>
+</div>
+</section>
+
+<section id="pricing" class="wrap" style="padding-top: 88px; padding-bottom: 88px; display: flex; flex-direction: column; gap: 32px">
+<div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 14px">
+<span class="eyebrow">Pricing</span>
+<h2 class="h2 serif">Simple, usage-based plans</h2>
+</div>
+<div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px">
+<div role="group" aria-label="Billing period" style="display: flex; gap: 2px; padding: 2px; border: 1px solid #D9D2C7; border-radius: 7px; background: #FFFFFF"><button type="button" class="seg" aria-pressed="{{moPressed}}" onClick="{{setMonthly}}">Monthly</button><button type="button" class="seg" aria-pressed="{{yrPressed}}" onClick="{{setAnnual}}">Annual</button></div>
+<span style="font-size: 13px; color: #6B6561">Annual billing: 12 months for the price of 10</span>
+</div>
+</div>
+<div class="plans">
+<template data-for="{{plans}}" data-as="p">
+<article class="panel" style="padding: 28px 24px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 4px"><h3 class="serif" style="margin: 0; font-size: 24px">{{p.name}}</h3><span style="font-size: 15px; color: #5C5754">{{p.blurb}}</span></div>
+<div style="display: flex; align-items: baseline; gap: 6px"><span class="serif" style="font-size: 46px; line-height: 1">{{p.price}}</span><span style="font-size: 14px; color: #6B6561">{{p.suffix}}</span></div>
+<ul style="margin: 0; padding: 18px 0 0; border-top: 1px solid #EDE8E0; list-style: none; display: flex; flex-direction: column; gap: 10px; flex-grow: 1; font-size: 15px">
+<template data-for="{{p.rows}}" data-as="r">
+<li style="display: flex; gap: 10px; align-items: flex-start"><span style="margin-top: 2px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"></path></svg></span><span>{{r}}</span></li>
+</template>
+</ul>
+<a href="#start" class="{{p.ctaClass}}" style="width: 100%">{{p.cta}}</a>
+</article>
+</template>
+</div>
+<p style="margin: 0; font-size: 14px; color: #6B6561">Add-on pages and answers are available on any paid plan. Prices in USD.</p>
+</section>
+
+<section id="start" class="wrap" style="padding-bottom: 88px">
+<div style="border-radius: 16px; background: #1F1D1C; color: #FAF8F4; padding: 44px 32px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 640px">
+<h2 class="serif" style="margin: 0; font-size: 32px; line-height: 1.2">Upload one PDF and review your first cited answer.</h2>
+<p style="margin: 0; color: #CFC8C1">Sign in with Google. No card required.</p>
+</div>
+<a href="#signin" class="btn btn-light"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5"></path><path d="m7 10 5-5 5 5"></path><path d="M5 19h14"></path></svg>Start free</a>
+</div>
+</section>
+</main>
+
+<footer style="border-top: 1px solid #E4DED5">
+<div class="wrap" style="padding-top: 24px; padding-bottom: 32px; display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 14px; color: #6B6561">
+<span style="display: flex; align-items: center; gap: 8px"><svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 14V4.5l6.5 4.5h9L27 4.5V14c0 7.2-4.9 13-11 13S5 21.2 5 14z" fill="#1F1D1C"></path><circle cx="12.2" cy="16" r="3" fill="#FAF8F4"></circle><circle cx="19.8" cy="16" r="3" fill="#FAF8F4"></circle><rect x="15" y="15.3" width="2" height="1.4" fill="#FAF8F4"></rect></svg><span style="font-size: 16px; font-weight: 600; color: #1F1D1C">RAGcat</span></span>
+<nav aria-label="Footer" style="display: flex; gap: 2px; flex-wrap: wrap"><a href="#privacy" class="navlink" style="font-size: 14px">Privacy</a><a href="#terms" class="navlink" style="font-size: 14px">Terms</a><a href="#security" class="navlink" style="font-size: 14px">Security</a><a href="#contact" class="navlink" style="font-size: 14px">Contact</a></nav>
+<span>© 2026 RAGcat</span>
+</div>
+</footer>
+</template>
+<template data-if="{{zh}}">
+<header style="position: sticky; top: 0; z-index: 10; background: rgba(250, 248, 244, 0.95); backdrop-filter: blur(8px); border-bottom: 1px solid #E4DED5">
+<div class="wrap" style="min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 4px 16px; flex-wrap: wrap; padding-top: 8px; padding-bottom: 8px">
+<a href="#top" style="display: flex; align-items: center; gap: 10px; text-decoration: none"><svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 14V4.5l6.5 4.5h9L27 4.5V14c0 7.2-4.9 13-11 13S5 21.2 5 14z" fill="#1F1D1C"></path><circle cx="12.2" cy="16" r="3" fill="#FAF8F4"></circle><circle cx="19.8" cy="16" r="3" fill="#FAF8F4"></circle><rect x="15" y="15.3" width="2" height="1.4" fill="#FAF8F4"></rect></svg><span style="font-size: 19px; font-weight: 600; letter-spacing: -0.01em">RAGcat</span></a>
+<nav aria-label="主要導覽" class="landnav" style="display: flex; gap: 2px">
+<a href="#product" class="navlink">產品</a>
+<a href="#how" class="navlink">運作方式</a>
+<a href="#trust" class="navlink">信任與隱私</a>
+<a href="#pricing" class="navlink">方案</a>
+</nav>
+<div style="display: flex; align-items: center; gap: 8px">
+<div role="group" aria-label="Language / 語言" style="display: flex; gap: 2px; padding: 2px; border: 1px solid #D9D2C7; border-radius: 7px; background: #FFFFFF"><button type="button" class="seg" lang="en" aria-pressed="{{enPressed}}" onClick="{{setEn}}">EN</button><button type="button" class="seg" lang="zh-Hant" aria-pressed="{{zhPressed}}" onClick="{{setZh}}">中文</button></div>
+<a href="#signin" class="navlink signin">登入</a>
+<a href="#start" class="btn btn-dark" style="min-height: 42px; padding: 0 16px; font-size: 14px">免費開始</a>
+</div>
+</div>
+</header>
+
+<main lang="zh-Hant">
+<section id="top" class="wrap" style="padding-top: 64px; padding-bottom: 88px">
+<div class="hero">
+<div style="display: flex; flex-direction: column; gap: 24px">
+<span class="eyebrow">有依據的客服回答</span>
+<h1 class="h1 serif">每個回答，<br>都有出處。</h1>
+<p class="lead">RAGcat 把退換貨政策、運送規則與產品手冊，轉成 Discord 上的客服助理。每個回答都註明所依據的文件與頁碼，客人與你的團隊都能查證。</p>
+<div style="display: flex; gap: 10px; flex-wrap: wrap">
+<a href="#start" class="btn btn-dark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FAF8F4" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5"></path><path d="m7 10 5-5 5 5"></path><path d="M5 19h14"></path></svg>上傳 PDF</a>
+<a href="#product" class="btn btn-line">了解產品</a>
+</div>
+<p style="margin: 0; font-size: 14px; color: #6B6561">免費開始，不需信用卡。PDF 上限 50 MB、300 頁。</p>
+</div>
+
+<div role="img" aria-label="Discord 上的回答引用了退換貨政策第 3 頁，下方是該頁，被引用的句子已標示" style="padding: 28px 22px 26px; border: 1px solid #E4DED5; border-radius: 16px; background: #F1ECE4; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr))">
+<div class="panel sc-page" style="padding: 18px 20px; box-shadow: 0 1px 2px rgba(31, 29, 28, 0.04), 0 10px 28px rgba(31, 29, 28, 0.06)">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid #EDE8E0; font-size: 13px; color: #6B6561"><span style="display: flex; align-items: center; gap: 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B6561" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4H7v16h10V7z"></path><path d="M14 4v3h3"></path><path d="M9.5 12h5M9.5 15h5"></path></svg><span class="mono">退換貨政策.pdf</span></span><span class="mono">第 3 頁</span></div>
+<p class="serif" style="margin: 14px 0 0; font-size: 16px">二、拆封商品</p>
+<p style="margin: 6px 0 0; font-size: 14px; line-height: 1.75; color: #6B6561">未拆封商品於到貨後 30 天內可申請全額退款。</p>
+<p style="margin: 6px 0 0; font-size: 14px; line-height: 1.75; color: #6B6561">商品經拆封後，<mark style="background: #F6D27A; color: #1F1D1C; padding: 1px 3px; border-radius: 3px">除因商品本身瑕疵所致者外</mark><span class="fn" style="margin-left: 4px">1</span>，恕不受理退貨。</p>
+<div aria-hidden="true" style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px"><span style="height: 6px; width: 88%; border-radius: 3px; background: #EDE8E0"></span><span style="height: 6px; width: 62%; border-radius: 3px; background: #EDE8E0"></span></div>
+</div>
+<div class="panel sc-chat" style="padding: 14px 16px 16px; box-shadow: 0 1px 2px rgba(31, 29, 28, 0.04), 0 14px 32px rgba(31, 29, 28, 0.10)">
+<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #EDE8E0"><span class="mono" style="font-size: 13px; font-weight: 500"># help-desk</span><span style="font-size: 12px; color: #6B6561">Discord</span></div>
+<div style="display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; padding-top: 12px">
+<span aria-hidden="true" style="width: 28px; height: 28px; border-radius: 50%; background: #E9E3DA; display: inline-flex; align-items: center; justify-content: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6B6561" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"></circle><path d="M5 20a7 7 0 0 1 14 0"></path></svg></span>
+<div style="display: flex; flex-direction: column"><span style="font-size: 12px; color: #6B6561">客人</span><span style="font-size: 14px">飼料拆封後還能退貨嗎？</span></div>
+</div>
+<div style="display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; padding-top: 12px">
+<span aria-hidden="true" style="width: 28px; height: 28px; border-radius: 6px; background: #1F1D1C; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 14V4.5l6.5 4.5h9L27 4.5V14c0 7.2-4.9 13-11 13S5 21.2 5 14z" fill="#FAF8F4"></path><circle cx="12.2" cy="16" r="3" fill="#1F1D1C"></circle><circle cx="19.8" cy="16" r="3" fill="#1F1D1C"></circle><rect x="15" y="15.3" width="2" height="1.4" fill="#1F1D1C"></rect></svg></span>
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; color: #6B6561">RAGcat</span><span style="font-size: 14px; line-height: 1.65">僅限商品本身有瑕疵的情況，例如到貨時破損或變質。請於 7 天內附照片聯絡客服。<span class="fn" style="margin-left: 4px">1</span></span>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 12px; padding-top: 8px; border-top: 1px dashed #E4DED5; font-size: 12px; color: #4B4643"><span style="display: flex; align-items: center; gap: 6px"><span class="fn">1</span><span class="mono">退換貨政策.pdf, 第 3 頁</span></span><span style="display: inline-flex; align-items: center; gap: 6px"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: #5E9A55"></span>依據 1 個出處</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<section id="how" style="border-top: 1px solid #E4DED5; background: #FFFFFF">
+<div class="wrap" style="padding-top: 80px; padding-bottom: 88px; display: flex; flex-direction: column; gap: 40px">
+<div style="display: flex; flex-direction: column; gap: 14px; max-width: 660px">
+<span class="eyebrow">運作方式</span>
+<h2 class="h2 serif">從 PDF 到可查證的回答</h2>
+<p class="lead">四個步驟，不需設定模型、提示詞或參數。</p>
+</div>
+<ol class="steps"><li style="display: flex; flex-direction: column; gap: 10px; padding-top: 18px; border-top: 1px solid #1F1D1C"><span class="mono" style="font-size: 13px; color: #8A837E">01</span><h3 class="serif" style="margin: 0; font-size: 22px; line-height: 1.25">上傳 PDF</h3><p style="margin: 0; font-size: 15px; line-height: 1.65; color: #5C5754">逐頁讀取標題、清單與表格。離開頁面也會繼續處理。</p></li><li style="display: flex; flex-direction: column; gap: 10px; padding-top: 18px; border-top: 1px solid #1F1D1C"><span class="mono" style="font-size: 13px; color: #8A837E">02</span><h3 class="serif" style="margin: 0; font-size: 22px; line-height: 1.25">對照原文檢查</h3><p style="margin: 0; font-size: 15px; line-height: 1.65; color: #5C5754">每個段落都與原始頁面並排，可視需要修正、拆分或合併。</p></li><li style="display: flex; flex-direction: column; gap: 10px; padding-top: 18px; border-top: 1px solid #1F1D1C"><span class="mono" style="font-size: 13px; color: #8A837E">03</span><h3 class="serif" style="margin: 0; font-size: 22px; line-height: 1.25">發布變更</h3><p style="margin: 0; font-size: 15px; line-height: 1.65; color: #5C5754">一個動作完成。新版本就緒前，上線中的版本會繼續回答。</p></li><li style="display: flex; flex-direction: column; gap: 10px; padding-top: 18px; border-top: 1px solid #1F1D1C"><span class="mono" style="font-size: 13px; color: #8A837E">04</span><h3 class="serif" style="margin: 0; font-size: 22px; line-height: 1.25">連接 Discord</h3><p style="margin: 0; font-size: 15px; line-height: 1.65; color: #5C5754">助理在被提及時回答，並註明文件與頁碼。</p></li></ol>
+</div>
+</section>
+
+<section id="product" class="wrap" style="padding-top: 88px; padding-bottom: 88px">
+<div class="preview">
+<div style="display: flex; flex-direction: column; gap: 18px">
+<span class="eyebrow">檢查工作區</span>
+<h2 class="h2 serif">清楚掌握助理讀到的內容</h2>
+<p class="lead">每個段落都與其來源頁面並排顯示，品質警告會標出需要注意的段落。</p>
+<ul style="margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px"><li style="display: flex; gap: 10px; align-items: flex-start"><span style="margin-top: 2px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"></path></svg></span><span>編修有紀錄，原文完整保留</span></li><li style="display: flex; gap: 10px; align-items: flex-start"><span style="margin-top: 2px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"></path></svg></span><span>表格維持完整</span></li><li style="display: flex; gap: 10px; align-items: flex-start"><span style="margin-top: 2px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"></path></svg></span><span>測試問題會開啟被引用的段落</span></li></ul>
+</div>
+<div class="panel" role="img" aria-label="檢查工作區：左側為 PDF 頁面，右側為帶有警告與編修標記的段落" style="overflow: hidden; box-shadow: 0 1px 2px rgba(31, 29, 28, 0.04), 0 18px 40px rgba(31, 29, 28, 0.07)">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 16px; border-bottom: 1px solid #E4DED5">
+<span style="display: flex; align-items: center; gap: 8px; font-size: 13px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4H7v16h10V7z"></path><path d="M14 4v3h3"></path><path d="M9.5 12h5M9.5 15h5"></path></svg><span class="mono">returns-policy.pdf</span></span>
+<span style="display: flex; gap: 2px; padding: 2px; border: 1px solid #D9D2C7; border-radius: 6px; font-size: 12px; font-weight: 500"><span style="padding: 2px 10px; border-radius: 4px; background: #1F1D1C; color: #FAF8F4">段落 47</span><span style="padding: 2px 10px; color: #4B4643">測試</span></span>
+<span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #4B4643"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: #5E9A55"></span>已儲存</span>
+</div>
+<div class="pane2">
+<div style="background: #F4F0E9; padding: 18px; border-bottom: 1px solid #E4DED5">
+<div style="background: #FFFFFF; border: 1px solid #E4DED5; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 8px; font-size: 12px; line-height: 1.65; color: #6B6561">
+<span class="mono" style="font-size: 10px; color: #8A837E">第 3 頁</span>
+<span class="serif" style="font-size: 14px; color: #1F1D1C">二、拆封商品</span>
+<span>未拆封商品於到貨後 30 天內可申請全額退款。</span>
+<span style="padding: 2px 4px; margin: 0 -4px; border-radius: 4px; background: #FBEFEC; box-shadow: inset 0 0 0 1.5px #D98A7E; color: #1F1D1C">商品經拆封後，除因商品本身瑕疵所致者外，恕不受理退貨。</span>
+<span aria-hidden="true" style="height: 5px; width: 90%; border-radius: 3px; background: #EDE8E0"></span><span aria-hidden="true" style="height: 5px; width: 74%; border-radius: 3px; background: #EDE8E0"></span><span aria-hidden="true" style="height: 5px; width: 84%; border-radius: 3px; background: #EDE8E0"></span>
+</div>
+</div>
+<div style="padding: 14px; display: flex; flex-direction: column; gap: 10px">
+<div style="border: 1px solid #E4DED5; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap"><span class="mono" style="font-size: 11px; color: #6B6561">P-13 · 第 3 頁 ¶1</span><span style="font-size: 11px; font-weight: 500; padding: 1px 8px; border-radius: 4px; background: #FBF0D2; color: #6B4A12">只有標題</span></div>
+<span style="font-size: 13px; font-weight: 600">二、拆封商品</span>
+<span style="align-self: flex-start; font-size: 11px; font-weight: 500; padding: 2px 8px; border: 1px solid #1F1D1C; border-radius: 4px">與下一段合併</span>
+</div>
+<div style="border: 1.5px solid #D98A7E; background: #FFFBFA; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap"><span class="mono" style="font-size: 11px; color: #6B6561">P-14 · 第 3 頁 ¶2</span><span style="font-size: 11px; font-weight: 500; padding: 1px 8px; border-radius: 4px; background: #E7F1F6; color: #2C556A">已編修</span></div>
+<span style="font-size: 13px; line-height: 1.6">商品經拆封後，除因商品本身瑕疵所致者外，恕不受理退貨。瑕疵指到貨時損壞、變質或與商品頁不符。</span>
+</div>
+<div style="border: 1px solid #E4DED5; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap"><span class="mono" style="font-size: 11px; color: #6B6561">P-15 · 第 3 頁 ¶3–4</span><span style="font-size: 11px; font-weight: 500; padding: 1px 8px; border-radius: 4px; background: #FBF0D2; color: #6B4A12">涵蓋多個主題</span></div>
+<span style="font-size: 13px; line-height: 1.6">如需退貨，請於 7 天內提供訂單編號與照片聯絡客服。我們會在 2 個工作天內審核。<span style="display: inline-block; margin: 0 4px; padding: 0 6px; border: 1px dashed #1F1D1C; border-radius: 4px; font-size: 10px; font-weight: 500; vertical-align: 1px">從這裡拆分</span>審核通過後，將寄送預付退貨標籤。</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<section id="trust" style="border-top: 1px solid #E4DED5; background: #FFFFFF">
+<div class="wrap" style="padding-top: 80px; padding-bottom: 88px; display: flex; flex-direction: column; gap: 40px">
+<div style="display: flex; flex-direction: column; gap: 14px; max-width: 660px">
+<span class="eyebrow">信任與隱私</span>
+<h2 class="h2 serif">準確是設計出來的，隱私是預設值。</h2>
+</div>
+<div class="trust">
+<div><h3 class="serif" style="margin: 0 0 8px; font-size: 22px">準確性</h3><ul style="margin: 0; padding: 0; list-style: none"><li style="display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; padding: 18px 0; border-top: 1px solid #E4DED5"><span aria-hidden="true" style="width: 36px; height: 36px; box-sizing: border-box; border: 1px solid #D9D2C7; border-radius: 8px; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6.5A1.5 1.5 0 0 1 6.5 5H11v14H6.5A1.5 1.5 0 0 1 5 17.5z"></path><path d="M19 6.5A1.5 1.5 0 0 0 17.5 5H13v14h4.5a1.5 1.5 0 0 0 1.5-1.5z"></path></svg></span><div style="display: flex; flex-direction: column; gap: 2px"><h4 style="margin: 0; font-size: 16px; font-weight: 600">只根據已發布的內容回答</h4><p style="margin: 0; font-size: 15px; color: #5C5754">草稿與暫停中的文件不會被使用。</p></div></li><li style="display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; padding: 18px 0; border-top: 1px solid #E4DED5"><span aria-hidden="true" style="width: 36px; height: 36px; box-sizing: border-box; border: 1px solid #D9D2C7; border-radius: 8px; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h4v4H8v2a2 2 0 0 0 2 2"></path><path d="M14 7h4v4h-3v2a2 2 0 0 0 2 2"></path></svg></span><div style="display: flex; flex-direction: column; gap: 2px"><h4 style="margin: 0; font-size: 16px; font-weight: 600">每個回答最多三個出處</h4><p style="margin: 0; font-size: 15px; color: #5C5754">皆註明文件名稱與頁碼。</p></div></li><li style="display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; padding: 18px 0; border-top: 1px solid #E4DED5"><span aria-hidden="true" style="width: 36px; height: 36px; box-sizing: border-box; border: 1px solid #D9D2C7; border-radius: 8px; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"></circle><path d="M5 20a7 7 0 0 1 14 0"></path></svg></span><div style="display: flex; flex-direction: column; gap: 2px"><h4 style="margin: 0; font-size: 16px; font-weight: 600">文件未涵蓋時不作答</h4><p style="margin: 0; font-size: 15px; color: #5C5754">改為引導客人聯絡你的團隊。</p></div></li><li style="display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; padding: 18px 0; border-top: 1px solid #E4DED5"><span aria-hidden="true" style="width: 36px; height: 36px; box-sizing: border-box; border: 1px solid #D9D2C7; border-radius: 8px; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 4 8 4-8 4-8-4z"></path><path d="m4 12 8 4 8-4"></path><path d="m4 16 8 4 8-4"></path></svg></span><div style="display: flex; flex-direction: column; gap: 2px"><h4 style="margin: 0; font-size: 16px; font-weight: 600">更新不中斷服務</h4><p style="margin: 0; font-size: 15px; color: #5C5754">新版本就緒前，上線中的版本持續回答。</p></div></li></ul></div>
+<div><h3 class="serif" style="margin: 0 0 8px; font-size: 22px">隱私與掌控</h3><ul style="margin: 0; padding: 0; list-style: none"><li style="display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; padding: 18px 0; border-top: 1px solid #E4DED5"><span aria-hidden="true" style="width: 36px; height: 36px; box-sizing: border-box; border: 1px solid #D9D2C7; border-radius: 8px; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></span><div style="display: flex; flex-direction: column; gap: 2px"><h4 style="margin: 0; font-size: 16px; font-weight: 600">文件私密儲存</h4><p style="margin: 0; font-size: 15px; color: #5C5754">PDF 只能透過短時效的簽章連結開啟。</p></div></li><li style="display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; padding: 18px 0; border-top: 1px solid #E4DED5"><span aria-hidden="true" style="width: 36px; height: 36px; box-sizing: border-box; border: 1px solid #D9D2C7; border-radius: 8px; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"></path><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"></path><path d="M4 4l16 16"></path></svg></span><div style="display: flex; flex-direction: column; gap: 2px"><h4 style="margin: 0; font-size: 16px; font-weight: 600">對話中不出現檔案連結</h4><p style="margin: 0; font-size: 15px; color: #5C5754">Discord 回答只註明文件與頁碼，不附網址。</p></div></li><li style="display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; padding: 18px 0; border-top: 1px solid #E4DED5"><span aria-hidden="true" style="width: 36px; height: 36px; box-sizing: border-box; border: 1px solid #D9D2C7; border-radius: 8px; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l3 2"></path></svg></span><div style="display: flex; flex-direction: column; gap: 2px"><h4 style="margin: 0; font-size: 16px; font-weight: 600">匿名的提問紀錄</h4><p style="margin: 0; font-size: 15px; color: #5C5754">近期提問不保存 Discord 名稱，30 天後刪除。</p></div></li><li style="display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; padding: 18px 0; border-top: 1px solid #E4DED5"><span aria-hidden="true" style="width: 36px; height: 36px; box-sizing: border-box; border: 1px solid #D9D2C7; border-radius: 8px; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14"></path><path d="M10 7V5h4v2"></path><path d="M7 7l1 13h8l1-13"></path></svg></span><div style="display: flex; flex-direction: column; gap: 2px"><h4 style="margin: 0; font-size: 16px; font-weight: 600">永久刪除</h4><p style="margin: 0; font-size: 15px; color: #5C5754">刪除文件時，一併移除檔案、草稿、版本與檢索資料。</p></div></li></ul></div>
+</div>
+</div>
+</section>
+
+<section id="pricing" class="wrap" style="padding-top: 88px; padding-bottom: 88px; display: flex; flex-direction: column; gap: 32px">
+<div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 14px">
+<span class="eyebrow">方案</span>
+<h2 class="h2 serif">依用量計費，方案單純</h2>
+</div>
+<div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px">
+<div role="group" aria-label="計費週期" style="display: flex; gap: 2px; padding: 2px; border: 1px solid #D9D2C7; border-radius: 7px; background: #FFFFFF"><button type="button" class="seg" aria-pressed="{{moPressed}}" onClick="{{setMonthly}}">月繳</button><button type="button" class="seg" aria-pressed="{{yrPressed}}" onClick="{{setAnnual}}">年繳</button></div>
+<span style="font-size: 13px; color: #6B6561">年繳：付 10 個月，使用 12 個月</span>
+</div>
+</div>
+<div class="plans">
+<template data-for="{{plans}}" data-as="p">
+<article class="panel" style="padding: 28px 24px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 4px"><h3 class="serif" style="margin: 0; font-size: 24px">{{p.name}}</h3><span style="font-size: 15px; color: #5C5754">{{p.blurb}}</span></div>
+<div style="display: flex; align-items: baseline; gap: 6px"><span class="serif" style="font-size: 46px; line-height: 1">{{p.price}}</span><span style="font-size: 14px; color: #6B6561">{{p.suffix}}</span></div>
+<ul style="margin: 0; padding: 18px 0 0; border-top: 1px solid #EDE8E0; list-style: none; display: flex; flex-direction: column; gap: 10px; flex-grow: 1; font-size: 15px">
+<template data-for="{{p.rows}}" data-as="r">
+<li style="display: flex; gap: 10px; align-items: flex-start"><span style="margin-top: 2px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"></path></svg></span><span>{{r}}</span></li>
+</template>
+</ul>
+<a href="#start" class="{{p.ctaClass}}" style="width: 100%">{{p.cta}}</a>
+</article>
+</template>
+</div>
+<p style="margin: 0; font-size: 14px; color: #6B6561">付費方案皆可加購頁數與回答次數。價格以美元計。</p>
+</section>
+
+<section id="start" class="wrap" style="padding-bottom: 88px">
+<div style="border-radius: 16px; background: #1F1D1C; color: #FAF8F4; padding: 44px 32px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 640px">
+<h2 class="serif" style="margin: 0; font-size: 32px; line-height: 1.2">上傳一份 PDF，檢視第一個附出處的回答。</h2>
+<p style="margin: 0; color: #CFC8C1">以 Google 帳號登入，不需信用卡。</p>
+</div>
+<a href="#signin" class="btn btn-light"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5"></path><path d="m7 10 5-5 5 5"></path><path d="M5 19h14"></path></svg>免費開始</a>
+</div>
+</section>
+</main>
+
+<footer style="border-top: 1px solid #E4DED5">
+<div class="wrap" style="padding-top: 24px; padding-bottom: 32px; display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 14px; color: #6B6561">
+<span style="display: flex; align-items: center; gap: 8px"><svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 14V4.5l6.5 4.5h9L27 4.5V14c0 7.2-4.9 13-11 13S5 21.2 5 14z" fill="#1F1D1C"></path><circle cx="12.2" cy="16" r="3" fill="#FAF8F4"></circle><circle cx="19.8" cy="16" r="3" fill="#FAF8F4"></circle><rect x="15" y="15.3" width="2" height="1.4" fill="#FAF8F4"></rect></svg><span style="font-size: 16px; font-weight: 600; color: #1F1D1C">RAGcat</span></span>
+<nav aria-label="頁尾" style="display: flex; gap: 2px; flex-wrap: wrap"><a href="#privacy" class="navlink" style="font-size: 14px">隱私權</a><a href="#terms" class="navlink" style="font-size: 14px">服務條款</a><a href="#security" class="navlink" style="font-size: 14px">安全性</a><a href="#contact" class="navlink" style="font-size: 14px">聯絡我們</a></nav>
+<span>© 2026 RAGcat</span>
+</div>
+</footer>
+</template>
+</div>
+</template>
+<script src="dc-runtime.js"></script>
+<script>
+const PLANS = {
+  en: [
+    { name: "Free", blurb: "Evaluate the full workflow", m: 0, y: 0, rows: ["1 Assistant", "1 Discord channel", "50 pages read, one time", "100 answers, one time"], cta: "Start free", primary: true },
+    { name: "Starter", blurb: "For a single support desk", m: 19, y: 190, rows: ["2 Assistants", "500 pages read per month", "2,000 answers per month"], cta: "Choose Starter" },
+    { name: "Growth", blurb: "For multiple product lines", m: 49, y: 490, rows: ["10 Assistants", "2,000 pages read per month", "10,000 answers per month"], cta: "Choose Growth" }
+  ],
+  zh: [
+    { name: "Free", blurb: "完整評估整個流程", m: 0, y: 0, rows: ["1 個助理", "1 個 Discord 頻道", "讀取 50 頁（一次性）", "100 次回答（一次性）"], cta: "免費開始", primary: true },
+    { name: "Starter", blurb: "適合單一客服團隊", m: 19, y: 190, rows: ["2 個助理", "每月讀取 500 頁", "每月 2,000 次回答"], cta: "選擇 Starter" },
+    { name: "Growth", blurb: "適合多條產品線", m: 49, y: 490, rows: ["10 個助理", "每月讀取 2,000 頁", "每月 10,000 次回答"], cta: "選擇 Growth" }
+  ]
+};
+const SUFFIX = { en: { mo: "/ month", yr: "/ year" }, zh: { mo: "/ 月", yr: "/ 年" } };
+
+class Component extends DCLogic {
+  state = { lang: "en", billing: "monthly" };
+
+  renderVals() {
+    const lang = this.state.lang;
+    const annual = this.state.billing === "annual";
+    return {
+      en: lang === "en",
+      zh: lang === "zh",
+      enPressed: lang === "en" ? "true" : "false",
+      zhPressed: lang === "zh" ? "true" : "false",
+      setEn: () => this.setState({ lang: "en" }),
+      setZh: () => this.setState({ lang: "zh" }),
+      moPressed: annual ? "false" : "true",
+      yrPressed: annual ? "true" : "false",
+      setMonthly: () => this.setState({ billing: "monthly" }),
+      setAnnual: () => this.setState({ billing: "annual" }),
+      plans: PLANS[lang].map((p) => ({
+        name: p.name, blurb: p.blurb, rows: p.rows, cta: p.cta,
+        price: "$" + (annual ? p.y : p.m),
+        suffix: p.m === 0 ? "" : (annual ? SUFFIX[lang].yr : SUFFIX[lang].mo),
+        ctaClass: "btn " + (p.primary ? "btn-dark" : "btn-line")
+      }))
+    };
+  }
+}
+DC.mount(Component, {});
+</script>
+</body>
+</html>

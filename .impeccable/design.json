@@ -1,0 +1,849 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-14T03:20:53+00:00",
+  "title": "Design System: RAGcat",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "primary",
+        "displayName": "Ink",
+        "canonical": "#1B1A19",
+        "cssVar": "--rc-ink",
+        "tonalRamp": [
+          "#0C0B0A",
+          "#262524",
+          "#434241",
+          "#626160",
+          "#838281",
+          "#A6A5A3",
+          "#CAC9C7",
+          "#F0EEED"
+        ]
+      },
+      "ink-hover": {
+        "role": "primary",
+        "displayName": "Ink Hover",
+        "canonical": "#34322F",
+        "cssVar": "--rc-ink-hover",
+        "tonalRamp": [
+          "#0D0B08",
+          "#272522",
+          "#44423E",
+          "#63615D",
+          "#84827E",
+          "#A7A5A1",
+          "#CBC9C5",
+          "#F1EEEA"
+        ]
+      },
+      "on-ink": {
+        "role": "neutral",
+        "displayName": "On Ink",
+        "canonical": "#FFFFFF",
+        "cssVar": "--rc-on-ink",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#A5A5A5",
+          "#C9C9C9",
+          "#EEEEEE"
+        ]
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Canvas",
+        "canonical": "#F7F7F5",
+        "cssVar": "--rc-bg",
+        "tonalRamp": [
+          "#0B0B0A",
+          "#252524",
+          "#424240",
+          "#616160",
+          "#828281",
+          "#A5A5A3",
+          "#C9C9C7",
+          "#EEEEEC"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "canonical": "#FFFFFF",
+        "cssVar": "--rc-surface",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#A5A5A5",
+          "#C9C9C9",
+          "#EEEEEE"
+        ]
+      },
+      "surface-subtle": {
+        "role": "neutral",
+        "displayName": "Surface Subtle",
+        "canonical": "#F2F2EF",
+        "cssVar": "--rc-surface-subtle",
+        "tonalRamp": [
+          "#0B0B09",
+          "#252523",
+          "#424240",
+          "#61615F",
+          "#828280",
+          "#A5A5A2",
+          "#C9C9C6",
+          "#EFEFEC"
+        ]
+      },
+      "surface-sunken": {
+        "role": "neutral",
+        "displayName": "Surface Sunken",
+        "canonical": "#ECEBE7",
+        "cssVar": "--rc-surface-sunken",
+        "tonalRamp": [
+          "#0C0B09",
+          "#262522",
+          "#43423F",
+          "#62615E",
+          "#83827F",
+          "#A6A5A1",
+          "#CAC9C5",
+          "#EFEEEA"
+        ]
+      },
+      "text-secondary": {
+        "role": "neutral",
+        "displayName": "Text Secondary",
+        "canonical": "#45423F",
+        "cssVar": "--rc-text-secondary",
+        "tonalRamp": [
+          "#0D0B08",
+          "#272422",
+          "#44413E",
+          "#64615D",
+          "#85827E",
+          "#A8A4A1",
+          "#CCC8C5",
+          "#F1EEEA"
+        ]
+      },
+      "text-control": {
+        "role": "neutral",
+        "displayName": "Text Control",
+        "canonical": "#3A3835",
+        "cssVar": "--rc-text-control",
+        "tonalRamp": [
+          "#0D0B08",
+          "#272522",
+          "#44423F",
+          "#63615E",
+          "#84827E",
+          "#A7A5A1",
+          "#CBC9C5",
+          "#F1EEEA"
+        ]
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Text Muted",
+        "canonical": "#5C5955",
+        "cssVar": "--rc-text-muted",
+        "tonalRamp": [
+          "#0D0B08",
+          "#272521",
+          "#44413E",
+          "#64615D",
+          "#85827D",
+          "#A8A4A0",
+          "#CCC8C4",
+          "#F1EEE9"
+        ]
+      },
+      "text-subtle": {
+        "role": "neutral",
+        "displayName": "Text Subtle",
+        "canonical": "#6C6863",
+        "cssVar": "--rc-text-subtle",
+        "tonalRamp": [
+          "#0E0B07",
+          "#282420",
+          "#45413D",
+          "#64605C",
+          "#86827C",
+          "#A9A49F",
+          "#CDC8C3",
+          "#F2EEE8"
+        ]
+      },
+      "text-disabled": {
+        "role": "neutral",
+        "displayName": "Text Disabled",
+        "canonical": "#9A958E",
+        "cssVar": "--rc-text-disabled",
+        "tonalRamp": [
+          "#0E0B06",
+          "#28241F",
+          "#46413B",
+          "#65605A",
+          "#86827B",
+          "#A9A49D",
+          "#CEC8C1",
+          "#F3EEE6"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Border",
+        "canonical": "#E7E5E1",
+        "cssVar": "--rc-border",
+        "tonalRamp": [
+          "#0C0B08",
+          "#262522",
+          "#43423F",
+          "#63615E",
+          "#84827E",
+          "#A7A5A1",
+          "#CBC9C5",
+          "#F0EEEA"
+        ]
+      },
+      "border-subtle": {
+        "role": "neutral",
+        "displayName": "Border Subtle",
+        "canonical": "#EFEDEA",
+        "cssVar": "--rc-border-subtle",
+        "tonalRamp": [
+          "#0C0B09",
+          "#262523",
+          "#43423F",
+          "#63615E",
+          "#84827F",
+          "#A6A5A2",
+          "#CBC9C6",
+          "#F0EEEB"
+        ]
+      },
+      "border-strong": {
+        "role": "neutral",
+        "displayName": "Border Strong",
+        "canonical": "#D8D5CF",
+        "cssVar": "--rc-border-strong",
+        "tonalRamp": [
+          "#0D0B07",
+          "#272520",
+          "#44423D",
+          "#63615C",
+          "#85827C",
+          "#A7A59F",
+          "#CCC9C3",
+          "#F1EEE8"
+        ]
+      },
+      "border-input": {
+        "role": "neutral",
+        "displayName": "Border Input",
+        "canonical": "#CDC9C2",
+        "cssVar": "--rc-border-input",
+        "tonalRamp": [
+          "#0D0B07",
+          "#28251F",
+          "#45423C",
+          "#64615B",
+          "#85827B",
+          "#A8A49E",
+          "#CDC9C2",
+          "#F2EEE7"
+        ]
+      },
+      "brand-yellow": {
+        "role": "secondary",
+        "displayName": "Brand Yellow",
+        "canonical": "#FFD43B",
+        "cssVar": "--rc-brand",
+        "tonalRamp": [
+          "#0F0B00",
+          "#2E2401",
+          "#514001",
+          "#755F06",
+          "#9D7F06",
+          "#C6A104",
+          "#EFC521",
+          "#FFEEBA"
+        ]
+      },
+      "brand-soft": {
+        "role": "secondary",
+        "displayName": "Brand Soft",
+        "canonical": "#FFF3C2",
+        "cssVar": "--rc-brand-soft",
+        "tonalRamp": [
+          "#0F0B00",
+          "#2D2500",
+          "#4C4214",
+          "#6C6135",
+          "#8E8255",
+          "#B1A577",
+          "#D5CA9A",
+          "#FBEFBE"
+        ]
+      },
+      "brand-deep": {
+        "role": "secondary",
+        "displayName": "Brand Deep",
+        "canonical": "#8A6400",
+        "cssVar": "--rc-brand-deep",
+        "tonalRamp": [
+          "#110A00",
+          "#322201",
+          "#563D02",
+          "#7D5B02",
+          "#A27B28",
+          "#C79E4F",
+          "#ECC373",
+          "#FFECCA"
+        ]
+      },
+      "citation-yellow": {
+        "role": "secondary",
+        "displayName": "Citation Yellow",
+        "canonical": "#FFE066",
+        "cssVar": "--rc-citation",
+        "tonalRamp": [
+          "#0F0B00",
+          "#2D2400",
+          "#4F4103",
+          "#736003",
+          "#9A8103",
+          "#C1A315",
+          "#E6C84B",
+          "#FFEFB1"
+        ]
+      },
+      "selection-blue": {
+        "role": "tertiary",
+        "displayName": "Selection Blue",
+        "canonical": "#2F6FEB",
+        "cssVar": "--rc-selection",
+        "tonalRamp": [
+          "#000827",
+          "#001E5D",
+          "#00369B",
+          "#1655CF",
+          "#397AF7",
+          "#72A3FE",
+          "#ACCAFF",
+          "#E6EFFE"
+        ]
+      },
+      "success": {
+        "role": "tertiary",
+        "displayName": "Success",
+        "canonical": "#1F9254",
+        "cssVar": "--rc-success",
+        "tonalRamp": [
+          "#000F05",
+          "#002E15",
+          "#025029",
+          "#06753F",
+          "#2A995B",
+          "#55BE7D",
+          "#7BE3A0",
+          "#C6FFD7"
+        ]
+      },
+      "success-bg": {
+        "role": "tertiary",
+        "displayName": "Success Background",
+        "canonical": "#E3F4E9",
+        "cssVar": "--rc-success-bg",
+        "tonalRamp": [
+          "#040E07",
+          "#1C2921",
+          "#38463D",
+          "#57655C",
+          "#77877D",
+          "#9AAA9F",
+          "#BDCEC3",
+          "#E3F3E8"
+        ]
+      },
+      "success-text": {
+        "role": "tertiary",
+        "displayName": "Success Text",
+        "canonical": "#146C3C",
+        "cssVar": "--rc-success-text",
+        "tonalRamp": [
+          "#000F05",
+          "#002E15",
+          "#025029",
+          "#1E7342",
+          "#469563",
+          "#6AB984",
+          "#8EDFA8",
+          "#C6FFD6"
+        ]
+      },
+      "warning": {
+        "role": "tertiary",
+        "displayName": "Warning",
+        "canonical": "#D98E04",
+        "cssVar": "--rc-warning",
+        "tonalRamp": [
+          "#130900",
+          "#362000",
+          "#5C3A01",
+          "#855603",
+          "#B17306",
+          "#DE9314",
+          "#FEBA60",
+          "#FEEBD4"
+        ]
+      },
+      "warning-bg": {
+        "role": "tertiary",
+        "displayName": "Warning Background",
+        "canonical": "#FFF2D2",
+        "cssVar": "--rc-warning-bg",
+        "tonalRamp": [
+          "#100A00",
+          "#2E2409",
+          "#4C4126",
+          "#6B6044",
+          "#8D8164",
+          "#B0A486",
+          "#D5C8A9",
+          "#FBEECE"
+        ]
+      },
+      "warning-text": {
+        "role": "tertiary",
+        "displayName": "Warning Text",
+        "canonical": "#774B00",
+        "cssVar": "--rc-warning-text",
+        "tonalRamp": [
+          "#130900",
+          "#362001",
+          "#5C3900",
+          "#835614",
+          "#A7783B",
+          "#CB9B5E",
+          "#F1BF82",
+          "#FFEBD4"
+        ]
+      },
+      "callout-bg": {
+        "role": "tertiary",
+        "displayName": "Callout Background",
+        "canonical": "#FFF8E5",
+        "cssVar": "--rc-callout-bg",
+        "tonalRamp": [
+          "#0F0B01",
+          "#2A2516",
+          "#474232",
+          "#676151",
+          "#888271",
+          "#ABA593",
+          "#D0C9B6",
+          "#F5EEDB"
+        ]
+      },
+      "callout-border": {
+        "role": "tertiary",
+        "displayName": "Callout Border",
+        "canonical": "#F2DCA0",
+        "cssVar": "--rc-callout-border",
+        "tonalRamp": [
+          "#100A00",
+          "#2F2401",
+          "#524001",
+          "#735F25",
+          "#958047",
+          "#B8A369",
+          "#DDC88C",
+          "#FFEEBF"
+        ]
+      },
+      "info-bg": {
+        "role": "tertiary",
+        "displayName": "Info Background",
+        "canonical": "#E8F0FE",
+        "cssVar": "--rc-info-bg",
+        "tonalRamp": [
+          "#070B14",
+          "#20252F",
+          "#3C424D",
+          "#5B626D",
+          "#7C838F",
+          "#9EA5B2",
+          "#C2CAD7",
+          "#E7EFFD"
+        ]
+      },
+      "info-text": {
+        "role": "tertiary",
+        "displayName": "Info Text",
+        "canonical": "#1D4FB8",
+        "cssVar": "--rc-info-text",
+        "tonalRamp": [
+          "#000728",
+          "#001C61",
+          "#04359C",
+          "#2659C2",
+          "#467CE9",
+          "#74A3FE",
+          "#ADCAFF",
+          "#E6EFFE"
+        ]
+      },
+      "neutral-bg": {
+        "role": "neutral",
+        "displayName": "Neutral Background",
+        "canonical": "#EFEEEB",
+        "cssVar": "--rc-neutral-bg",
+        "tonalRamp": [
+          "#0C0B09",
+          "#262523",
+          "#43423F",
+          "#62615F",
+          "#83827F",
+          "#A6A5A2",
+          "#CAC9C6",
+          "#EFEEEB"
+        ]
+      },
+      "dot-idle": {
+        "role": "neutral",
+        "displayName": "Dot Idle",
+        "canonical": "#BAB5AE",
+        "cssVar": "--rc-dot-idle",
+        "tonalRamp": [
+          "#0E0B06",
+          "#28241F",
+          "#45413B",
+          "#65605A",
+          "#86827B",
+          "#A9A49D",
+          "#CDC8C1",
+          "#F3EEE6"
+        ]
+      },
+      "danger": {
+        "role": "tertiary",
+        "displayName": "Danger",
+        "canonical": "#C62828",
+        "cssVar": "--rc-danger",
+        "tonalRamp": [
+          "#1E0001",
+          "#4C0104",
+          "#80010B",
+          "#B60F19",
+          "#DF433D",
+          "#FE7369",
+          "#FEB3AA",
+          "#FEE9E6"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Landing H1 only; 72px from 960px, 44px on phone. Traditional Chinese uses 700 with zero tracking."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Landing section titles; 44px from 960px, 32px below."
+      },
+      "page-title": {
+        "displayName": "Page Title",
+        "purpose": "App page titles."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card and block titles, Assistant names, landing step titles."
+      },
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "Section leads in Text Secondary; the landing hero lead is 20px, at most 640px wide."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text; inputs are always 16px."
+      },
+      "ui": {
+        "displayName": "UI",
+        "purpose": "Buttons, nav, tabs, panel headings."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Labels and list primary text."
+      },
+      "hint": {
+        "displayName": "Hint",
+        "purpose": "Hints and metadata in Text Subtle."
+      },
+      "chip": {
+        "displayName": "Chip",
+        "purpose": "Status chips."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "File names, page references, timestamps, IDs; tabular figures."
+      },
+      "data-micro": {
+        "displayName": "Data Micro",
+        "purpose": "Counts and the [1] footnote marker."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card",
+        "value": "0 1px 2px rgba(27, 26, 25, 0.05), 0 1px 3px rgba(27, 26, 25, 0.04)",
+        "purpose": "Panels, cards, status bar, secondary and icon buttons, selected segment."
+      },
+      {
+        "name": "hover",
+        "value": "0 2px 4px rgba(27, 26, 25, 0.05), 0 10px 24px rgba(27, 26, 25, 0.08)",
+        "purpose": "Assistant card hover, with a 2px rise."
+      },
+      {
+        "name": "raised",
+        "value": "0 1px 2px rgba(27, 26, 25, 0.04), 0 8px 24px rgba(27, 26, 25, 0.08)",
+        "purpose": "PDF sheet, landing previews, featured plan."
+      },
+      {
+        "name": "raised-lg",
+        "value": "0 2px 6px rgba(27, 26, 25, 0.05), 0 28px 64px rgba(27, 26, 25, 0.16)",
+        "purpose": "Landing product frame only."
+      },
+      {
+        "name": "overlay",
+        "value": "0 4px 10px rgba(27, 26, 25, 0.06), 0 18px 44px rgba(27, 26, 25, 0.14)",
+        "purpose": "Task rail, popover, menu, dialog."
+      },
+      {
+        "name": "input-focus-halo",
+        "value": "0 0 0 3px #FFF3C2",
+        "purpose": "Focused input (with ink border) and avatar hover."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Expo-out curve for every transition."
+      },
+      {
+        "name": "duration",
+        "value": "160ms",
+        "purpose": "Default state transitions; 0ms under reduced motion."
+      },
+      {
+        "name": "duration-cite",
+        "value": "420ms",
+        "purpose": "The citation sweep: highlight wipes left to right when a [1] marker is hovered or focused; 0ms under reduced motion."
+      },
+      {
+        "name": "focus-ring",
+        "value": "2px solid #1B1A19, offset 2px (3px on the landing)",
+        "purpose": "Keyboard focus on every interactive element."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "960px"
+      },
+      {
+        "name": "xl",
+        "value": "1024px"
+      }
+    ],
+    "layout": {
+      "containerLanding": "1200px",
+      "containerApp": "1200px",
+      "containerReview": "1320px",
+      "gutterPhone": "16px",
+      "gutterTablet": "32px",
+      "headerHeight": "64px",
+      "touchTarget": "44px"
+    },
+    "mascot": {
+      "poses": [
+        "sit",
+        "point",
+        "read",
+        "cheer",
+        "sleep"
+      ],
+      "assets": "web/public/cat/{pose}.webp with {pose}.webp.json provenance",
+      "placements": [
+        "landing hero: point",
+        "landing close: cheer",
+        "empty Assistants: sleep",
+        "Setup reading panel: read, cheer when ready",
+        "Publish success: cheer",
+        "Review Test chat: the mark as the Assistant avatar (32px white circle, Border hairline)"
+      ],
+      "excluded": [
+        "Review workspace (illustrations; the mark avatar is the one exception)"
+      ],
+      "mark": "web/public/mark.svg, designs/icons/mark-ink.svg and mark-reverse.svg: the head redrawn as a 32-unit vector, legible from 16px; one drawing for light and dark grounds",
+      "accessibility": "decorative: alt=\"\" and aria-hidden"
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ink action button for the one primary action on a surface: Upload a PDF, Publish changes, Start free.",
+      "html": "<button class=\"ds-btn ds-btn-primary\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 16V4\"/><path d=\"M7 9l5-5 5 5\"/><path d=\"M4 20h16\"/></svg>Upload a PDF</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border:1px solid transparent;border-radius:10px;font-family:'Figtree','Noto Sans TC',system-ui,sans-serif;font-size:15px;font-weight:600;line-height:1.2;cursor:pointer;transition:background-color 160ms cubic-bezier(0.16,1,0.3,1),border-color 160ms cubic-bezier(0.16,1,0.3,1),transform 160ms cubic-bezier(0.16,1,0.3,1)}.ds-btn:active{transform:translateY(1px)}.ds-btn:focus-visible{outline:2px solid #1B1A19;outline-offset:2px}.ds-btn-primary{background:#1B1A19;border-color:#1B1A19;color:#FFFFFF}.ds-btn-primary:hover{background:#34322F;border-color:#34322F}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "White outlined key with card lift for secondary actions such as See the product.",
+      "html": "<button class=\"ds-btn-line\">See the product</button>",
+      "css": ".ds-btn-line{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border:1px solid #D8D5CF;border-radius:10px;background:#FFFFFF;color:#1B1A19;font-family:'Figtree','Noto Sans TC',system-ui,sans-serif;font-size:15px;font-weight:600;box-shadow:0 1px 2px rgba(27,26,25,0.05),0 1px 3px rgba(27,26,25,0.04);cursor:pointer;transition:background-color 160ms cubic-bezier(0.16,1,0.3,1),border-color 160ms cubic-bezier(0.16,1,0.3,1)}.ds-btn-line:hover{background:#F2F2EF;border-color:#CDC9C2}.ds-btn-line:active{transform:translateY(1px)}.ds-btn-line:focus-visible{outline:2px solid #1B1A19;outline-offset:2px}"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "16px field with an ink border and Brand Soft halo on focus.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Assistant name</span><input class=\"ds-input\" placeholder=\"Mochi Pet Co. support\"></label>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:6px;font-family:'Figtree','Noto Sans TC',system-ui,sans-serif;width:320px}.ds-field-label{font-size:14px;font-weight:600;color:#1B1A19}.ds-input{min-height:44px;padding:0 12px;border:1px solid #CDC9C2;border-radius:10px;background:#FFFFFF;font:inherit;font-size:16px;color:#1B1A19;transition:border-color 160ms cubic-bezier(0.16,1,0.3,1),box-shadow 160ms cubic-bezier(0.16,1,0.3,1)}.ds-input::placeholder{color:#6C6863}.ds-input:hover{border-color:#9A958E}.ds-input:focus{outline:none;border-color:#1B1A19;box-shadow:0 0 0 3px #FFF3C2}"
+    },
+    {
+      "name": "Status Chips",
+      "kind": "chip",
+      "refersTo": "chip-attention",
+      "description": "Status chips; Needs action is an ink outline, never yellow.",
+      "html": "<div class=\"ds-chips\"><span class=\"ds-chip ds-chip-attn\">Needs action</span><span class=\"ds-chip ds-chip-done\">Live</span><span class=\"ds-chip ds-chip-warn\">Heading only</span><span class=\"ds-chip ds-chip-info\">Edited</span><span class=\"ds-chip ds-chip-neutral\">Not published</span></div>",
+      "css": ".ds-chips{display:flex;gap:8px;flex-wrap:wrap;font-family:'Figtree','Noto Sans TC',system-ui,sans-serif}.ds-chip{display:inline-flex;align-items:center;padding:1px 8px;border-radius:6px;font-size:12px;font-weight:600;line-height:1.6;white-space:nowrap}.ds-chip-attn{background:#FFFFFF;box-shadow:inset 0 0 0 1px #1B1A19;color:#1B1A19}.ds-chip-done{background:#E3F4E9;color:#146C3C}.ds-chip-warn{background:#FFF2D2;color:#774B00}.ds-chip-info{background:#E8F0FE;color:#1D4FB8}.ds-chip-neutral{background:#EFEEEB;color:#45423F}"
+    },
+    {
+      "name": "Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "White 14px panel with hairline and card shadow on the #F7F7F5 canvas.",
+      "html": "<div class=\"ds-canvas\"><section class=\"ds-panel\"><header class=\"ds-phead\">Documents <span class=\"ds-cnt\">3</span></header><div class=\"ds-pbody\"><span class=\"ds-mono\">returns-policy.pdf &middot; p. 3</span><p>Every Passage sits beside the page it came from.</p></div></section></div>",
+      "css": ".ds-canvas{background:#F7F7F5;padding:24px;font-family:'Figtree','Noto Sans TC',system-ui,sans-serif;color:#1B1A19}.ds-panel{background:#FFFFFF;border:1px solid #E7E5E1;border-radius:14px;box-shadow:0 1px 2px rgba(27,26,25,0.05),0 1px 3px rgba(27,26,25,0.04);max-width:420px}.ds-phead{display:flex;align-items:center;gap:8px;padding:14px 20px;border-bottom:1px solid #E7E5E1;font-size:15px;font-weight:700}.ds-cnt{min-width:20px;padding:0 6px;border-radius:6px;background:#EFEEEB;color:#45423F;font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;font-weight:500;line-height:18px;text-align:center}.ds-pbody{padding:24px;display:flex;flex-direction:column;gap:8px;font-size:16px;line-height:1.6}.ds-pbody p{margin:0;color:#45423F}.ds-mono{font-family:'Geist Mono',ui-monospace,monospace;font-size:14px;letter-spacing:-0.01em;font-variant-numeric:tabular-nums;color:#6C6863}"
+    },
+    {
+      "name": "Assistant Card",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Linked card that lifts 2px to the hover shadow.",
+      "html": "<a class=\"ds-acard\" href=\"#\"><span class=\"ds-acard-name\">Mochi Pet Co. support</span><span class=\"ds-acard-meta\"><span class=\"ds-dot\"></span>Live</span></a>",
+      "css": ".ds-acard{display:flex;flex-direction:column;justify-content:space-between;gap:18px;width:300px;min-height:160px;padding:20px;background:#FFFFFF;border:1px solid #E7E5E1;border-radius:14px;box-shadow:0 1px 2px rgba(27,26,25,0.05),0 1px 3px rgba(27,26,25,0.04);color:#1B1A19;text-decoration:none;font-family:'Figtree','Noto Sans TC',system-ui,sans-serif;transition:border-color 160ms cubic-bezier(0.16,1,0.3,1),box-shadow 160ms cubic-bezier(0.16,1,0.3,1),transform 160ms cubic-bezier(0.16,1,0.3,1)}.ds-acard:hover{border-color:#D8D5CF;box-shadow:0 2px 4px rgba(27,26,25,0.05),0 10px 24px rgba(27,26,25,0.08);transform:translateY(-2px)}.ds-acard:focus-visible{outline:2px solid #1B1A19;outline-offset:2px}.ds-acard-name{font-size:20px;font-weight:800;letter-spacing:-0.02em;line-height:1.25}.ds-acard-meta{display:inline-flex;align-items:center;gap:8px;padding-top:16px;border-top:1px solid #EFEDEA;font-size:14px}.ds-dot{width:8px;height:8px;border-radius:50%;background:#1F9254;box-shadow:0 0 0 3px #E3F4E9}"
+    },
+    {
+      "name": "App Header",
+      "kind": "nav",
+      "refersTo": "avatar",
+      "description": "One row: the mark and wordmark lead home to the Assistants list (no nav row); on the right the EN/中文 segmented control and the brand-yellow account avatar.",
+      "html": "<header class=\"ds-header\"><a class=\"ds-brand\" href=\"#\">RAGcat</a><span class=\"ds-seg\"><span aria-pressed=\"true\">EN</span><span>中文</span></span><span class=\"ds-avatar\">D</span></header>",
+      "css": ".ds-header{display:flex;align-items:center;gap:8px;padding:8px 16px;background:#FFFFFF;border-bottom:1px solid #E7E5E1;font-family:'Figtree','Noto Sans TC',system-ui,sans-serif}.ds-brand{margin-right:auto;font-size:19px;font-weight:800;letter-spacing:-0.02em;color:#1B1A19;text-decoration:none}.ds-seg{display:inline-flex;padding:3px;border-radius:11px;background:#F2F2EF;font-size:14px;font-weight:600}.ds-seg span{padding:6px 12px;border-radius:8px;color:#3A3835}.ds-seg span[aria-pressed=true]{background:#FFFFFF;color:#1B1A19;box-shadow:0 1px 2px rgba(27,26,25,0.08)}.ds-avatar{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:#FFD43B;color:#1B1A19;font-size:14px;font-weight:700}"
+    },
+    {
+      "name": "Citation Sweep",
+      "kind": "custom",
+      "refersTo": "citation-mark",
+      "description": "Signature component: hovering or focusing the [1] marker wipes the citation highlight left to right over 420ms.",
+      "html": "<p class=\"ds-cited\">Opened items cannot be returned <mark class=\"ds-cite\">unless the item is defective</mark>. <button class=\"ds-fn\" type=\"button\" aria-label=\"Show source\">1</button></p>",
+      "css": ".ds-cited{max-width:360px;font-family:'Figtree','Noto Sans TC',system-ui,sans-serif;font-size:16px;line-height:1.6;color:#1B1A19}.ds-cite{padding:1px 3px;border-radius:4px;color:#1B1A19;background:linear-gradient(#FFE066,#FFE066) no-repeat 0 0/100% 100%;-webkit-box-decoration-break:clone;box-decoration-break:clone;transition:background-size 420ms cubic-bezier(0.16,1,0.3,1)}.ds-cited:has(.ds-fn:hover) .ds-cite,.ds-cited:has(.ds-fn:focus-visible) .ds-cite{animation:ds-sweep 420ms cubic-bezier(0.16,1,0.3,1)}@keyframes ds-sweep{from{background-size:0% 100%}}.ds-fn{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;border:0;border-radius:4px;background:#FFD43B;color:#1B1A19;font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;font-weight:600;line-height:1;vertical-align:2px;cursor:pointer;transition:box-shadow 160ms cubic-bezier(0.16,1,0.3,1)}.ds-fn:hover{box-shadow:0 0 0 2px #1B1A19}.ds-fn:focus-visible{outline:2px solid #1B1A19;outline-offset:2px}@media (prefers-reduced-motion:reduce){.ds-cited .ds-cite{animation:none!important}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Cited Answer",
+    "overview": "**Creative North Star: \"The Cited Answer\"**\n\nRAGcat looks like the category standard for AI customer-support SaaS, played straight at Notion, Mailchimp and Intercom craft: a white ground, warm near-black ink, warm-grey neutrals, and Figtree set heavy for headings. The world earns its own identity through two things only. The first is one brand yellow, which fills whole brand fields and marks citations. The second is a line-drawn cat in reading glasses, which appears at a few key moments. Everything else stays quiet so that the product itself is the proof. A Discord answer sits beside its source page, and the cited sentence is highlighted on that page.\n\nThere are two densities. The landing is spacious and persuasive. It uses a white ground with alternating #F7F7F5 bands, 80px section rhythm, and a product frame on a yellow stage. The app is an Operate surface: a #F7F7F5 canvas carrying white panels and cards with soft, layered lift, data set in Geist Mono, and dense rows. The Review workspace is the working core and carries no decoration; the cat appears there only as the mark in the Assistant's avatar.\n\nThis world replaces the visual rules of the H3 spec in `designs/` (cream paper, editorial serif, flat with no shadows). Those visual rules are retired. `designs/` still governs product flow, copy, vocabulary (Assistant, Document, Passage, Publish changes), states and accessibility (WCAG 2.2 AA). The world refuses both the cream-paper editorial look and the dark AI-gradient look.",
+    "keyCharacteristics": [
+      "White ground and warm near-black ink; one brand yellow that does two jobs, as brand field and as citation.",
+      "Figtree 800 headings with tight tracking; Figtree UI; Geist Mono for every piece of data.",
+      "14px-radius white panels with soft, layered, neutral shadows on a #F7F7F5 app canvas.",
+      "Ink primary buttons with a 10px radius, never pill-shaped and never coloured.",
+      "The cat in reading glasses as the single brand device, used decoratively at key moments only.",
+      "The citation sweep as the signature motion."
+    ],
+    "rules": [
+      {
+        "name": "The Two Yellows Rule",
+        "body": "Brand Yellow fills brand fields and marks [1]; Citation Yellow sits behind cited text. Yellow means brand or \"cited\" and nothing else, so status chips never use yellow; \"Needs action\" is a white chip with a 1px ink outline.",
+        "section": "colors"
+      },
+      {
+        "name": "The Canvas Lift Rule",
+        "body": "The app canvas is #F7F7F5 by design (an Operate-surface adaptation), so every white panel and card on it carries a hairline border and the card shadow. The landing ground is white, with #F7F7F5 only as alternating section bands.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ink Acts Rule",
+        "body": "Every primary action and every selected state is ink. No coloured buttons.",
+        "section": "colors"
+      },
+      {
+        "name": "The Mono Means Data Rule",
+        "body": "Anything the system measured, numbered or named from a file is set in Geist Mono with tabular figures. Prose and controls are never mono.",
+        "section": "typography"
+      },
+      {
+        "name": "The Bare Heading Rule",
+        "body": "Headings stand alone. No eyebrow, kicker or uppercase label sits above a heading.",
+        "section": "typography"
+      },
+      {
+        "name": "The Soft Lift Rule",
+        "body": "Depth comes from soft, layered, ink-tinted shadows. There is no glow, no coloured shadow and no hard offset shadow.",
+        "section": "elevation"
+      },
+      {
+        "name": "The No Pill Rule",
+        "body": "Buttons are never pill-shaped. A 999px radius belongs only to progress bars and switches.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Highlighter Rule",
+        "body": "The citation sweep is the signature motion. When a [1] marker is hovered or focused, the highlight wipes left to right across the cited sentence over 420ms on the expo-out curve (cubic-bezier(0.16, 1, 0.3, 1)), like a highlighter pen. With reduced motion the duration is 0 and the highlight is static. This is the only expressive motion; every other transition is a 160ms state change. Today the sweep is wired on the landing product frame; the Review workspace's markers are static.",
+        "section": "components"
+      },
+      {
+        "name": "The Key Moments Rule",
+        "body": "The cat illustrations appear only at key moments: the landing hero (point, leaning in from the source column so its paw points back at the cited sentence), the landing close (cheer), the empty Assistants state (sleep), the Setup reading panel (read while reading, cheer when ready) and Publish success (cheer). The Review workspace never shows an illustration. There the cat appears only as the mark in the Assistant's avatar beside each Test answer: a 32px white circle with a Border hairline holding the 22px mark (user decision, 2026-10-14). The landing's Discord preview uses the same white avatar at 36px. The cat is always decorative, with an empty alt and aria-hidden.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do set every primary action in ink (#1B1A19) with a 10px radius and white text.",
+      "Do keep the app canvas #F7F7F5 and give every white panel or card on it a hairline border and the card shadow.",
+      "Do keep the landing ground white and use #F7F7F5 only for alternating section bands.",
+      "Do reserve Brand Yellow (#FFD43B) for brand fields (hero stage, closing band), the mascot's ears, the avatar, step numbers and the [1] marker; reserve Citation Yellow (#FFE066) for the highlight behind cited text.",
+      "Do set file names, pages, counts, times and IDs in Geist Mono with tabular figures.",
+      "Do use the 420ms left-to-right citation sweep for citation reveals and switch it off under reduced motion.",
+      "Do keep the product vocabulary, flow, states and WCAG 2.2 AA requirements from the H3 spec in `designs/`."
+    ],
+    "donts": [
+      "Don't put an eyebrow or kicker label above a heading.",
+      "Don't make buttons pill-shaped or coloured; primary buttons are ink.",
+      "Don't use gradients or glow; the only gradient in the build is the flat single-colour layer that drives the citation sweep.",
+      "Don't use yellow for status chips; \"Needs action\" is an ink-outline chip.",
+      "Don't show the mascot illustrations in the Review workspace or anywhere outside their key moments; in the Review workspace the cat is only the mark in the Assistant's avatar. Never give the cat meaning that assistive technology must announce.",
+      "Don't bring back the H3 spec's retired visual rules: cream paper, editorial serif, or flat surfaces with no shadows."
+    ]
+  }
+}

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Library cat sketch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700;800;900&family=Red+Hat+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--cloth:#1E5A43;--cloth-deep:#164633;--label:#FFFFFF;--ink:#16181A;--ginger:#E07B39;--ginger-d:#B85A22;--cited:#FFC93C;--stamp:#5B3FD1;--oxblood:#8E2B2B;--navy:#24407A;--mustard:#D9A13B}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1440px;height:900px;overflow:hidden}
+  body{background:var(--cloth);color:#fff;font-family:Figtree,system-ui,sans-serif;position:relative}
+  /* faint buckram weave */
+  body::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(0,0,0,.03) 0 1px,transparent 1px 3px);pointer-events:none}
+  header{position:absolute;left:96px;right:96px;top:0;height:76px;display:flex;align-items:center;gap:30px;border-bottom:1px solid rgba(255,255,255,.22);font-weight:700;font-size:16px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:28px;margin-right:auto}
+  .lang{display:flex;border:2px solid #fff;border-radius:999px;overflow:hidden;font-size:13px}.lang span{padding:4px 12px}.lang span:first-child{background:#fff;color:var(--cloth)}
+  .start{background:#fff;color:var(--cloth);padding:10px 18px;border-radius:8px;font-weight:800}
+  h1{position:absolute;left:96px;top:124px;width:720px;font-weight:900;font-size:104px;line-height:.95;letter-spacing:-.03em}
+  .lead{position:absolute;left:96px;top:346px;width:600px;font-size:20px;line-height:1.5;font-weight:500;color:#E4EEE9}
+  .btns{position:absolute;left:96px;top:452px;display:flex;gap:12px}
+  .btn{height:56px;padding:0 26px;display:flex;align-items:center;gap:10px;border-radius:10px;font-weight:800;font-size:18px;border:2.5px solid #fff}
+  .btn.p{background:#fff;color:var(--cloth)}
+  /* reference desk slip: the answer */
+  .slip{position:absolute;left:880px;top:118px;width:460px;height:352px;background:var(--label);color:var(--ink);border-radius:6px;padding:0 0 18px;display:flex;flex-direction:column}
+  .slip .hd{display:flex;justify-content:space-between;padding:14px 20px;border-bottom:2px solid var(--ink);font-weight:800;font-size:14px;letter-spacing:.08em}
+  .slip .b{padding:16px 20px;display:flex;flex-direction:column;gap:10px;font-size:17px;line-height:1.45}
+  .slip .who{font-weight:800;font-size:13px;letter-spacing:.08em;color:#444}
+  .slip .q{font-weight:800;font-size:26px;line-height:1.15}
+  .c1{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--cited);border:2px solid var(--ink);font-family:'Red Hat Mono';font-weight:700;font-size:13px;vertical-align:-5px}
+  .stamp{position:absolute;right:22px;bottom:18px;transform:rotate(-5deg);border:3px solid var(--stamp);color:var(--stamp);border-radius:8px;padding:6px 12px;font-family:'Red Hat Mono';font-weight:700;font-size:15px;line-height:1.3;text-align:center}
+  /* the shelf */
+  .plank{position:absolute;left:0;right:0;top:836px;height:64px;background:var(--cloth-deep);border-top:4px solid #0F3526}
+  .books{position:absolute;left:96px;right:96px;bottom:64px;height:230px;display:flex;align-items:flex-end;gap:6px}
+  .book{position:relative;border-radius:3px 3px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:14px 0 12px;color:#fff}
+  .book .t{writing-mode:vertical-rl;font-weight:800;font-size:15px;letter-spacing:.02em}
+  .book .cn{background:var(--label);color:var(--ink);font-family:'Red Hat Mono';font-weight:700;font-size:12px;line-height:1.2;text-align:center;padding:5px 4px;border-radius:2px;width:44px}
+  .book.cited{transform:translateY(-34px);box-shadow:0 34px 0 0 rgba(0,0,0,.18)}
+  .book.cited .cn{background:var(--cited);border:2px solid var(--ink)}
+  .ribbon{position:absolute;top:-30px;left:18px;width:14px;height:44px;background:var(--cited);clip-path:polygon(0 0,100% 0,100% 100%,50% 82%,0 100%)}
+  .cat{position:absolute;left:690px;top:520px;width:300px;height:150px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><svg width="30" height="30" viewBox="0 0 32 32"><path d="M5 14V4.5l6.5 4.5h9L27 4.5V14c0 7.2-4.9 13-11 13S5 21.2 5 14z" fill="#fff"/><circle cx="12.2" cy="16" r="3" fill="#1E5A43"/><circle cx="19.8" cy="16" r="3" fill="#1E5A43"/><rect x="15" y="15.3" width="2" height="1.4" fill="#1E5A43"/></svg>RAGcat</div>
+  <span>How it works</span><span>Trust</span><span>Pricing</span>
+  <div class="lang"><span>EN</span><span>中文</span></div>
+  <span>Sign in</span><span class="start">Start free</span>
+</header>
+
+<h1>Every answer, with its source.</h1>
+<p class="lead">RAGcat turns your return policies, shipping rules and product manuals into a Discord support assistant that knows exactly where every answer came from.</p>
+<div class="btns"><span class="btn p">↑ Upload a PDF</span><span class="btn">See the product</span></div>
+
+<aside class="slip" aria-label="An answer in Discord">
+  <div class="hd"><span>REFERENCE DESK</span><span># help-desk</span></div>
+  <div class="b">
+    <div class="who">CUSTOMER ASKED</div>
+    <div class="q">Can I return an opened bag of kibble?</div>
+    <div class="who">RAGCAT ANSWERED</div>
+    <div>Only if the item is defective, for example damaged or spoiled on arrival. <span class="c1">1</span></div>
+  </div>
+  <div class="stamp">[1] returns-policy.pdf<br>p. 3 ¶2 · LIVE</div>
+</aside>
+
+<div class="books">
+  <div class="book" style="width:58px;height:200px;background:var(--navy)"><span class="t">shipping-rules.pdf</span><span class="cn">SHP<br>7.1</span></div>
+  <div class="book" style="width:70px;height:220px;background:var(--mustard);color:var(--ink)"><span class="t">care-guide-zh.pdf</span><span class="cn">CAR<br>2.3</span></div>
+  <div class="book" style="width:52px;height:190px;background:#2F7A5C"><span class="t">warranty.pdf</span><span class="cn">WAR<br>1.1</span></div>
+  <div class="book" style="width:64px;height:214px;background:var(--navy)"><span class="t">sizing-chart.pdf</span><span class="cn">SIZ<br>4.2</span></div>
+  <div class="book" style="width:60px;height:206px;background:#5A4A8A"><span class="t">faq.pdf</span><span class="cn">FAQ<br>9.4</span></div>
+  <div class="book" style="width:56px;height:206px;background:var(--mustard);color:var(--ink)"><span class="t">ingredients.pdf</span><span class="cn">ING<br>5.1</span></div>
+  <div class="book" style="width:58px;height:206px;background:#2F7A5C"><span class="t">store-hours.pdf</span><span class="cn">HRS<br>1.2</span></div>
+  <div class="book" style="width:64px;height:206px;background:var(--navy)"><span class="t">loyalty.pdf</span><span class="cn">LOY<br>3.3</span></div>
+  <div class="book cited" style="width:78px;height:224px;background:var(--oxblood)"><span class="ribbon"></span><span class="t">returns-policy.pdf</span><span class="cn">p. 3<br>¶2</span></div>
+  <div class="book" style="width:62px;height:196px;background:#2F7A5C"><span class="t">delivery.pdf</span><span class="cn">DLV<br>2.1</span></div>
+  <div class="book" style="width:54px;height:210px;background:var(--mustard);color:var(--ink)"><span class="t">gift-cards.pdf</span><span class="cn">GFT<br>1.4</span></div>
+</div>
+<div class="plank"></div>
+
+<!-- the library cat: ginger tabby wearing the mark's glasses, lying on the books, paw on the cited spine -->
+<svg class="cat" viewBox="0 0 300 150" aria-hidden="true">
+  <path d="M40 120 C10 120 6 92 22 80" stroke="#E07B39" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M30 128 C30 92 70 74 140 74 C200 74 224 96 224 128 Z" fill="#E07B39"/>
+  <path d="M90 80 l-6 44 M118 76 l-4 50 M146 76 l-2 50 M174 78 l2 48" stroke="#B85A22" stroke-width="7" stroke-linecap="round"/>
+  <rect x="236" y="104" width="44" height="22" rx="11" fill="#E07B39"/>
+  <rect x="246" y="118" width="22" height="40" rx="11" fill="#E07B39"/>
+  <g transform="translate(176,16) scale(3)">
+    <path d="M5 14V4.5l6.5 4.5h9L27 4.5V14c0 7.2-4.9 13-11 13S5 21.2 5 14z" fill="#E07B39"/>
+    <circle cx="12.2" cy="16" r="3.2" fill="#fff" stroke="#16181A" stroke-width="1.2"/>
+    <circle cx="19.8" cy="16" r="3.2" fill="#fff" stroke="#16181A" stroke-width="1.2"/>
+    <rect x="15" y="15.4" width="2" height="1.2" fill="#16181A"/>
+  </g>
+</svg>
+</body>
+</html>
