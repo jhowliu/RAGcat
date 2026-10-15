@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-14T03:20:53+00:00",
+  "generatedAt": "2026-10-15T00:00:00+00:00",
   "title": "Design System: RAGcat",
   "extensions": {
     "colorMeta": {
@@ -623,7 +623,7 @@
       {
         "name": "overlay",
         "value": "0 4px 10px rgba(27, 26, 25, 0.06), 0 18px 44px rgba(27, 26, 25, 0.14)",
-        "purpose": "Task rail, popover, menu, dialog."
+        "purpose": "Task rail, popover, menu, dialog, and the Website widget's launcher and panel. Anything RAGcat floats over a host page it doesn't control carries Overlay."
       },
       {
         "name": "input-focus-halo",
@@ -695,7 +695,12 @@
         "empty Assistants: sleep",
         "Setup reading panel: read, cheer when ready",
         "Publish success: cheer",
-        "Review Test chat: the mark as the Assistant avatar (32px white circle, Border hairline)"
+        "Review Test chat: the mark as the Assistant avatar (32px white circle, Border hairline)",
+        "Website widget empty conversation: read (84px)",
+        "Website widget unavailable: sleep (132px)",
+        "Website widget launcher: the 32px mark on ink (the one dark ground)",
+        "Website widget loading: the 32px mark, static, in a 48px white circle with a Border hairline",
+        "Website widget answers: the mark as the Assistant avatar, as in Review"
       ],
       "excluded": [
         "Review workspace (illustrations; the mark avatar is the one exception)"
@@ -768,6 +773,22 @@
       "description": "Signature component: hovering or focusing the [1] marker wipes the citation highlight left to right over 420ms.",
       "html": "<p class=\"ds-cited\">Opened items cannot be returned <mark class=\"ds-cite\">unless the item is defective</mark>. <button class=\"ds-fn\" type=\"button\" aria-label=\"Show source\">1</button></p>",
       "css": ".ds-cited{max-width:360px;font-family:'Figtree','Noto Sans TC',system-ui,sans-serif;font-size:16px;line-height:1.6;color:#1B1A19}.ds-cite{padding:1px 3px;border-radius:4px;color:#1B1A19;background:linear-gradient(#FFE066,#FFE066) no-repeat 0 0/100% 100%;-webkit-box-decoration-break:clone;box-decoration-break:clone;transition:background-size 420ms cubic-bezier(0.16,1,0.3,1)}.ds-cited:has(.ds-fn:hover) .ds-cite,.ds-cited:has(.ds-fn:focus-visible) .ds-cite{animation:ds-sweep 420ms cubic-bezier(0.16,1,0.3,1)}@keyframes ds-sweep{from{background-size:0% 100%}}.ds-fn{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;border:0;border-radius:4px;background:#FFD43B;color:#1B1A19;font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;font-weight:600;line-height:1;vertical-align:2px;cursor:pointer;transition:box-shadow 160ms cubic-bezier(0.16,1,0.3,1)}.ds-fn:hover{box-shadow:0 0 0 2px #1B1A19}.ds-fn:focus-visible{outline:2px solid #1B1A19;outline-offset:2px}@media (prefers-reduced-motion:reduce){.ds-cited .ds-cite{animation:none!important}}"
+    },
+    {
+      "name": "Website Widget Launcher",
+      "kind": "button",
+      "refersTo": "launcher",
+      "description": "56px ink rounded square (16px bubble radius) holding the mark, with the Overlay shadow; floats bottom-right on the owner's site. Never a circle or pill.",
+      "html": "<button class=\"ds-launcher\" type=\"button\" aria-label=\"Ask a question\"><svg width=\"32\" height=\"32\" viewBox=\"0 0 32 32\" aria-hidden=\"true\"><g fill=\"none\" stroke=\"#1B1A19\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5.2 15.5 6.6 2.6l5.8 5.8h7.2l5.8-5.8 1.4 12.9c.2 6-4.4 11.7-10.8 11.7S5 21.5 5.2 15.5Z\" fill=\"#FFFFFF\" stroke-width=\"1.8\"/><path d=\"M7.7 5.6l2.9 3.1-3.4 2.5ZM24.3 5.6l-2.9 3.1 3.4 2.5Z\" fill=\"#FFD43B\" stroke=\"none\"/><circle cx=\"12\" cy=\"16.4\" r=\"3.4\" stroke-width=\"1.3\"/><circle cx=\"20\" cy=\"16.4\" r=\"3.4\" stroke-width=\"1.3\"/><path d=\"M15.4 16.2h1.2M14.3 22.6q.85.9 1.7 0 .85.9 1.7 0\" stroke-width=\"1\"/></g><g fill=\"#1B1A19\"><circle cx=\"12\" cy=\"16.7\" r=\"1\"/><circle cx=\"20\" cy=\"16.7\" r=\"1\"/><path d=\"M15.1 20.5h1.8l-.9 1.1Z\"/></g></svg></button>",
+      "css": ".ds-launcher{width:56px;height:56px;display:grid;place-items:center;padding:0;border:0;border-radius:16px;background:#1B1A19;box-shadow:0 4px 10px rgba(27,26,25,0.06),0 18px 44px rgba(27,26,25,0.14);cursor:pointer;transition:background-color 160ms cubic-bezier(0.16,1,0.3,1),transform 160ms cubic-bezier(0.16,1,0.3,1)}.ds-launcher:hover{background:#34322F}.ds-launcher:active{transform:translateY(1px)}.ds-launcher:focus-visible{outline:2px solid #1B1A19;outline-offset:3px}.ds-launcher svg{display:block}"
+    },
+    {
+      "name": "Embed Snippet",
+      "kind": "custom",
+      "refersTo": "embed-snippet",
+      "description": "Channel setup: the one line to paste, in a Surface Subtle well set as Data mono, beside a compact secondary Copy code button.",
+      "html": "<div class=\"ds-snippet\"><code>&lt;script src=\"https://ragcat.example/widget.js\" data-assistant=\"ast_01M4D9\" async&gt;&lt;/script&gt;</code><button class=\"ds-snippet-btn\" type=\"button\">Copy code</button></div>",
+      "css": ".ds-snippet{display:flex;flex-wrap:wrap;align-items:center;gap:12px;max-width:560px;padding:10px 10px 10px 14px;border:1px solid #E7E5E1;border-radius:10px;background:#F2F2EF;font-family:'Figtree','Noto Sans TC',system-ui,sans-serif}.ds-snippet code{flex:1 1 260px;min-width:0;font-family:'Geist Mono',ui-monospace,monospace;font-size:14px;line-height:1.6;letter-spacing:-0.01em;color:#1B1A19;overflow-wrap:anywhere}.ds-snippet-btn{min-height:38px;padding:0 14px;border:1px solid #D8D5CF;border-radius:10px;background:#FFFFFF;color:#1B1A19;font:inherit;font-size:15px;font-weight:600;box-shadow:0 1px 2px rgba(27,26,25,0.05),0 1px 3px rgba(27,26,25,0.04);cursor:pointer}.ds-snippet-btn:hover{background:#F2F2EF;border-color:#CDC9C2}.ds-snippet-btn:focus-visible{outline:2px solid #1B1A19;outline-offset:2px}"
     }
   ],
   "narrative": {
@@ -824,7 +845,7 @@
       },
       {
         "name": "The Key Moments Rule",
-        "body": "The cat illustrations appear only at key moments: the landing hero (point, leaning in from the source column so its paw points back at the cited sentence), the landing close (cheer), the empty Assistants state (sleep), the Setup reading panel (read while reading, cheer when ready) and Publish success (cheer). The Review workspace never shows an illustration. There the cat appears only as the mark in the Assistant's avatar beside each Test answer: a 32px white circle with a Border hairline holding the 22px mark (user decision, 2026-10-14). The landing's Discord preview uses the same white avatar at 36px. The cat is always decorative, with an empty alt and aria-hidden.",
+        "body": "The cat illustrations appear only at key moments: the landing hero (point, leaning in from the source column so its paw points back at the cited sentence), the landing close (cheer), the empty Assistants state (sleep), the Setup reading panel (read while reading, cheer when ready) and Publish success (cheer). The Review workspace never shows an illustration. There the cat appears only as the mark in the Assistant's avatar beside each Test answer: a 32px white circle with a Border hairline holding the 22px mark (user decision, 2026-10-14). The landing's Discord preview uses the same white avatar at 36px. In the Website widget, the read cat (84px) greets an empty conversation and the sleep cat (132px) marks an Assistant that is unavailable; once a question is asked, the cat appears only as the mark in the answer avatar, as in the Review workspace. On the host page, the launcher holds the 32px mark on ink, the one place the mark sits on a dark ground, and while the frame loads the panel holds the same mark, static, centred in a 48px white circle with a Border hairline. The cat is always decorative, with an empty alt and aria-hidden.",
         "section": "components"
       }
     ],

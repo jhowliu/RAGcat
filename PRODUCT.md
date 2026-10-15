@@ -8,14 +8,14 @@ web
 
 ## Users
 
-**Primary: small-business owners who run customer support in a Discord community.** The reference case is a pet-supply shop (the fictional "Mochi Pet Co."). They are not technical. They already have return policies, shipping rules, care guides and product manuals as PDFs. They want a support Assistant that answers customers from those documents, without configuring models, prompts or settings. Their job is to:
+**Primary: small-business owners who run customer support on their website or in a Discord community.** The reference case is a pet-supply shop (the fictional "Mochi Pet Co."). They are not technical. They already have return policies, shipping rules, care guides and product manuals as PDFs. They want a support Assistant that answers customers from those documents, without configuring models, prompts or settings. Their job is to:
 
 1. Upload a PDF.
 2. Check what the Assistant will read, and fix anything the PDF reading got wrong.
 3. Test a few questions.
 4. Publish.
 
-**Customers (no account):** they ask questions through Discord or an API key. They never see the web app. They only see answers and their citations.
+**Customers (no account):** they ask questions through the website widget, Discord or an API key. They never see the web app. They only see answers and their citations.
 
 **Setting:** RAGcat is built as a CAB432 (QUT) cloud computing assessment and is evaluated through a report and a demo video. Design decisions still target the real owner, and the product is presented as if it were real.
 
@@ -38,7 +38,7 @@ A generic chat-over-documents product cannot truthfully claim the review-against
 
 ## Operating Context
 
-- **Creation flow:** Upload a PDF → Processing → Review & test → Publish changes → Connect Discord (later).
+- **Creation flow:** Upload a PDF → Processing → Review & test → Publish changes → Add to website → Connect Discord (later).
   - Processing runs in the background, and the owner may leave the page.
   - In Review & test, the Source pane sits beside the Passages, and test questions open the cited Passage.
 - **Hub and management:** the Assistants list is the hub, and the Assistant overview handles day-to-day management. Creation is a one-time 3-step flow. After it, review is a repair tool, not a mandatory gate.
@@ -55,6 +55,7 @@ A generic chat-over-documents product cannot truthfully claim the review-against
 - **Publish changes:** this embeds changed Documents, and the first publish also makes the Assistant live. There is no separate draft index. Customers never see unpublished edits.
 - **Test:** the owner asks questions and gets answers that cite their sources. When the Documents don't cover a question, the Assistant declines and refers the customer to the owner's contact. Tests always use the latest edits. Before the Assistant goes live, Test publishes changed Documents first. Once it is live, Test previews unpublished edits for the owner only, and Publish then reuses the vectors the preview prepared.
 - Turn a Document off (Paused) without deleting it.
+- **Website widget:** after publishing, the owner lists their websites and pastes one line of code. Customers ask on that site, one question at a time, and every answer names the Document and page. The widget is limited to the listed sites, and each visitor can ask about ten questions a minute. Setup is on Publish (panel 2) and in the Assistant's Channels tab.
 - See usage (pages read, answers) in the account menu.
 - Sign in or create an account on RAGcat's own page, switch EN/中文 in the header (saved per browser), and sign out from the account menu.
 
@@ -63,8 +64,8 @@ A generic chat-over-documents product cannot truthfully claim the review-against
 **Planned:**
 
 - Live verification of sign-in on AWS. RAGcat has its own sign-in page: email and password through the API to Cognito. Sign-up creates a confirmed account at once and sends no email. Token refresh and sign-out are implemented. There is no password reset yet, because it depends on email delivery.
-- P1: API keys and rate limits.
-- P2: the Discord bot.
+- P1: API keys.
+- P2: the Discord bot, after the widget.
 
 **When a design element needs a backend that doesn't exist:** hide or adapt it in the UI. Don't add backend scope unless the owner of this project asks for it.
 

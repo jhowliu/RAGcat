@@ -54,6 +54,7 @@ class Settings:
     cognito_pool_id: str
     cognito_client_id: str
     signing_secret: str
+    widget_template_url: str  # the built widget.html the frame route fills in (api-design.md §7)
 
     @property
     def embedding_key(self) -> str:
@@ -129,4 +130,5 @@ def get_settings() -> Settings:
         cognito_pool_id=_env("COGNITO_USER_POOL_ID"),
         cognito_client_id=_env("COGNITO_CLIENT_ID"),
         signing_secret=_env("RAGCAT_SIGNING_SECRET", "local-dev-secret"),
+        widget_template_url=_env("RAGCAT_WIDGET_TEMPLATE_URL", "http://localhost:5173/widget.html"),
     )

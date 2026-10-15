@@ -262,3 +262,56 @@ def test_embedding_failure_returns_to_review_and_the_retry_resumes(env) -> None:
     c.queue.drain()
     doc = client.get(f"/v1/documents/{did}", headers=H).json()
     assert doc["status"] == "ready" and doc["error"] is None and doc["pending_changes"] == 0
+
+
+def test_website_widget(env, monkeypatch) -> None:
+    """api-design.md §7: customers ask through the widget once the Assistant is published on a site."""
+    client, c = env
+    monkeypatch.setattr("ragcat.apps.widget._get", lambda url: '<html><body><div id="root"></div></body></html>')
+    monkeypatch.setattr("ragcat.apps.http._now", lambda: 6000.0)
+    aid = client.post("/v1/assistants", json={"name": "Mochi Pet Co. support", "fallback_contact": "help@mochi.example"}, headers=H).json()["id"]
+    did = upload(client, c, aid)
+    client.post(f"/v1/documents/{did}/embed", headers=H)
+    c.queue.drain()
+    question = {"question": "Can opened items be returned?", "stream": False}
+
+    # Not published, then published without a site: the widget can't answer and can't be framed.
+    assert client.post(f"/v1/widget/{aid}/ask", json=question).json()["error"]["code"] == "NOT_PUBLISHED"
+    assert client.patch(f"/v1/assistants/{aid}", json={"published": True}, headers=H).json()["widget_origins"] == []
+    assert client.post(f"/v1/widget/{aid}/ask", json=question).status_code == 403
+    assert client.get(f"/v1/widget/{aid}/frame").headers["content-security-policy"] == "frame-ancestors 'none'"
+
+    # The owner lists their sites; anything that isn't a whole https site is refused.
+    bad = client.patch(f"/v1/assistants/{aid}", json={"widget_origins": ["https://*.mochi.example"]}, headers=H)
+    assert bad.status_code == 400 and bad.json()["error"]["code"] == "VALIDATION_ERROR"
+    sites = ["https://mochi.example", "http://localhost:5173"]
+    assert client.patch(f"/v1/assistants/{aid}", json={"widget_origins": sites}, headers=H).json()["widget_origins"] == sites
+    assert client.get(f"/v1/assistants/{aid}", headers=H).json()["widget_origins"] == sites
+
+    frame = client.get(f"/v1/widget/{aid}/frame?lang=zh")
+    assert frame.status_code == 200 and frame.headers["content-security-policy"] == "frame-ancestors https://mochi.example http://localhost:5173"
+    assert f'data-aid="{aid}"' in frame.text and 'data-available="true"' in frame.text and 'data-contact="help@mochi.example"' in frame.text
+    unknown = client.get("/v1/widget/ast_unknown/frame")
+    assert unknown.status_code == 404 and unknown.headers["content-security-policy"] == "frame-ancestors 'none'"
+
+    # No sign-in; citations name the Document and page only.
+    answer = client.post(f"/v1/widget/{aid}/ask", json=question)
+    assert answer.status_code == 200, answer.text
+    assert answer.json()["answered"] and set(answer.json()["citations"][0]) == {"n", "document_title", "page", "para"}
+    with client.stream("POST", f"/v1/widget/{aid}/ask", json={"question": "How should kibble be stored?"}) as r:
+        body = "".join(r.iter_text())
+    assert "event: citations" in body and "chunk_id" not in body and "boxes" not in body
+    assert client.post(f"/v1/widget/{aid}/ask", json=question | {"preview": True}).status_code == 200  # preview is ignored
+
+    # Ten requests a minute per visitor, refused ones included: five so far, five more pass, then it waits.
+    for _ in range(5):
+        assert client.post(f"/v1/widget/{aid}/ask", json=question).status_code == 200
+    limited = client.post(f"/v1/widget/{aid}/ask", json=question)
+    assert limited.status_code == 429 and limited.headers["retry-after"] == "60"
+    assert limited.json()["error"]["code"] == "RATE_LIMITED"
+    other = client.post(f"/v1/widget/{aid}/ask", json=question, headers={"CloudFront-Viewer-Address": "203.0.113.9:4431"})
+    assert other.status_code == 200  # another visitor
+
+    # Taking the site list away turns the widget off again.
+    client.patch(f"/v1/assistants/{aid}", json={"widget_origins": []}, headers=H)
+    assert client.post(f"/v1/widget/{aid}/ask", json=question, headers={"CloudFront-Viewer-Address": "203.0.113.10:1"}).status_code == 403

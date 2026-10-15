@@ -1717,6 +1717,85 @@ mark.cite.sweep {
   flex-direction: column;
   gap: 10px;
 }
+/* Website widget setup (Publish panel 2, Channels tab): the allowed sites and the line to paste. */
+.channels {
+  max-width: 760px;
+}
+.website-lead {
+  font-size: var(--rc-text-label);
+  color: var(--rc-text-secondary);
+}
+.website-locked {
+  display: flex;
+  align-items: center;
+  gap: var(--rc-space-2);
+  font-size: var(--rc-text-label);
+  color: var(--rc-text-muted);
+}
+.website-locked svg {
+  flex: none;
+}
+.origin-list {
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  border: var(--rc-border-hairline);
+  border-radius: var(--rc-radius-md);
+}
+.origin-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rc-space-3);
+  min-height: var(--rc-touch-target);
+  padding: 0 var(--rc-space-2) 0 var(--rc-space-3);
+}
+.origin-row + .origin-row {
+  border-top: var(--rc-border-divider);
+}
+.origin-row .data {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.origin-empty {
+  margin-top: 2px;
+  padding: var(--rc-space-3);
+  border: var(--rc-border-dashed);
+  border-radius: var(--rc-radius-md);
+  font-size: var(--rc-text-label);
+  color: var(--rc-text-muted);
+}
+.origin-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-2);
+  margin-top: var(--rc-space-1);
+}
+.origin-add .input {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+.origin-add .btn {
+  flex: none;
+}
+.snippet {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-3);
+  margin-top: 2px;
+  padding: 10px 10px 10px 14px;
+  border: var(--rc-border-hairline);
+  border-radius: var(--rc-radius-md);
+  background: var(--rc-surface-subtle);
+}
+.snippet code {
+  flex: 1 1 260px;
+  min-width: 0;
+  font-size: var(--rc-text-label);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
 /* InlineEdit: long values wrap instead of pushing Edit away; the field grows beside its buttons. */
 .inline-value {
   min-width: 0;

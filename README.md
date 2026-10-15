@@ -10,7 +10,8 @@
 
 - **Publish changes**：把有變動的文件做 embed，第一次發布時再打開 Assistant 的 `published`。客人只看得到已經 embed 的段落，所以沒按 Publish changes 之前，修改不會被客人看到。
 - **Test**（Review & test 頁）：一律用最新的修改。Assistant 尚未發布時，提問前會先發布有變動的文件（此時只有 owner 能問）。已經上線後改用預覽：只對 owner，把有變動的段落當場算出上下文和向量（暫存在 Valkey，不寫入向量庫），和線上段落一起檢索；客人看到的仍是已發布的版本。之後按 Publish changes 會直接寫入預覽算好的向量，不再重算。一次要準備超過 100 段時會請你先發布。
-- 設計稿裡 backend 還不支援的部分先不顯示：Discord 連接（Channels）、Questions、Billing、Version history、通知、Undo、重複檔偵測。
+- **Website widget**（Publish 第 2 區、Assistant 的 Channels 分頁）：發布後填入業主的網站網址，複製一行 `<script>` 貼到網站上。客人在網站上一次問一題，回答附文件名和頁碼。只有清單上的網站能嵌入（`frame-ancestors`），每位訪客每分鐘約 10 題。本機試用：開 `http://localhost:5173/widget-demo.html`（腳本回答，不呼叫模型）；要接真的 Assistant，網址加 `?aid=<Assistant id>`，並在 Channels 加入 `http://localhost:5173`。規格見 `docs/api-design.md` §7。
+- 設計稿裡 backend 還不支援的部分先不顯示：Discord 連接、Questions、Billing、Version history、通知、Undo、重複檔偵測。
 
 ## 本機開發
 
@@ -100,4 +101,4 @@ curl -X POST localhost:9000/2015-03-31/functions/function/invocations \
 
 - AWS 實際部署與驗證：[`infra/README.md`](infra/README.md) 已提供 Terraform、bootstrap/image/web 發布流程、CloudWatch、smoke/load test 與 submission YAML 匯出；尚未 apply，亦未在 AWS 驗證。
 - Cognito 正式登入的 live 驗證：RAGcat 自己的登入頁（email + 密碼）經由 `/v1/auth/*` 呼叫 Cognito API，註冊時由後端直接建立已確認的帳號、完全不寄信；refresh/logout 都已實作並有單元測試，仍需完成雲端 sign-in smoke test。
-- P1：undo、API keys、rate limit；P2：Discord
+- P1：undo、API keys（API key 的 rate limit 沿用 widget 的固定時間窗）；P2：Discord

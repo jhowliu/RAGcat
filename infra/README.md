@@ -68,7 +68,7 @@ Open the site, create an account on RAGcat's own sign-in page, and verify the re
 |---|---|
 | SPA and deep links | Private web S3 bucket → CloudFront OAC; a viewer-request function rewrites SPA paths to `index.html`. |
 | Management | `/v1/*` → CloudFront VPC origin → internal ALB → `api` ECS service. |
-| Questions | ALB rule `/v1/assistants/*/ask` takes priority and targets the separate `qa` service. API caching and response compression are disabled for SSE. |
+| Questions | ALB rule `/v1/assistants/*/ask` and `/v1/widget/*/ask` (Website widget) takes priority and targets the separate `qa` service. API caching and response compression are disabled for SSE. The api reads the built `widget.html` from `RAGCAT_WIDGET_TEMPLATE_URL` (the CloudFront domain) to serve `/v1/widget/{aid}/frame`. |
 | Upload | Browser posts directly to the private files S3 bucket using a presigned POST; bucket CORS permits the site origin. |
 | Parse | Files bucket EventBridge events for `uploads/` → parse SQS → ingest Lambda. Generated `pages/` objects cannot retrigger ingestion. |
 | Publish/delete | API sends embed SQS messages → embed Lambda reconciles S3 Vectors and document state. |
