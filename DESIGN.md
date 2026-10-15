@@ -1,6 +1,6 @@
 ---
 name: RAGcat
-description: PDFs become a Discord support Assistant whose every answer cites its Document and page.
+description: PDFs become a support Assistant, on a website or in Discord, whose every answer cites its Document and page.
 colors:
   ink: "#1B1A19"
   ink-hover: "#34322F"
@@ -232,6 +232,26 @@ components:
     typography: "{typography.ui}"
     rounded: "{rounded.full}"
     size: "40px"
+  launcher:
+    backgroundColor: "{colors.ink}"
+    textColor: "{colors.on-ink}"
+    rounded: "{rounded.bubble}"
+    size: "56px"
+  launcher-hover:
+    backgroundColor: "{colors.ink-hover}"
+    textColor: "{colors.on-ink}"
+  widget-panel:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.lg}"
+    width: "380px"
+    height: "640px"
+  embed-snippet:
+    backgroundColor: "{colors.surface-subtle}"
+    textColor: "{colors.ink}"
+    typography: "{typography.data}"
+    rounded: "{rounded.md}"
+    padding: "10px 10px 10px 14px"
 ---
 
 # Design System: RAGcat
@@ -333,14 +353,14 @@ The system is softly lifted, not flat. Shadows are neutral, tinted from the ink 
 - **Hover** (`box-shadow: 0 2px 4px rgba(27,26,25,0.05), 0 10px 24px rgba(27,26,25,0.08)`): Assistant card hover, together with a 2px rise.
 - **Raised** (`box-shadow: 0 1px 2px rgba(27,26,25,0.04), 0 8px 24px rgba(27,26,25,0.08)`): the PDF sheet, landing previews and the featured plan.
 - **Raised Large** (`box-shadow: 0 2px 6px rgba(27,26,25,0.05), 0 28px 64px rgba(27,26,25,0.16)`): the landing product frame only.
-- **Overlay** (`box-shadow: 0 4px 10px rgba(27,26,25,0.06), 0 18px 44px rgba(27,26,25,0.14)`): task rail, popover, menu and dialog.
+- **Overlay** (`box-shadow: 0 4px 10px rgba(27,26,25,0.06), 0 18px 44px rgba(27,26,25,0.14)`): task rail, popover, menu, dialog, and the Website widget's launcher and panel (the panel with a 14px radius and a Border hairline). Anything RAGcat floats over a host page it doesn't control carries Overlay.
 
 ### Named Rules
 **The Soft Lift Rule.** Depth comes from soft, layered, ink-tinted shadows. There is no glow, no coloured shadow and no hard offset shadow.
 
 ## Shapes
 
-Corners are gently rounded and scale with the size of the object. Markers and the citation highlight use 4px. Chips and counts use 6px. Segmented options and nav links use 8px. Buttons, inputs, Passage cards, callouts and the status bar use 10px; the segmented track uses 11px. Panels, cards, menus and the dropzone use 14px. Chat bubbles use 16px. The landing product frame and the closing stage use 20px. Fully round shapes are reserved for avatars, status dots, step circles, progress bars and the switch track. Borders are 1px hairlines; the selected state is 1.5px ink, and the "add" card and dropzone use a 1.5px dashed border.
+Corners are gently rounded and scale with the size of the object. Markers and the citation highlight use 4px. Chips and counts use 6px. Segmented options and nav links use 8px. Buttons, inputs, Passage cards, callouts and the status bar use 10px; the segmented track uses 11px. Panels, cards, menus, the dropzone and the Website widget panel use 14px. Chat bubbles use 16px, and so does the Website widget's launcher: a 56px ink rounded square, because a floating control at that size reads as a key, not a button. The launcher is never a circle and never a pill. The landing product frame and the closing stage use 20px. Fully round shapes are reserved for avatars, status dots, step circles, progress bars and the switch track. Borders are 1px hairlines; the selected state is 1.5px ink, and the "add" card and dropzone use a 1.5px dashed Border Input stroke. The empty site list in Channel setup is the one sanctioned use of that dashed stroke outside an add target.
 
 **The No Pill Rule.** Buttons are never pill-shaped. A 999px radius belongs only to progress bars and switches.
 
@@ -387,7 +407,25 @@ The cat in reading glasses is drawn with ink outlines, a white fill and Brand Ye
 
 The mark is the same cat's head, redrawn as a 32-unit vector for small sizes: a white face with a 1.8 ink outline, Brand Yellow inner ears, thin round glasses with dot eyes, whiskers, a nose and a smile. It stays legible down to the 16px favicon, and its white face reads on light and dark grounds, so it has no reversed version.
 
-**The Key Moments Rule.** The cat illustrations appear only at key moments: the landing hero (point, leaning in from the source column so its paw points back at the cited sentence), the landing close (cheer), the empty Assistants state (sleep), the Setup reading panel (read while reading, cheer when ready) and Publish success (cheer). The Review workspace never shows an illustration. There the cat appears only as the mark in the Assistant's avatar beside each Test answer: a 32px white circle with a Border hairline holding the 22px mark (user decision, 2026-10-14). The landing's Discord preview uses the same white avatar at 36px. The cat is always decorative, with an empty alt and aria-hidden.
+**The Key Moments Rule.** The cat illustrations appear only at key moments: the landing hero (point, leaning in from the source column so its paw points back at the cited sentence), the landing close (cheer), the empty Assistants state (sleep), the Setup reading panel (read while reading, cheer when ready) and Publish success (cheer). The Review workspace never shows an illustration. There the cat appears only as the mark in the Assistant's avatar beside each Test answer: a 32px white circle with a Border hairline holding the 22px mark (user decision, 2026-10-14). The landing's Discord preview uses the same white avatar at 36px. In the Website widget, the read cat (84px) greets an empty conversation and the sleep cat (132px) marks an Assistant that is unavailable; once a question is asked, the cat appears only as the mark in the answer avatar, as in the Review workspace. On the host page, the launcher holds the 32px mark on ink, the one place the mark sits on a dark ground, and while the frame loads the panel holds the same mark, static, centred in a 48px white circle with a Border hairline. The cat is always decorative, with an empty alt and aria-hidden.
+
+### Website widget
+The Test pane handed to the customer on the owner's own site (dev-only until the backend in `docs/api-design.md` §7 exists).
+- **Loader:** one script line draws the launcher in a shadow root and, on first open, an iframe of RAGcat's frame page, so no host CSS leaks in. Any value the loader needs is copied from `tokens.css`, never invented. The frame fades in over 160ms, a state change.
+- **Launcher and panel:** the 56px ink launcher sits 20px from the bottom-right corner and swaps the mark for a down chevron when open. The 380×640 panel sits 12px above it with a 14px radius, a Border hairline and the Overlay shadow. Under 480px wide the panel fills the screen with no radius or border, and the open launcher hides.
+- **Header:** 64px, white, with a hairline below. It holds the 36px white mark avatar, the Assistant name at 15px, the Hint "Every answer shows its source", and a borderless, shadowless compact close.
+- **Transcript:** on the #F7F7F5 canvas with 16px padding. The ink question bubble, white answer card, Brand Yellow [n] markers, mark avatar and streaming cursor are the Test pane's own. Reading is a Hint line; the rate limit is a Hint with a clock icon, and the Ask button shows the countdown in mono; a failure is the error panel shrunk to the answer card's 14×16 padding, with a text-button Retry; no answer shows the owner's fallback message and contact.
+- **Empty and unavailable:** centred, at most 290px wide: the cat (see the Key Moments Rule), a Title (20px/800) heading, 14px Text Secondary body, and in the empty state a Hint. Unavailable shows the contact, if any, as a mail icon beside a mono address.
+- **Sources:** below a dashed divider, each [n] names its Document, page and paragraph in 12px Geist Mono, Text Secondary, with tabular figures ("returns-policy.pdf · p. 1 ¶2"). Hovering or focusing [n] sweeps Citation Yellow across that source line (the Highlighter Rule).
+- **Composer:** white, with a hairline above; the 16px input and ink Ask. Once a conversation has started, the single-turn Hint ("Ask each question in full") stays in view above the input.
+- **Foot:** "Powered by RAGcat" as a 13px Hint in Text Subtle beside the 14px mark, turning ink on hover.
+
+### Channel setup
+The owner's side of the Website widget: Publish panel 2 and the Assistant's Channels tab (at most 760px wide), both dev-only until the backend exists.
+- **Panel:** a standard panel. Its header carries an On (done) or Off (neutral) chip; the lead is 14px Text Secondary.
+- **Before the first publish:** a lock icon with 14px Text Muted copy replaces the controls, and the chip is hidden.
+- **Allowed sites:** a 10px hairline list of 44px rows with the site in Data mono, Border Subtle dividers and a small text-button Remove. An empty list is a 10px box with the 1.5px dashed Border Input stroke and 14px Text Muted copy. Below it, a mono input and a secondary Add website button with a plus icon; an invalid site turns the input Danger, with a 13px Danger message.
+- **Embed code:** the one line sits in a Surface Subtle well with a 10px radius and a hairline, set as Data (14px Geist Mono), beside a compact secondary Copy code button that swaps to a check and "Copied" for 2s.
 
 ## Do's and Don'ts
 

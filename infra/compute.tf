@@ -66,6 +66,8 @@ locals {
     RAGCAT_CACHE         = "valkey"
     RAGCAT_CACHE_URL     = "rediss://${aws_elasticache_replication_group.main.primary_endpoint_address}:6379/0"
     RAGCAT_AUTH          = "cognito"
+    # The built Website widget page the api fills in per Assistant (docs/api-design.md §7).
+    RAGCAT_WIDGET_TEMPLATE_URL = "https://${aws_cloudfront_distribution.main.domain_name}/widget.html"
     COGNITO_USER_POOL_ID = var.cognito_pool_id
     COGNITO_CLIENT_ID    = aws_cognito_user_pool_client.web.id
     RAGCAT_DATA_DIR      = "/tmp/ragcat"

@@ -1,24 +1,28 @@
-// P07 Assistant overview: day-to-day management. Documents and Settings tabs.
+// P07 Assistant overview: day-to-day management. Documents, Channels (the Website widget; Discord
+// later) and Settings tabs.
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { api, type Assistant, type Doc, type Me } from '../api'
 import { TaskRail } from '../components/AppShell'
 import { UsageMeters, answersShare } from '../components/UsageMeters'
+import { WebsitePanel } from '../components/WebsitePanel'
 import { BackLink, Chip, ConfirmDialog, ErrorPanel, Icon, InlineEdit, StatusDot, Switch, Tabs, errorText } from '../components/ui'
 import { keys, useDocumentTitle, useJobs, useMe } from '../hooks'
 import { useI18n } from '../i18n'
 import { REVIEWABLE, docChip, planName } from '../model'
 import { usePublishChanges } from '../publish'
 
-type Tab = 'documents' | 'settings'
+type Tab = 'documents' | 'channels' | 'settings'
+const TAB_LABEL = { documents: 'overview.documents', channels: 'overview.channels', settings: 'overview.settings' } as const
 
 export function AssistantPage() {
   const { aid = '' } = useParams()
   const [params, setParams] = useSearchParams()
   const i18n = useI18n()
   const { t, tn, dateTime, num } = i18n
-  const tab: Tab = params.get('tab') === 'settings' ? 'settings' : 'documents'
+  const requested = params.get('tab')
+  const tab: Tab = requested === 'settings' ? 'settings' : requested === 'channels' ? 'channels' : 'documents'
   const publish = usePublishChanges(aid)
   const { assistant, docs } = publish
   const { data: me } = useMe()
@@ -70,11 +74,20 @@ export function AssistantPage() {
             onChange={(v) => setParams(v === 'documents' ? {} : { tab: v }, { replace: true })}
             items={[
               { value: 'documents', label: t('overview.documents'), count: docs.length },
+              { value: 'channels', label: t('overview.channels') },
               { value: 'settings', label: t('overview.settings') },
             ]}
           />
-          <div role="tabpanel" aria-label={tab === 'documents' ? t('overview.documents') : t('overview.settings')} className="tabpanel">
-            {tab === 'documents' ? <DocumentsTab aid={aid} docs={docs} /> : me && <SettingsTab assistant={assistant} me={me} />}
+          <div role="tabpanel" aria-label={t(TAB_LABEL[tab])} className="tabpanel">
+            {tab === 'documents' ? (
+              <DocumentsTab aid={aid} docs={docs} />
+            ) : tab === 'channels' ? (
+              <div className="channels">
+                <WebsitePanel assistant={assistant} title={t('website.title')} locked={!assistant.published} />
+              </div>
+            ) : (
+              me && <SettingsTab assistant={assistant} me={me} />
+            )}
           </div>
         </div>
       </div>

@@ -72,6 +72,8 @@ class AnsweringService:
                 raise NotFound("Assistant not found")
         elif not config.published:
             raise NotPublished("This Assistant is not published")
+        elif caller.kind == "widget" and not config.widget_on:
+            raise NotPublished("This Assistant is not on any website")
         self.identity.check_answers(config.owner_id)
         plan = None
         if preview:
