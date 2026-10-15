@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Category standard sketch</title>
+<style>
+  :root{--bg:#FFFFFF;--ink:#0F172A;--brand:#4F46E5;--line:#E2E8F0;--mute:#64748B}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1440px;height:900px;overflow:hidden}
+  body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+  header{height:72px;display:flex;align-items:center;padding:0 120px;gap:32px;border-bottom:1px solid var(--line);font-size:15px;color:var(--mute)}
+  header b{color:var(--ink);font-size:22px;margin-right:auto}
+  header .cta{background:var(--brand);color:#fff;padding:9px 16px;border-radius:8px}
+  .hero{text-align:center;padding-top:70px}
+  .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:14px;color:var(--mute)}
+  h1{font-size:76px;line-height:1.05;letter-spacing:-.03em;margin-top:22px;font-weight:700}
+  p{font-size:20px;color:var(--mute);margin:20px auto 0;max-width:720px;line-height:1.5}
+  .btns{display:flex;gap:12px;justify-content:center;margin-top:30px}
+  .btn{height:50px;padding:0 24px;display:flex;align-items:center;border-radius:10px;font-weight:600;font-size:17px;border:1px solid var(--line)}
+  .btn.p{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .shot{margin:48px auto 0;width:1100px;height:420px;border:1px solid var(--line);border-radius:16px;box-shadow:0 30px 60px rgba(15,23,42,.12);display:grid;grid-template-columns:1fr 1fr;overflow:hidden}
+  .shot>div{padding:28px}.shot>div+div{border-left:1px solid var(--line);background:#F8FAFC}
+  .ln{height:10px;background:var(--line);border-radius:5px;margin-bottom:14px}
+</style>
+</head>
+<body>
+<header><b>RAGcat</b><span>Product</span><span>Pricing</span><span>Docs</span><span>Sign in</span><span class="cta">Start free</span></header>
+<section class="hero">
+  <span class="pill">AI customer support for Discord</span>
+  <h1>Every answer,<br>with its source.</h1>
+  <p>Turn your policies and manuals into a support assistant that cites the document and page.</p>
+  <div class="btns"><span class="btn p">Upload a PDF</span><span class="btn">See the product</span></div>
+  <div class="shot"><div><div class="ln" style="width:60%"></div><div class="ln"></div><div class="ln" style="width:80%"></div></div><div><div class="ln" style="width:70%"></div><div class="ln" style="width:90%"></div></div></div>
+</section>
+</body>
+</html>

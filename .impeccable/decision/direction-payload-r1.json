@@ -1,0 +1,233 @@
+{
+  "title": "RAGcat 新視覺世界 · 重抽第 1 輪",
+  "question": "重抽指定了「貨架價格標籤」。兩張主卡都已加入貓咪元素（你指定的品牌要求）。保留它、改選其他方向，或再重抽。",
+  "options": [
+    {
+      "id": "assigned-r1",
+      "kind": "assigned",
+      "label": "貨架價格標籤 Shelf tags",
+      "kicker": "THE ROLL",
+      "lineage": "超市貨架邊條、夾在軌道上的價格標籤、掛出貨架的 shelf talker",
+      "thesis": "架上每件商品都有標籤說明它是什麼；每個回答也一樣，而店貓會用爪子指出是哪一張。",
+      "palette": [
+        "#1846C8",
+        "#FFFFFF",
+        "#111111",
+        "#FFD60A",
+        "#D7D9DB",
+        "#1E9E57",
+        "#FF6A13"
+      ],
+      "materials": [
+        "店貓：戴 logo 眼鏡的貓坐在貨架上，就是 Assistant 本人",
+        "走道藍貨架軌道（整條色帶）",
+        "白色標籤紙＋黑色印刷",
+        "價格位的大數字＝頁碼",
+        "特價黃＝被引用",
+        "洞洞板灰背板",
+        "被引用的標籤頂端裁成 logo 的貓耳形"
+      ],
+      "viewport": "頂端是走道藍的標題橫條（導覽）。洞洞板背景上是巨大的窄體 H1 和上傳按鈕。一條全寬藍色貨架軌道橫過畫面，夾著幾張標籤：被引用的那張升起、頂端是黃色 CITED 條，品名是 returns-policy.pdf，價格位放大數字「p. 3」加上標「¶2」。架上立著 shelf talker，上面是顧客的問題和回答，[1] 指向那張標籤；戴眼鏡的店貓坐在軌道上，一隻爪子按著那張被引用的標籤。",
+      "risk": "零售標籤可能帶出「促銷、便宜」的感覺；所以禁用爆炸貼和紅色，黃色只給引用。",
+      "raised": [
+        {
+          "from": "challenger-seg",
+          "raise": "軌道上的空位畫成原位的空白幽靈標籤：位置永遠不動，只有內容會變。"
+        },
+        {
+          "from": "challenger-ink",
+          "raise": "最新一筆還沒發布的變更，永遠是畫面上對比最高的記號。"
+        },
+        {
+          "from": "challenger-plankton",
+          "raise": "點引用時，從標籤到原文句子畫出一道可見的軌跡，隨後淡出。"
+        },
+        {
+          "from": "challenger-cyc",
+          "raise": "每個狀態（Reading、Needs review、Live、Paused）都是有名字的階段，有文字也有圖樣，不只靠顏色。"
+        },
+        {
+          "from": "challenger-busytown",
+          "raise": "每個 Document、Passage、回答都掛著同尺寸的印刷標籤；只有被引用的那張會升起。"
+        }
+      ],
+      "html": ".impeccable/mocks/decision/assigned-r1.html"
+    },
+    {
+      "id": "model-pick-r1",
+      "kind": "pick",
+      "label": "營養標示 Answer facts",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "包裝上的營養成分表與成分揭露標準",
+      "thesis": "知道 Assistant 讀了什麼，就像看營養標示：每個回答都附一張成分表，由戴眼鏡的貓簽核。",
+      "palette": [
+        "#FFFFFF",
+        "#000000",
+        "#E8E6E1",
+        "#FFE14D"
+      ],
+      "materials": [
+        "純白包裝面",
+        "粗細分級的黑色橫線（8pt / 4pt / 髮絲）",
+        "黑體粗字與表格數字",
+        "戴眼鏡的貓從表格上緣探頭（logo 延伸）"
+      ],
+      "viewport": "左邊是極粗黑體 H1 和上傳按鈕，右邊是一張大型「Answer Facts」表：Serving 一個回答、Sources 1、Document returns-policy.pdf、Page 3、Passage P-14，被引用的句子列在 Ingredients。",
+      "risk": "最熟悉的一條：營養標示是常見的仿作梗，粗黑線條也容易滑向粗野主義的預設。",
+      "html": ".impeccable/mocks/decision/model-pick-r1.html"
+    },
+    {
+      "id": "challenger-seg",
+      "kind": "challenger",
+      "catalogId": "signals-instruments-seven-segment-alarm-clock",
+      "verdict": "declined",
+      "label": "七段顯示器 Seven-segment",
+      "lineage": "加油站價格塔、記分板、鬧鐘",
+      "thesis": "頁碼與進度用七段數字顯示，未點亮的段也畫出來。",
+      "palette": [
+        "#141414",
+        "#E8382B",
+        "#F2A33A",
+        "#2BD46A"
+      ],
+      "materials": [
+        "霧黑面板",
+        "LED 段",
+        "幽靈格"
+      ],
+      "viewport": "價格塔一樣的直列，顯示 p. 3、P-14。",
+      "case": "零售相鄰但不是店主的日常工作；引用的意義被數字顯示壓過。",
+      "kept": "沒有亮的地方也要設計：空位原地保留。",
+      "risk": "夜間、科技感太重。",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-seven-segment-alarm-clock-hero.webp"
+    },
+    {
+      "id": "challenger-busytown",
+      "kind": "challenger",
+      "catalogId": "graphic-worlds-publishing-busytown-cross-section",
+      "verdict": "declined",
+      "label": "剖面繪本 Busytown",
+      "lineage": "童書剖面圖，每個物件都有小標籤",
+      "thesis": "一間剖開的店，每樣東西都標明它是什麼。",
+      "palette": [
+        "#FBF8F1",
+        "#C2412D",
+        "#F2C230",
+        "#5A9A3C",
+        "#6B4A2E"
+      ],
+      "materials": [
+        "水粉平塗",
+        "暖棕描邊",
+        "小字標籤＋細指示線"
+      ],
+      "viewport": "店面剖面，文件、段落、回答各掛標籤。",
+      "case": "童書語氣不適合付款、刪除、隱私；沒有影像生成也做不出插畫。",
+      "kept": "每個物件都戴著同尺寸的標籤，沒有誰的標籤比較大。",
+      "risk": "太幼稚。",
+      "hero": "https://impeccable.style/worlds/cards/graphic-worlds-publishing-busytown-cross-section-hero.webp"
+    },
+    {
+      "id": "challenger-plankton",
+      "kind": "challenger",
+      "catalogId": "reefs-bioluminescent-nocturnal-plankton-wake-stars",
+      "verdict": "declined",
+      "label": "夜光浮游生物 Wake stars",
+      "lineage": "夜海裡被攪亮的浮游生物",
+      "thesis": "游標劃過黑水，留下會消失的藍光軌跡。",
+      "palette": [
+        "#04070D",
+        "#2E7BFF",
+        "#5FE3F2"
+      ],
+      "materials": [
+        "黑海",
+        "藍光粒子"
+      ],
+      "viewport": "黑色水面上，引用的軌跡發光。",
+      "case": "近黑＋霓虹正是 AI 預設之一，店主也沒有這個參照。",
+      "kept": "引用被觸發時留下一道看得見的軌跡。",
+      "risk": "AI 預設感。",
+      "hero": "https://impeccable.style/worlds/cards/reefs-bioluminescent-nocturnal-plankton-wake-stars-hero.webp"
+    },
+    {
+      "id": "challenger-ink",
+      "kind": "challenger",
+      "catalogId": "medium-native-fluid-ink-basin",
+      "verdict": "declined",
+      "label": "墨流 Ink basin",
+      "lineage": "墨流染（suminagashi）",
+      "thesis": "整頁是一盆可以攪動的墨水。",
+      "palette": [
+        "#F6F7F8",
+        "#1F2F6B",
+        "#2B2B2B",
+        "#9AA0A8"
+      ],
+      "materials": [
+        "水面",
+        "靛藍與墨"
+      ],
+      "viewport": "一滴墨落下，暈出段落的形狀。",
+      "case": "美但抽象，跟可驗證、跟店主都沒關係。",
+      "kept": "最新的那一滴永遠最深：最新變更最醒目。",
+      "risk": "看不出產品。",
+      "hero": "https://impeccable.style/worlds/cards/medium-native-fluid-ink-basin-hero.webp"
+    },
+    {
+      "id": "challenger-cyc",
+      "kind": "challenger",
+      "catalogId": "stagecraft-theater-lighting-cyclorama-dawn",
+      "verdict": "declined",
+      "label": "舞台天幕 Cyclorama",
+      "lineage": "劇場燈光由夜轉晝",
+      "thesis": "狀態像燈光 cue：夜、破曉、白天。",
+      "palette": [
+        "#07080C",
+        "#1E3FA8",
+        "#E07A8E",
+        "#F7F5F0"
+      ],
+      "materials": [
+        "天幕黑",
+        "鈷藍地平線帶",
+        "玫瑰色"
+      ],
+      "viewport": "從黑到白的水平色帶。",
+      "case": "氣氛強但跟店主無關，漸層也違反產品不用裝飾的原則。",
+      "kept": "每個階段都有名字和圖樣，不只靠顏色。",
+      "risk": "像活動主視覺。",
+      "hero": "https://impeccable.style/worlds/cards/stagecraft-theater-lighting-cyclorama-dawn-hero.webp"
+    }
+  ],
+  "reroll": {
+    "registers": [
+      "safer",
+      "bolder"
+    ]
+  },
+  "buildPath": {
+    "value": "code",
+    "toggle": false
+  },
+  "canon": true,
+  "canonCard": {
+    "label": "類別標準 AI 客服 SaaS",
+    "thesis": "這個類別常見的樣子，做到最好：乾淨白底、產品截圖、功能格、定價表。",
+    "palette": [
+      "#FFFFFF",
+      "#0F172A",
+      "#4F46E5",
+      "#E2E8F0"
+    ],
+    "materials": [
+      "乾淨格線",
+      "產品截圖",
+      "柔和陰影卡片"
+    ],
+    "viewport": "置中大標題與副標、兩顆按鈕，下方一張大的產品截圖，再接功能三欄。",
+    "risk": "和競品幾乎無法區分，這是它的設計前提。",
+    "html": ".impeccable/mocks/decision/canon.html"
+  },
+  "steer": true
+}

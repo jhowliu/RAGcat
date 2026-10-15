@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAGcat · Assistant overview</title>
+<!-- Source of truth for tokens: ../tokens/tokens.css · component specs: ../DESIGN.md -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Noto+Serif+TC:wght@500;600&amp;family=Noto+Sans+TC:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0;background:#FAF8F4}
+a{color:#1F1D1C}a:hover{color:#1F1D1C}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,label:focus-within{outline:2px solid #1F1D1C;outline-offset:2px}
+.wrap{max-width:1200px;margin:0 auto;padding-left:16px;padding-right:16px}
+.serif{font-family:'Source Serif 4','Noto Serif TC',serif;font-weight:600;letter-spacing:-0.015em}
+.mono{font-family:'IBM Plex Mono',monospace}
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;box-sizing:border-box;border:1px solid #1F1D1C;border-radius:8px;font:inherit;font-weight:500;font-size:15px;text-decoration:none;cursor:pointer;white-space:nowrap;transition:background-color 140ms ease-out}
+.btn-dark{background:#1F1D1C;color:#FAF8F4}.btn-dark:hover{background:#3A3634;color:#FAF8F4}
+.btn-line{background:#FFFFFF;color:#1F1D1C}.btn-line:hover{background:#F2EEE7}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+.btn-text{min-height:44px;padding:0 4px;border:0;background:transparent;font:inherit;font-size:15px;color:#1F1D1C;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+.navlink{display:inline-flex;align-items:center;min-height:44px;padding:0 4px;margin-right:18px;border-bottom:2px solid transparent;font-size:15px;text-decoration:none;color:#5C5754;white-space:nowrap}
+.navlink[aria-current="page"]{border-bottom-color:#1F1D1C;color:#1F1D1C;font-weight:600}
+.navlink:hover{color:#1F1D1C}
+.app-nav{order:3;width:100%;overflow-x:auto}
+.ibtn{width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;border:1px solid #D9D2C7;border-radius:8px;background:#FFFFFF;cursor:pointer}
+.ibtn:disabled{opacity:0.4;cursor:not-allowed}
+.panel{background:#FFFFFF;border:1px solid #E4DED5;border-radius:12px}
+.phead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid #E4DED5}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:1px 8px;border-radius:4px;white-space:nowrap}
+.chip-warn{background:#FBF0D2;color:#6B4A12}
+.chip-info{background:#E7F1F6;color:#2C556A}
+.chip-neutral{background:#EFEAE2;color:#4B4643}
+.chip-attn{background:#FFFFFF;box-shadow:inset 0 0 0 1px #1F1D1C;color:#1F1D1C}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.field{width:100%;min-height:44px;padding:0 12px;box-sizing:border-box;border:1px solid #CFC6BA;border-radius:8px;background:#FFFFFF;font:inherit;font-size:16px;color:#1F1D1C}
+.lbl{font-size:14px;font-weight:500}
+.hint{font-size:13px;color:#6B6561}
+.seg{min-height:34px;padding:0 12px;border:0;border-radius:5px;background:transparent;font:inherit;font-size:13px;font-weight:500;color:#3F3B39;cursor:pointer;white-space:nowrap}
+.seg[aria-pressed="true"],.seg[aria-selected="true"]{background:#1F1D1C;color:#FAF8F4}
+.tabbtn{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 2px;margin-right:22px;margin-bottom:-1px;border:0;border-bottom:2px solid transparent;background:transparent;font:inherit;font-size:15px;color:#5C5754;cursor:pointer;white-space:nowrap}
+.tabbtn[aria-selected="true"]{border-bottom-color:#1F1D1C;color:#1F1D1C;font-weight:600}
+.cnt{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;padding:0 6px;border-radius:4px;background:#EFEAE2;color:#4B4643}
+.cnt-attn{background:#FFFFFF;box-shadow:inset 0 0 0 1px #1F1D1C;color:#1F1D1C}
+.tool{min-height:32px;padding:0 10px;border:1px solid #CFC6BA;border-radius:6px;background:#FFFFFF;font:inherit;font-size:13px;color:#1F1D1C;cursor:pointer}
+.tool:disabled{opacity:0.4;cursor:not-allowed}
+.st-lbl{display:none;font-size:14px;white-space:nowrap}
+.st-lbl.cur{display:inline}
+.two{display:grid;gap:20px;align-items:start}
+.cards{display:grid;gap:16px;margin:0;padding:0;list-style:none;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+.acard{display:flex;flex-direction:column;justify-content:space-between;gap:18px;min-height:210px;box-sizing:border-box;padding:20px;text-decoration:none;transition:border-color 140ms ease-out}
+.acard:hover{border-color:#1F1D1C}
+.desk-flex,.desk-grid,.desk-inline{display:none}
+.phone-flex{display:flex}
+.phone-block{display:block}
+.drow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center}
+.drow.desk-grid{display:none}
+.pane{display:none;flex-direction:column;min-width:0}
+.pane.on{display:flex}
+.panes{display:grid}
+@media (min-width:768px){
+.wrap{padding-left:32px;padding-right:32px}
+.app-nav{order:0;width:auto}
+.st-lbl{display:inline}
+.desk-grid{display:grid}.drow.desk-grid{display:grid}.desk-inline{display:inline-flex}
+.phone-block{display:none}
+.drow{grid-template-columns:minmax(0,1fr) 70px 110px 200px 56px}
+}
+@media (min-width:1024px){
+.two{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:24px}
+.desk-flex{display:flex}
+.phone-flex{display:none}
+.panes{grid-template-columns:minmax(0,0.95fr) minmax(0,1.05fr)}
+.pane-src{display:flex;border-right:1px solid #E4DED5}
+.pane-psg.dk{display:flex}
+.pane{height:700px}
+.scroll{overflow:auto}
+}
+@media (prefers-reduced-motion: reduce){.btn,.acard{transition:none}}
+</style>
+</head>
+<body>
+<div id="dc-root"></div>
+<template id="dc-template">
+<div style="min-height: 100vh; background: #FAF8F4; color: #1F1D1C; font-family: 'IBM Plex Sans', 'Noto Sans TC', sans-serif; font-size: 16px; line-height: 1.6">
+<header style="position: sticky; top: 0; z-index: 10; background: rgba(250, 248, 244, 0.96); backdrop-filter: blur(8px); border-bottom: 1px solid #E4DED5">
+<div class="wrap" style="min-height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 0 20px; flex-wrap: wrap; padding-top: 6px; padding-bottom: 6px">
+<a href="#home" style="display: flex; align-items: center; gap: 10px; text-decoration: none"><svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 14V4.5l6.5 4.5h9L27 4.5V14c0 7.2-4.9 13-11 13S5 21.2 5 14z" fill="#1F1D1C"></path><circle cx="12.2" cy="16" r="3" fill="#FAF8F4"></circle><circle cx="19.8" cy="16" r="3" fill="#FAF8F4"></circle><rect x="15" y="15.3" width="2" height="1.4" fill="#FAF8F4"></rect></svg><span style="font-size: 18px; font-weight: 600">RAGcat</span></a>
+<nav aria-label="App" class="app-nav" style="display: flex">
+<a href="#assistants" class="navlink" aria-current="page">Assistants</a>
+<a href="#usage" class="navlink">Usage</a>
+<a href="#billing" class="navlink">Billing</a>
+</nav>
+<div style="display: flex; align-items: center; gap: 8px"><span class="desk-inline" style="align-items: center; gap: 8px; min-height: 36px; padding: 0 12px; border: 1px solid #D9D2C7; border-radius: 8px; background: #FFFFFF; font-size: 13px"><span class="dot" style="background: #C9962E"></span>1 task running</span>
+<button type="button" class="ibtn" aria-label="Notifications"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 10a6 6 0 0 1 12 0v4l2 3H4l2-3z"></path><path d="M10 20h4"></path></svg></button>
+<span aria-label="Account: Jay" style="width: 36px; height: 36px; border-radius: 50%; background: #1F1D1C; color: #FAF8F4; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500">J</span>
+</div>
+</div>
+</header>
+<main class="wrap" style="padding-top: 28px; padding-bottom: 140px; display: flex; flex-direction: column; gap: 22px">
+<a href="#assistants" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; font-size: 14px; color: #5C5754; text-decoration: none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5C5754" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"></path></svg>Assistants</a>
+<div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap">
+<h1 class="serif" style="margin: 0; font-size: 34px; line-height: 1.15">Mochi Pet Co. support</h1>
+<div style="display: flex; gap: 8px; flex-wrap: wrap"><a href="#test" class="btn btn-line">Test</a><button type="button" class="btn btn-dark">Publish changes<span class="mono" style="padding: 0 6px; border-radius: 4px; background: #FAF8F4; color: #1F1D1C; font-size: 11px">1</span></button></div>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; padding: 10px 14px; border: 1px solid #E4DED5; border-radius: 8px; background: #FFFFFF; font-size: 14px; color: #4B4643">
+<span style="display: inline-flex; align-items: center; gap: 6px"><span class="dot" style="background: #5E9A55"></span>Live since Sep 28, 14:02</span>
+<span>1 Document has unpublished changes</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; color: #6B4A12"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A6216" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4 3 20h18z"></path><path d="M12 10v4"></path><path d="M12 17v.5"></path></svg>Answers at 82% of the monthly limit</span>
+<a href="#history" style="margin-left: auto; text-decoration: underline; text-underline-offset: 3px">Version history</a>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<div role="tablist" aria-label="Assistant sections" style="display: flex; overflow-x: auto; border-bottom: 1px solid #E4DED5">
+<template data-for="{{tabs}}" data-as="tb">
+<button type="button" class="tabbtn" role="tab" aria-selected="{{tb.sel}}" onClick="{{tb.pick}}">{{tb.label}}<template data-if="{{tb.hasCount}}"><span class="{{tb.cntClass}}">{{tb.count}}</span></template></button>
+</template>
+</div>
+
+<template data-if="{{onDocs}}">
+<section role="tabpanel" aria-label="Documents" style="padding-top: 18px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap"><span class="hint" style="font-size: 14px">Turn a Document off to stop using it without deleting it.</span><button type="button" class="btn btn-line" style="min-height: 38px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Add Document</button></div>
+<div class="panel" role="table" aria-label="Documents">
+<div role="row" class="drow desk-grid" style="padding: 10px 18px; border-bottom: 1px solid #E4DED5; font-size: 12px; color: #8A837E"><span role="columnheader">Name</span><span role="columnheader">Pages</span><span role="columnheader">Published</span><span role="columnheader">Status</span><span role="columnheader">On</span></div>
+<template data-for="{{docs}}" data-as="d">
+<div role="row" class="drow" style="{{d.rowStyle}}">
+<span role="cell" style="min-width: 0; display: flex; flex-direction: column"><a href="#doc" class="mono" style="{{d.nameStyle}}">{{d.name}}</a><span class="phone-block hint" style="font-size: 12px">{{d.metaPhone}}</span></span>
+<span role="cell" class="mono desk-grid" style="font-size: 13px">{{d.pages}}</span>
+<span role="cell" class="mono desk-grid" style="font-size: 13px; color: #4B4643">{{d.published}}</span>
+<span role="cell" class="desk-grid"><template data-if="{{d.hasBadge}}"><span class="{{d.badgeClass}}" style="justify-self: start">{{d.badge}}</span></template></span>
+<span role="cell"><button type="button" role="switch" aria-checked="{{d.checked}}" aria-label="{{d.swLabel}}" disabled="{{d.disabled}}" onClick="{{d.toggle}}" style="{{d.trackStyle}}"><span style="{{d.knobStyle}}"></span></button></span>
+</div>
+</template>
+</div>
+</section>
+</template>
+
+<template data-if="{{onChannels}}">
+<section role="tabpanel" aria-label="Channels" style="padding-top: 18px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap"><span class="hint" style="font-size: 14px">Channels answer from the live version only.</span><button type="button" class="btn btn-line" style="min-height: 38px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1F1D1C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Connect channel</button></div>
+<div class="panel">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 18px; border-bottom: 1px solid #EDE8E0"><div style="display: flex; flex-direction: column"><span class="mono" style="font-size: 14px">#help-desk</span><span class="hint">Discord · Mochi Pet Co.</span></div><span style="display: inline-flex; align-items: center; gap: 6px; font-size: 14px"><span class="dot" style="background: #5E9A55"></span>Connected</span><a href="#manage" class="hint" style="text-decoration: underline; text-underline-offset: 3px">Manage</a></div>
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 18px"><div style="display: flex; flex-direction: column"><span class="mono" style="font-size: 14px">#returns</span><span class="hint">Discord · Mochi Pet Co.</span></div><span style="display: inline-flex; align-items: center; gap: 6px; font-size: 14px"><span class="dot" style="background: #5E9A55"></span>Connected</span><a href="#manage" class="hint" style="text-decoration: underline; text-underline-offset: 3px">Manage</a></div>
+</div>
+</section>
+</template>
+
+<template data-if="{{onQuestions}}">
+<section role="tabpanel" aria-label="Questions" style="padding-top: 18px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap"><span class="hint" style="font-size: 14px">Kept for 30 days, without Discord names.</span>
+<div role="group" aria-label="Filter questions" style="display: flex; gap: 2px; padding: 2px; border: 1px solid #D9D2C7; border-radius: 7px; background: #FFFFFF"><button type="button" class="seg" aria-pressed="{{allPressed}}" onClick="{{showAll}}">All 5</button><button type="button" class="seg" aria-pressed="{{unPressed}}" onClick="{{showUn}}">Unanswered 2</button></div></div>
+<ul class="panel" style="margin: 0; padding: 0; list-style: none">
+<template data-for="{{questions}}" data-as="q">
+<li style="{{q.rowStyle}}">
+<div style="display: flex; justify-content: space-between; gap: 12px"><span>{{q.q}}</span><span class="mono hint" style="white-space: nowrap">{{q.time}}</span></div>
+<div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap"><span class="{{q.statusClass}}">{{q.status}}</span><span class="mono hint" style="font-size: 12px">{{q.src}}</span></div>
+</li>
+</template>
+</ul>
+</section>
+</template>
+
+<template data-if="{{onSettings}}">
+<section role="tabpanel" aria-label="Settings" style="padding-top: 18px; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr))">
+<div class="panel" style="padding: 18px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span class="lbl">Usage this month</span><span class="hint">Starter · renews Oct 15</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><div style="display: flex; justify-content: space-between; font-size: 14px"><span>Pages read</span><span class="mono">312 / 500</span></div><div role="progressbar" aria-label="Pages read this month" aria-valuenow="312" aria-valuemin="0" aria-valuemax="500" style="height: 4px; border-radius: 2px; background: #EDE8E0"><div style="width: 62%; height: 100%; border-radius: 2px; background: #1F1D1C"></div></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><div style="display: flex; justify-content: space-between; font-size: 14px"><span>Answers</span><span class="mono">1,640 / 2,000</span></div><div role="progressbar" aria-label="Answers this month" aria-valuenow="1640" aria-valuemin="0" aria-valuemax="2000" style="height: 4px; border-radius: 2px; background: #EDE8E0"><div style="width: 82%; height: 100%; border-radius: 2px; background: #C9962E"></div></div><span style="font-size: 13px; color: #6B4A12">82% used. <a href="#addons" style="color: #6B4A12">Add answers</a></span></div>
+</div>
+<div class="panel" style="padding: 18px; display: flex; flex-direction: column; gap: 10px">
+<span class="lbl">Contact for unanswered questions</span>
+<span class="hint">Shown to customers when the Assistant can't answer.</span>
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px"><span class="mono" style="font-size: 14px">help@mochipet.example</span><button type="button" class="btn-text" style="font-size: 14px">Edit</button></div>
+</div>
+<div class="panel" style="padding: 18px; display: flex; flex-direction: column; gap: 10px">
+<span class="lbl">Assistant</span>
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px"><span>Mochi Pet Co. support</span><button type="button" class="btn-text" style="font-size: 14px">Rename</button></div>
+<button type="button" class="btn-text" style="align-self: flex-start; font-size: 14px; color: #B3261E">Delete Assistant</button>
+</div>
+</section>
+</template>
+</div>
+</main>
+
+<div role="status" aria-label="Running tasks" style="position: fixed; right: 16px; bottom: 16px; z-index: 20; width: 320px; max-width: calc(100vw - 32px); background: #FFFFFF; border: 1px solid #E4DED5; border-radius: 12px; box-shadow: 0 12px 32px rgba(31, 29, 28, 0.12)">
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid #EDE8E0"><span style="font-size: 13px; font-weight: 600">Tasks · 1</span><span class="mono hint">02:14</span></div>
+<div style="padding: 12px 14px; display: flex; flex-direction: column; gap: 8px">
+<span class="mono" style="font-size: 13px">kibble-feeding-guide.pdf</span>
+<div style="height: 4px; border-radius: 2px; background: #EDE8E0"><div style="width: 40%; height: 100%; border-radius: 2px; background: #1F1D1C"></div></div>
+<div style="display: flex; justify-content: space-between; align-items: center"><span class="hint">Reading pages · 48 of 120</span><button type="button" class="btn-text" style="min-height: 32px; font-size: 13px">Cancel</button></div>
+</div>
+</div>
+</div>
+</template>
+<script src="dc-runtime.js"></script>
+<script>
+const DOCS = [
+  { id: "returns", name: "returns-policy.pdf", pages: 24, published: "Sep 28", live: true, badge: "" },
+  { id: "shipping", name: "shipping-policy.pdf", pages: 12, published: "Sep 28", live: true, badge: "Unpublished changes", attn: true },
+  { id: "kibble", name: "kibble-feeding-guide.pdf", pages: 120, published: "—", live: false, badge: "Reading · 40%", locked: true },
+  { id: "holiday", name: "holiday-hours.pdf", pages: 4, published: "Jan 3", live: true, badge: "" },
+  { id: "warranty", name: "warranty.pdf", pages: 8, published: "—", live: false, badge: "Not published", attn: true, locked: true }
+];
+const QUESTIONS = [
+  { q: "Can I return an opened bag of kibble?", time: "11:02", ok: true, src: "returns-policy.pdf, p. 3" },
+  { q: "Do you ship to Kaohsiung?", time: "10:47", ok: true, src: "shipping-policy.pdf, p. 3" },
+  { q: "Is the salmon recipe safe for kittens?", time: "10:15", ok: false, src: "No matching Passage" },
+  { q: "Are you open over the holidays?", time: "09:58", ok: false, src: "holiday-hours.pdf is turned off" },
+  { q: "Can I change my delivery address after ordering?", time: "Yesterday", ok: true, src: "shipping-policy.pdf, p. 5" }
+];
+const TABS = [
+  { id: "docs", label: "Documents", count: "5" },
+  { id: "channels", label: "Channels", count: "2" },
+  { id: "questions", label: "Questions", count: "2 unanswered", attn: true },
+  { id: "settings", label: "Settings", count: "" }
+];
+class Component extends DCLogic {
+  state = { off: { holiday: true }, filter: "all", tab: "docs" };
+  renderVals() {
+    const off = this.state.off;
+    const docs = DOCS.map((d, i) => {
+      const on = !d.locked && !off[d.id];
+      const paused = !d.locked && d.live && off[d.id];
+      const badge = paused ? "Paused" : d.badge;
+      return {
+        name: d.name, pages: d.pages, published: d.published,
+        metaPhone: d.pages + " pages · " + (d.published === "—" ? "not published" : "published " + d.published) + (badge ? " · " + badge : ""),
+        hasBadge: badge !== "", badge, badgeClass: d.attn && !paused ? "chip chip-attn" : "chip chip-neutral",
+        nameStyle: "font-size: 14px; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: " + (on || d.locked ? "#1F1D1C" : "#8A837E"),
+        rowStyle: "padding: 12px 18px; " + (i > 0 ? "border-top: 1px solid #EDE8E0" : ""),
+        checked: on ? "true" : "false", disabled: !!d.locked,
+        swLabel: "Use " + d.name + " in answers",
+        toggle: () => this.setState({ off: { ...this.state.off, [d.id]: !this.state.off[d.id] } }),
+        trackStyle: "position: relative; width: 38px; height: 22px; padding: 0; border: 0; border-radius: 11px; cursor: pointer; background: " + (on ? "#1F1D1C" : "#D9D2C7") + (d.locked ? "; opacity: 0.4; cursor: not-allowed" : ""),
+        knobStyle: "position: absolute; top: 3px; left: " + (on ? "19px" : "3px") + "; width: 16px; height: 16px; border-radius: 50%; background: #FFFFFF; transition: left 140ms ease-out"
+      };
+    });
+    const un = this.state.filter === "un";
+    const qs = QUESTIONS.filter((q) => !un || !q.ok);
+    const questions = qs.map((q, i) => ({
+      q: q.q, time: q.time, src: q.src,
+      status: q.ok ? "Answered" : "Not answered",
+      statusClass: q.ok ? "chip chip-neutral" : "chip chip-attn",
+      rowStyle: "display: flex; flex-direction: column; gap: 6px; padding: 14px 18px; " + (i > 0 ? "border-top: 1px solid #EDE8E0" : "")
+    }));
+    const tab = this.state.tab;
+    return {
+      docs, questions,
+      tabs: TABS.map((t) => ({ label: t.label, count: t.count, hasCount: t.count !== "", cntClass: t.attn ? "cnt cnt-attn" : "cnt", sel: tab === t.id ? "true" : "false", pick: () => this.setState({ tab: t.id }) })),
+      onDocs: tab === "docs", onChannels: tab === "channels", onQuestions: tab === "questions", onSettings: tab === "settings",
+      allPressed: un ? "false" : "true", unPressed: un ? "true" : "false",
+      showAll: () => this.setState({ filter: "all" }), showUn: () => this.setState({ filter: "un" })
+    };
+  }
+}
+DC.mount(Component, {});
+</script>
+</body>
+</html>

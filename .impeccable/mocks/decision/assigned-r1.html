@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Shelf tags sketch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700;800&family=Barlow+Condensed:wght@700;800&family=Overpass+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--aisle:#1846C8;--aisle-deep:#12379F;--tag:#FFFFFF;--ink:#111111;--cited:#FFD60A;--peg:#D7D9DB;--peg-hole:#BFC3C7;--shelf:#C6CACE;--live:#1E9E57}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1440px;height:900px;overflow:hidden}
+  body{background:var(--peg);background-image:radial-gradient(circle,var(--peg-hole) 2.6px,transparent 3px);background-size:28px 28px;background-position:14px 86px;color:var(--ink);font-family:Barlow,system-ui,sans-serif;position:relative}
+  header{position:absolute;top:0;left:0;right:0;height:72px;background:var(--aisle);color:#fff;display:flex;align-items:center;padding:0 96px;gap:34px}
+  .brand{display:flex;align-items:center;gap:10px;font-family:'Barlow Condensed';font-weight:800;font-size:32px;margin-right:auto}
+  header nav{display:flex;gap:30px;font-weight:700;font-size:16px}
+  .lang{border:2px solid #fff;border-radius:3px;display:flex;font-weight:700;font-size:13px}.lang span{padding:4px 10px}.lang span:first-child{background:#fff;color:var(--aisle)}
+  .start{background:#fff;color:var(--aisle);font-weight:800;padding:10px 18px;border-radius:3px}
+  h1{position:absolute;left:96px;top:118px;width:680px;font-family:'Barlow Condensed';font-weight:800;font-size:128px;line-height:.9;letter-spacing:-.01em}
+  .lead{position:absolute;left:96px;top:376px;width:600px;font-size:20px;line-height:1.5;font-weight:500}
+  .btns{position:absolute;left:96px;top:470px;display:flex;gap:12px}
+  .btn{height:54px;padding:0 26px;display:flex;align-items:center;font-weight:800;font-size:18px;border:2.5px solid var(--ink);border-radius:4px;background:#fff}
+  .btn.p{background:var(--ink);color:#fff}
+  /* shelf */
+  .deck{position:absolute;left:0;right:0;top:584px;height:20px;background:var(--shelf);border-top:2px solid #AEB3B8}
+  .rail{position:absolute;left:0;right:0;top:604px;height:226px;background:var(--aisle);border-top:6px solid var(--aisle-deep);border-bottom:10px solid var(--aisle-deep)}
+  .under{position:absolute;left:0;right:0;top:830px;bottom:0;background:linear-gradient(#8E959C,#B9BEC3 40%)}
+  .tag{position:absolute;top:622px;height:190px;width:250px;background:var(--tag);padding:14px 16px;display:flex;flex-direction:column}
+  .tag .nm{font-weight:800;font-size:17px}
+  .tag .pg{font-family:'Barlow Condensed';font-weight:800;font-size:92px;line-height:.9;margin-top:auto;display:flex;align-items:flex-start;gap:4px}
+  .tag .pg small{font-size:30px;margin-top:8px}
+  .tag .pg sup{font-size:32px;margin-top:6px}
+  .tag .id{font-family:'Overpass Mono';font-size:14px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+  .bc{width:96px;height:22px;background:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 4px,var(--ink) 4px 7px,transparent 7px 9px)}
+  .ghost{background:transparent;border:3px dashed rgba(255,255,255,.75);color:#fff;align-items:center;justify-content:center;font-weight:800;font-size:18px}
+  /* the cited tag: raised, cat-ear die-cut */
+  .tag.cited{left:960px;top:560px;width:380px;height:252px;padding-top:44px;clip-path:polygon(0 18%,9% 0,20% 12%,80% 12%,91% 0,100% 18%,100% 100%,0 100%);box-shadow:0 0 0 0 transparent}
+  .tag.cited .hd{position:absolute;left:0;right:0;top:30px;height:30px;background:var(--cited);display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-weight:800;font-size:15px;letter-spacing:.1em}
+  .tag.cited .nm{margin-top:24px;font-size:20px}
+  .tag.cited .pg{font-size:120px}
+  .tag.cited .quote{font-size:14px;line-height:1.35;margin-top:6px}
+  /* shelf talker: the answer */
+  .talker{position:absolute;left:770px;top:132px;width:400px;height:430px;background:#fff;border:3px solid var(--ink);display:flex;flex-direction:column}
+  .talker::after{content:"";position:absolute;left:190px;bottom:-24px;width:14px;height:24px;background:var(--ink)}
+  .talker .hd{background:var(--ink);color:#fff;font-weight:800;font-size:15px;letter-spacing:.1em;padding:10px 18px;display:flex;justify-content:space-between}
+  .talker .b{padding:18px;display:flex;flex-direction:column;gap:12px;font-size:17px;line-height:1.45}
+  .talker .who{font-weight:800;font-size:14px;letter-spacing:.08em}
+  .talker .q{font-family:'Barlow Condensed';font-weight:800;font-size:34px;line-height:1.02}
+  .c1{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:var(--cited);border:2.5px solid var(--ink);border-radius:50%;font-family:'Overpass Mono';font-weight:700;font-size:14px;vertical-align:-5px}
+  .talker .ft{margin-top:auto;border-top:2px solid var(--ink);padding:10px 18px;font-family:'Overpass Mono';font-weight:700;font-size:14px;display:flex;justify-content:space-between}
+  .cat{position:absolute;left:1186px;top:378px;width:170px;height:240px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><svg width="30" height="30" viewBox="0 0 32 32"><path d="M5 14V4.5l6.5 4.5h9L27 4.5V14c0 7.2-4.9 13-11 13S5 21.2 5 14z" fill="#fff"/><circle cx="12.2" cy="16" r="3" fill="#1846C8"/><circle cx="19.8" cy="16" r="3" fill="#1846C8"/><rect x="15" y="15.3" width="2" height="1.4" fill="#1846C8"/></svg>RAGcat</div>
+  <nav><span>How it works</span><span>Trust</span><span>Pricing</span></nav>
+  <div class="lang"><span>EN</span><span>中文</span></div>
+  <span style="font-weight:700">Sign in</span>
+  <span class="start">Start free</span>
+</header>
+
+<h1>Every answer, with its source.</h1>
+<p class="lead">RAGcat turns your return policies, shipping rules and product manuals into a Discord support assistant. Every reply is tagged with the document and page it came from.</p>
+<div class="btns"><span class="btn p">↑ Upload a PDF</span><span class="btn">See the product</span></div>
+
+<aside class="talker" aria-label="An answer in Discord">
+  <div class="hd"><span># help-desk</span><span>DISCORD</span></div>
+  <div class="b">
+    <div class="who">CUSTOMER ASKED</div>
+    <div class="q">Can I return an opened bag of kibble?</div>
+    <div class="who">RAGCAT ANSWERED</div>
+    <div>Only if the item is defective, for example damaged or spoiled on arrival. Contact support within 7 days with a photo. <span class="c1">1</span></div>
+  </div>
+  <div class="ft"><span>GROUNDED IN 1 SOURCE</span><span>↓ TAG 1</span></div>
+</aside>
+
+<div class="deck"></div>
+<div class="rail"></div>
+<div class="under"></div>
+
+<div class="tag" style="left:96px"><div class="nm">shipping-rules.pdf</div><div class="pg"><small>p.</small>7<sup>¶1</sup></div><div class="id"><span>P-31</span><span class="bc"></span></div></div>
+<div class="tag" style="left:366px"><div class="nm">照護指南 care-guide-zh.pdf</div><div class="pg"><small>p.</small>2<sup>¶3</sup></div><div class="id"><span>P-08</span><span class="bc"></span></div></div>
+<div class="tag ghost" style="left:636px;width:290px">+ Add a Document</div>
+
+<div class="tag cited" aria-label="Cited source">
+  <div class="hd"><span>CITED</span><span class="c1" style="width:22px;height:22px;font-size:12px">1</span></div>
+  <div class="nm">returns-policy.pdf</div>
+  <div class="quote">“Opened items cannot be returned unless the item is defective.”</div>
+  <div class="pg"><small>p.</small>3<sup>¶2</sup></div>
+  <div class="id"><span>P-14 · LIVE</span><span class="bc"></span></div>
+</div>
+
+<!-- the shop cat: the Assistant, wearing the mark's glasses, paw on the cited tag -->
+<svg class="cat" viewBox="0 0 170 240" aria-hidden="true">
+  <path d="M128 196 C166 190 168 150 150 132" stroke="#111" stroke-width="13" fill="none" stroke-linecap="round"/>
+  <path d="M44 210 C34 160 46 104 86 96 C126 104 138 160 128 210 Z" fill="#111"/>
+  <rect x="40" y="186" width="24" height="54" rx="12" fill="#111"/>
+  <g transform="translate(37,6) scale(3.1)">
+    <path d="M5 14V4.5l6.5 4.5h9L27 4.5V14c0 7.2-4.9 13-11 13S5 21.2 5 14z" fill="#111"/>
+    <circle cx="12.2" cy="16" r="3" fill="#FFD60A"/><circle cx="19.8" cy="16" r="3" fill="#FFD60A"/>
+    <rect x="15" y="15.3" width="2" height="1.4" fill="#FFD60A"/>
+  </g>
+</svg>
+</body>
+</html>

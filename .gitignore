@@ -1,0 +1,24 @@
+.data/
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+node_modules/
+web/dist/
+.env*
+!.env.example
+!.env.local.example
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+infra/inventory.json
+infra/submission-a3-infra.yml
+
+# Tool logs and caches
+.playwright-mcp/
+**/.impeccable/hook.cache.json

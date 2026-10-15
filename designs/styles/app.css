@@ -1,0 +1,79 @@
+/* RAGcat app components
+   As built in the H3 prototypes (prototypes/02-assistants.html), with values replaced by tokens.
+   Requires tokens/tokens.css. Treat as a reference implementation: port the rules into your
+   component system (CSS modules, Tailwind, etc.) rather than copying class names blindly. */
+body{margin:0;background:var(--rc-bg)}
+a{color:var(--rc-ink)}
+a:hover{color:var(--rc-ink)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,label:focus-within{outline:2px solid var(--rc-ink);outline-offset:2px}
+.wrap{max-width:1200px;margin:0 auto;padding-left:16px;padding-right:16px}
+.serif{font-family:var(--rc-font-serif);font-weight:600;letter-spacing:-0.015em}
+.mono{font-family:var(--rc-font-mono)}
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;box-sizing:border-box;border:1px solid var(--rc-ink);border-radius:8px;font:inherit;font-weight:500;font-size:15px;text-decoration:none;cursor:pointer;white-space:nowrap;transition:background-color var(--rc-duration) var(--rc-ease)}
+.btn-dark{background:var(--rc-ink);color:var(--rc-on-ink)}
+.btn-dark:hover{background:var(--rc-ink-hover);color:var(--rc-on-ink)}
+.btn-line{background:var(--rc-surface);color:var(--rc-ink)}
+.btn-line:hover{background:var(--rc-surface-hover)}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+.btn-text{min-height:44px;padding:0 4px;border:0;background:transparent;font:inherit;font-size:15px;color:var(--rc-ink);text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+.navlink{display:inline-flex;align-items:center;min-height:44px;padding:0 4px;margin-right:18px;border-bottom:2px solid transparent;font-size:15px;text-decoration:none;color:var(--rc-text-muted);white-space:nowrap}
+.navlink[aria-current="page"]{border-bottom-color:var(--rc-ink);color:var(--rc-ink);font-weight:600}
+.navlink:hover{color:var(--rc-ink)}
+.app-nav{order:3;width:100%;overflow-x:auto}
+.ibtn{width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;border:1px solid var(--rc-border-strong);border-radius:8px;background:var(--rc-surface);cursor:pointer}
+.ibtn:disabled{opacity:0.4;cursor:not-allowed}
+.panel{background:var(--rc-surface);border:1px solid var(--rc-border);border-radius:12px}
+.phead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--rc-border)}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:1px 8px;border-radius:4px;white-space:nowrap}
+.chip-warn{background:var(--rc-warning-bg);color:var(--rc-warning-text)}
+.chip-info{background:var(--rc-info-bg);color:var(--rc-info-text)}
+.chip-neutral{background:var(--rc-neutral-bg);color:var(--rc-text-secondary)}
+.chip-attn{background:var(--rc-surface);box-shadow:inset 0 0 0 1px var(--rc-ink);color:var(--rc-ink)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.field{width:100%;min-height:44px;padding:0 12px;box-sizing:border-box;border:1px solid var(--rc-border-input);border-radius:8px;background:var(--rc-surface);font:inherit;font-size:16px;color:var(--rc-ink)}
+.lbl{font-size:14px;font-weight:500}
+.hint{font-size:13px;color:var(--rc-text-subtle)}
+.seg{min-height:34px;padding:0 12px;border:0;border-radius:5px;background:transparent;font:inherit;font-size:13px;font-weight:500;color:var(--rc-text-control);cursor:pointer;white-space:nowrap}
+.seg[aria-pressed="true"],.seg[aria-selected="true"]{background:var(--rc-ink);color:var(--rc-on-ink)}
+.tabbtn{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 2px;margin-right:22px;margin-bottom:-1px;border:0;border-bottom:2px solid transparent;background:transparent;font:inherit;font-size:15px;color:var(--rc-text-muted);cursor:pointer;white-space:nowrap}
+.tabbtn[aria-selected="true"]{border-bottom-color:var(--rc-ink);color:var(--rc-ink);font-weight:600}
+.cnt{font-family:var(--rc-font-mono);font-size:11px;font-weight:500;padding:0 6px;border-radius:4px;background:var(--rc-neutral-bg);color:var(--rc-text-secondary)}
+.cnt-attn{background:var(--rc-surface);box-shadow:inset 0 0 0 1px var(--rc-ink);color:var(--rc-ink)}
+.tool{min-height:32px;padding:0 10px;border:1px solid var(--rc-border-input);border-radius:6px;background:var(--rc-surface);font:inherit;font-size:13px;color:var(--rc-ink);cursor:pointer}
+.tool:disabled{opacity:0.4;cursor:not-allowed}
+.st-lbl{display:none;font-size:14px;white-space:nowrap}
+.st-lbl.cur{display:inline}
+.two{display:grid;gap:20px;align-items:start}
+.cards{display:grid;gap:16px;margin:0;padding:0;list-style:none;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+.acard{display:flex;flex-direction:column;justify-content:space-between;gap:18px;min-height:210px;box-sizing:border-box;padding:20px;text-decoration:none;transition:border-color var(--rc-duration) var(--rc-ease)}
+.acard:hover{border-color:var(--rc-ink)}
+.desk-flex,.desk-grid,.desk-inline{display:none}
+.phone-flex{display:flex}
+.phone-block{display:block}
+.drow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center}
+.drow.desk-grid{display:none}
+.pane{display:none;flex-direction:column;min-width:0}
+.pane.on{display:flex}
+.panes{display:grid}
+@media (min-width:768px){
+.wrap{padding-left:32px;padding-right:32px}
+.app-nav{order:0;width:auto}
+.st-lbl{display:inline}
+.desk-grid{display:grid}
+.drow.desk-grid{display:grid}
+.desk-inline{display:inline-flex}
+.phone-block{display:none}
+.drow{grid-template-columns:minmax(0,1fr) 70px 110px 200px 56px}
+}
+@media (min-width:1024px){
+.two{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:24px}
+.desk-flex{display:flex}
+.phone-flex{display:none}
+.panes{grid-template-columns:minmax(0,0.95fr) minmax(0,1.05fr)}
+.pane-src{display:flex;border-right:1px solid var(--rc-border)}
+.pane-psg.dk{display:flex}
+.pane{height:700px}
+.scroll{overflow:auto}
+}
+@media (prefers-reduced-motion: reduce){.btn,.acard{transition:none}
+}

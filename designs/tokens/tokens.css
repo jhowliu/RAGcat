@@ -1,0 +1,139 @@
+/* RAGcat design tokens · H3 formal · v1.0 (2026-10)
+   Single source of truth for values. Do not hardcode hex values in components;
+   if a value is missing, add a token here first and describe it in DESIGN.md. */
+:root {
+  /* ---------- Neutrals (90%+ of the interface) ---------- */
+  --rc-bg: #FAF8F4;               /* page canvas */
+  --rc-surface: #FFFFFF;          /* panels, cards, inputs */
+  --rc-surface-subtle: #F4F0E9;   /* source pane, secondary blocks, dropzone while dragging */
+  --rc-surface-sunken: #F1ECE4;   /* landing product-scene background */
+  --rc-surface-hover: #F2EEE7;    /* secondary button hover */
+  --rc-ink: #1F1D1C;              /* primary text, primary button, selected state, footnote marker */
+  --rc-ink-hover: #3A3634;        /* primary button hover */
+  --rc-on-ink: #FAF8F4;           /* text and icons on ink */
+  --rc-text-secondary: #4B4643;   /* secondary body text, lead */
+  --rc-text-muted: #5C5754;       /* inactive tabs and nav, field descriptions */
+  --rc-text-control: #3F3B39;     /* segmented options, landing nav */
+  --rc-text-subtle: #6B6561;      /* hints, metadata, timestamps */
+  --rc-text-disabled: #8A837E;    /* disabled, upcoming steps (never for essential info) */
+  --rc-border: #E4DED5;           /* panel borders, section dividers */
+  --rc-border-subtle: #EDE8E0;    /* row dividers inside panels, progress track */
+  --rc-border-strong: #D9D2C7;    /* segmented and icon-button borders, stepper connectors, seams */
+  --rc-border-input: #CFC6BA;     /* input borders, dropzone dashed border */
+
+  /* ---------- Accents: citation, selection, status only ---------- */
+  --rc-accent-eyebrow: #A4544A;   /* landing section eyebrow only */
+  --rc-citation: #F6D27A;         /* highlight on the cited sentence (text stays ink) */
+  --rc-selection: #D98A7E;        /* selected Passage outline on the PDF */
+  --rc-selection-fill: rgba(217, 138, 126, 0.12);
+  --rc-success: #5E9A55;          /* live / saved / connected dot */
+  --rc-success-bg: #E6F0E3;
+  --rc-success-text: #2F5E2A;
+  --rc-warning: #C9962E;          /* usage >= 80% bar, background-task dot */
+  --rc-warning-bg: #FBF0D2;       /* warning chip */
+  --rc-warning-text: #6B4A12;
+  --rc-callout-bg: #FBF7EC;       /* Passage quality callout */
+  --rc-callout-border: #EADBB4;
+  --rc-callout-icon: #8A6216;
+  --rc-info-bg: #E7F1F6;          /* "Edited" chip */
+  --rc-info-text: #2C556A;
+  --rc-neutral-bg: #EFEAE2;       /* neutral chip, counts */
+  --rc-neutral-text: #4B4643;
+  --rc-dot-idle: #BDB5AA;         /* "Not published" dot */
+  --rc-danger: #B3261E;           /* errors and destructive actions only */
+
+  /* ---------- Secondary neutrals (specific uses only) ---------- */
+  --rc-header-bg: rgba(250, 248, 244, 0.96); /* sticky header, with backdrop blur */
+  --rc-bg-hover: #F0ECE5;         /* landing nav link hover */
+  --rc-on-ink-muted: #CFC8C1;     /* secondary text on ink blocks (landing closing CTA) */
+  --rc-on-ink-hover: #EDE8DF;     /* light button hover on ink blocks */
+  --rc-avatar-bg: #E9E3DA;        /* customer avatar in chat previews */
+
+  /* ---------- Illustration only (landing scene, PDF page mock) ---------- */
+  --rc-pdf-line: #E1DBD2;         /* placeholder text lines on the PDF mock */
+  --rc-pdf-rule: #A39C95;         /* table rules and running header on the PDF mock */
+  --rc-selection-tint: #FBEFEC;   /* selected sentence in the landing source card */
+  --rc-selection-card: #FFFBFA;   /* selected Passage card in the landing preview */
+
+  /* ---------- Typography ---------- */
+  --rc-font-serif: 'Source Serif 4', 'Noto Serif TC', serif;      /* headings, prices; weight 600 */
+  --rc-font-sans: 'IBM Plex Sans', 'Noto Sans TC', sans-serif;    /* UI and body; 400/500/600 */
+  --rc-font-mono: 'IBM Plex Mono', monospace;                     /* data: file names, pages, times, counts, IDs */
+  --rc-tracking-heading: -0.015em;
+  --rc-text-display: 64px;   /* landing H1, line-height 1.05; phone 42px */
+  --rc-text-h2: 42px;        /* landing section title, line-height 1.15; phone 32px */
+  --rc-text-page: 34px;      /* app page title 34–36px, line-height 1.15 */
+  --rc-text-title: 22px;     /* card / block title 21–24px */
+  --rc-text-lead: 18px;      /* line-height 1.7, --rc-text-secondary */
+  --rc-text-body: 16px;      /* line-height 1.6; inputs are always 16px */
+  --rc-text-ui: 15px;        /* buttons, nav, tabs, panel headings (600) */
+  --rc-text-label: 14px;     /* labels (500), list primary text */
+  --rc-text-hint: 13px;      /* hints, metadata, eyebrow (600, uppercase, 0.06em) */
+  --rc-text-chip: 12px;      /* chips (500), citation line (mono) */
+  --rc-text-micro: 11px;     /* counts (mono 500), seam buttons */
+
+  /* ---------- Spacing (4px base) ---------- */
+  --rc-space-1: 4px;
+  --rc-space-2: 8px;
+  --rc-space-3: 12px;
+  --rc-space-4: 16px;
+  --rc-space-5: 20px;
+  --rc-space-6: 24px;
+  --rc-space-8: 32px;
+  --rc-space-10: 40px;
+  --rc-space-12: 48px;
+  --rc-space-16: 64px;
+  --rc-space-20: 80px;
+
+  /* ---------- Layout ---------- */
+  --rc-container-landing: 1160px;
+  --rc-container-app: 1200px;
+  --rc-container-review: 1320px;
+  --rc-gutter-phone: 16px;    /* landing uses 20px */
+  --rc-gutter-tablet: 32px;   /* >= 768px; landing uses 40px */
+  --rc-header-height: 60px;
+  --rc-touch-target: 44px;
+
+  /* ---------- Radius ---------- */
+  --rc-radius-xs: 3px;        /* footnote marker, citation highlight */
+  --rc-radius-sm: 4px;        /* chips, counts */
+  --rc-radius-seg-option: 5px;
+  --rc-radius-callout: 6px;   /* callouts, toolbar buttons */
+  --rc-radius-seg: 7px;       /* segmented container */
+  --rc-radius-md: 8px;        /* buttons, inputs, Passage cards, status bar */
+  --rc-radius-lg: 12px;       /* panels, cards, task rail, dropzone */
+  --rc-radius-xl: 16px;       /* landing product scene, closing block */
+  --rc-radius-full: 50%;      /* avatars, dots, step circles */
+  --rc-radius-bar: 2px;       /* progress bar track and fill */
+  --rc-radius-bubble: 10px;   /* customer message in chat previews */
+  --rc-radius-switch: 11px;   /* switch track (half of its 22px height) */
+
+  /* ---------- Borders ---------- */
+  --rc-border-hairline: 1px solid var(--rc-border);
+  --rc-border-divider: 1px solid var(--rc-border-subtle);
+  --rc-border-selected: 1.5px solid var(--rc-ink);
+  --rc-border-pdf-selection: 1.5px solid var(--rc-selection);
+  --rc-border-dashed: 1.5px dashed var(--rc-border-input);
+  --rc-border-seam: 1px dashed var(--rc-border-strong);
+
+  /* ---------- Elevation (flat by default) ---------- */
+  --rc-shadow-raised: 0 1px 2px rgba(31, 29, 28, 0.04), 0 10px 28px rgba(31, 29, 28, 0.06); /* landing scene only */
+  --rc-shadow-raised-lg: 0 1px 2px rgba(31, 29, 28, 0.04), 0 14px 32px rgba(31, 29, 28, 0.10); /* landing scene, front card */
+  --rc-shadow-overlay: 0 12px 32px rgba(31, 29, 28, 0.12);                                  /* task rail, popover, menu */
+
+  /* ---------- Focus & motion ---------- */
+  --rc-focus-ring: 2px solid var(--rc-ink);
+  --rc-focus-offset: 2px;     /* landing uses 3px */
+  --rc-duration: 140ms;
+  --rc-ease: ease-out;
+}
+
+/* Breakpoints (CSS variables cannot be used in media queries):
+   sm >= 640px   landing steps/plans 2 columns
+   md >= 768px   nav back on one row, full stepper labels, full document table
+   lg >= 960px   landing hero 2 columns, steps 4, plans 3
+   xl >= 1024px  app main + sidebar, review workspace source and Passages side by side */
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --rc-duration: 0ms; }
+}

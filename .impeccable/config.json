@@ -1,0 +1,116 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-10-14T03:02:25.270Z",
+        "reason": "agent: discarded round-1 decision sketch (direction eliminated by re-roll), never shipped"
+      },
+      {
+        "rule": "skipped-heading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-10-14T03:02:25.290Z",
+        "reason": "agent: discarded round-1 decision sketch (direction eliminated by re-roll), never shipped"
+      },
+      {
+        "rule": "wide-tracking",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-10-14T03:02:25.311Z",
+        "reason": "agent: discarded round-1 decision sketch (direction eliminated by re-roll), never shipped"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-10-14T03:02:25.332Z",
+        "reason": "agent: discarded round-1 decision sketch (direction eliminated by re-roll), never shipped"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-10-14T03:21:48.993Z",
+        "reason": "agent: unchosen direction-round sketch with its own fonts by design; never shipped"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-10-14T03:21:49.015Z",
+        "reason": "agent: unchosen direction-round sketch with its own fonts by design; never shipped"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/challenger-sneaker.html"
+        ],
+        "createdAt": "2026-10-14T03:21:49.035Z",
+        "reason": "agent: unchosen direction-round sketch with its own fonts by design; never shipped"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned-r1.html"
+        ],
+        "createdAt": "2026-10-14T03:21:49.053Z",
+        "reason": "agent: unchosen direction-round sketch with its own fonts by design; never shipped"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick-r1.html"
+        ],
+        "createdAt": "2026-10-14T03:21:49.070Z",
+        "reason": "agent: unchosen direction-round sketch with its own fonts by design; never shipped"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned-r2.html"
+        ],
+        "createdAt": "2026-10-14T03:21:49.086Z",
+        "reason": "agent: unchosen direction-round sketch with its own fonts by design; never shipped"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick-r2.html"
+        ],
+        "createdAt": "2026-10-14T03:21:49.103Z",
+        "reason": "agent: unchosen direction-round sketch with its own fonts by design; never shipped"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/challenger-wpa.html"
+        ],
+        "createdAt": "2026-10-14T03:21:49.119Z",
+        "reason": "agent: unchosen direction-round sketch with its own fonts by design; never shipped"
+      }
+    ]
+  }
+}
