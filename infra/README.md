@@ -1,6 +1,6 @@
 # AWS deployment
 
-This directory defines the RAGcat P0 deployment. It has **not been applied**. The current agent environment cannot access the Docker daemon or AWS SSO endpoints, and Terraform is not installed. Provider initialization, `terraform validate`, the AWS inventory and cloud smoke/load tests still need to run in an environment with those prerequisites. The source was checked against the AWS provider documentation; that is not a substitute for Terraform validation.
+This directory defines the RAGcat P0 deployment. It has **not been applied** yet. As of 2026-10-16, `terraform validate` passes and a bootstrap plan against the CAB432 account succeeds (57 resources to add) using the shared-account settings below. Cloud smoke and load tests still need to run after the apply.
 
 ## Prerequisites and existing resources
 
@@ -25,11 +25,29 @@ make cloud-audit
 
 `cloud-audit` only reads account metadata and writes `infra/inventory.json`. It does not create resources or print credentials. AccessDenied checks are reported separately; a successful catalog/list call does not certify all create/update permissions. Review the existing resources before deciding whether to reuse the network and cluster.
 
+### CAB432 shared account
+
+The student role can't create VPCs, internet gateways, security groups or IAM roles, and can't add security-group rules (checked with `--dry-run`). Set both `existing_network` and `shared_account` (examples in `terraform.tfvars.example`):
+
+- **Network:** the shared `aws-controltower-VPC`. Its private subnets each route out through their own NAT gateway, so the stack creates no VPC or NAT.
+- **Security groups:** the account's own.
+  - The ALB uses `CAB432SG` (443 open) plus `default`.
+  - Runtimes and Valkey use `default`, whose members can reach each other, so the ALB reaches tasks on 8080 and tasks reach Valkey on 6379.
+- **IAM:** the shared `Execution-Role-CAB432-ECS`, `Task-Role-CAB432-ECS` and `CAB432-Lambda-Role` replace the per-runtime roles in `iam.tf`. Their grants belong to the account and can't be read. If a call is denied at runtime, raise it with the teaching team.
+- **ALB:** a private CloudFront VPC origin needs a security-group rule from CloudFront's managed group, which can't be added. Instead:
+  - The ALB is internet-facing with HTTPS on `<student>-ragcat-api.cab432.com` (an ACM certificate validated in the `cab432.com` zone).
+  - CloudFront connects with HTTPS and sends a random secret header (`X-RAGcat-Origin`). The ALB forwards only requests that carry it; direct requests get the 404 default.
+  - So the API still has one entry point, and the widget rate limit can still trust `CloudFront-Viewer-Address`.
+
+`submission-a3-infra.yml` then lists only resources this stack creates and tags. The shared VPC, subnets, security groups and roles are not listed.
+
+Terraform can't refresh the `diana` SSO token itself (`failed to refresh cached credentials`). `make infra-plan` and `make infra-apply` therefore pass it the CLI's short-lived credentials (`aws configure export-credentials`).
+
 Copy `terraform.tfvars.example` to `terraform.tfvars` and replace its placeholders with verified values. The state and tfvars are ignored by Git. Keep the Terraform state: losing it would prevent safe updates to already-created resources. Before multi-user use, configure an approved remote state backend with locking; the initial stack uses local state to avoid assuming ownership of an existing shared bucket.
 
 ## Bootstrap and workload deployment
 
-The image repositories must exist before the container images can be pushed. `deploy_workloads = false` creates the infrastructure and authentication client without ECS tasks or Lambda functions. This bootstrap **already provisions** the ALB, NAT gateway, cache, and other resources with ongoing costs.
+The image repositories must exist before the container images can be pushed. `deploy_workloads = false` creates the infrastructure and authentication client without ECS tasks or Lambda functions. This bootstrap **already provisions** the ALB, cache (and, outside the shared account, a NAT gateway) and other resources with ongoing costs.
 
 ```sh
 make infra-init
@@ -40,7 +58,7 @@ make infra-apply
 make cloud-images IMAGE_TAG=release-20261014-1
 ```
 
-Review the saved plan before `infra-apply`. Do not import or rename shared resources into this stack: reuse the User Pool and optional cluster/network through variables. If IAM denies creation of the CloudFront VPC-origin service-linked role or other required resources, resolve that specific account permission with the teaching team instead of opening the ALB publicly.
+Review the saved plan before `infra-apply`. Do not import or rename shared resources into this stack: reuse the User Pool and optional cluster/network through variables. Outside the shared account, if IAM denies creation of the CloudFront VPC-origin service-linked role, resolve that permission with the teaching team rather than opening the ALB. In the shared account the ALB is public only behind HTTPS and the CloudFront secret header (above).
 
 After both images are pushed, set:
 

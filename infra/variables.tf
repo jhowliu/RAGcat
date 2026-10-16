@@ -58,6 +58,25 @@ variable "existing_network" {
   }
 }
 
+variable "shared_account" {
+  description = <<-EOT
+    For an account that forbids creating security groups and IAM roles (the CAB432 shared account):
+    the existing groups and roles to use, and the public Route 53 zone for the ALB's HTTPS name.
+    The ALB then faces the internet behind a CloudFront secret header, because the security-group
+    rule a private CloudFront VPC origin needs can't be added.
+  EOT
+  type = object({
+    alb_security_group_ids     = list(string)
+    runtime_security_group_ids = list(string) # must let the ALB reach port 8080 and runtimes reach the cache
+    cache_security_group_ids   = list(string)
+    ecs_execution_role_arn     = string
+    ecs_task_role_arn          = string
+    lambda_role_arn            = string
+    origin_zone_name           = string
+  })
+  default = null
+}
+
 variable "deploy_workloads" {
   description = "Bootstrap with false, publish both ECR images, then set true."
   type        = bool

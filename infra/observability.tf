@@ -74,42 +74,42 @@ resource "aws_cloudwatch_dashboard" "main" {
       {
         type = "metric", x = 0, y = 0, width = 12, height = 6
         properties = {
-          title = "ECS CPU utilisation", region = var.region, period = 60, stat = "Average"
+          title   = "ECS CPU utilisation", region = var.region, period = 60, stat = "Average"
           metrics = [for name in keys(local.services) : ["AWS/ECS", "CPUUtilization", "ClusterName", local.cluster_name, "ServiceName", "${local.prefix}-${name}"]]
         }
       },
       {
         type = "metric", x = 12, y = 0, width = 12, height = 6
         properties = {
-          title = "Running tasks (requires cluster Container Insights)", region = var.region, period = 60, stat = "Average"
+          title   = "Running tasks (requires cluster Container Insights)", region = var.region, period = 60, stat = "Average"
           metrics = [for name in keys(local.services) : ["ECS/ContainerInsights", "RunningTaskCount", "ClusterName", local.cluster_name, "ServiceName", "${local.prefix}-${name}"]]
         }
       },
       {
         type = "metric", x = 0, y = 6, width = 12, height = 6
         properties = {
-          title = "ALB requests per target", region = var.region, period = 60, stat = "Sum"
+          title   = "ALB requests per target", region = var.region, period = 60, stat = "Sum"
           metrics = [for group in aws_lb_target_group.main : ["AWS/ApplicationELB", "RequestCountPerTarget", "LoadBalancer", aws_lb.main.arn_suffix, "TargetGroup", group.arn_suffix]]
         }
       },
       {
         type = "metric", x = 12, y = 6, width = 12, height = 6
         properties = {
-          title = "Answer cache hits and misses", region = var.region, period = 60, stat = "Sum"
+          title   = "Answer cache hits and misses", region = var.region, period = 60, stat = "Sum"
           metrics = [["RAGcat/${var.student_id}", "CacheHits"], ["RAGcat/${var.student_id}", "CacheMisses"]]
         }
       },
       {
         type = "metric", x = 0, y = 12, width = 12, height = 6
         properties = {
-          title = "Asynchronous queue backlog", region = var.region, period = 60, stat = "Maximum"
+          title   = "Asynchronous queue backlog", region = var.region, period = 60, stat = "Maximum"
           metrics = [for queue in aws_sqs_queue.main : ["AWS/SQS", "ApproximateNumberOfMessagesVisible", "QueueName", queue.name]]
         }
       },
       {
         type = "metric", x = 12, y = 12, width = 12, height = 6
         properties = {
-          title = "Answer latency", region = var.region, period = 60, stat = "Average"
+          title   = "Answer latency", region = var.region, period = 60, stat = "Average"
           metrics = [["RAGcat/${var.student_id}", "AnswerLatency"]]
         }
       },

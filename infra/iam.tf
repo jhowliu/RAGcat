@@ -1,5 +1,11 @@
 locals {
   table_resources = [aws_dynamodb_table.main.arn, "${aws_dynamodb_table.main.arn}/index/*"]
+  # A restricted account's shared roles replace the per-runtime roles below (their grants are the
+  # account's, not this file's).
+  ecs_execution_role_arn = local.shared ? var.shared_account.ecs_execution_role_arn : aws_iam_role.ecs_execution[0].arn
+  runtime_role_arns = {
+    for name in local.runtimes : name => local.shared ? (contains(["api", "qa"], name) ? var.shared_account.ecs_task_role_arn : var.shared_account.lambda_role_arn) : aws_iam_role.runtime[name].arn
+  }
   bedrock_models = distinct([
     "arn:${local.partition}:bedrock:${var.region}::foundation-model/amazon.titan-embed-text-v2:0",
     "arn:${local.partition}:bedrock:${var.region}::foundation-model/${var.llm_model_id}",
@@ -34,7 +40,7 @@ locals {
       { Effect = "Allow", Action = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"], Resource = [aws_sqs_queue.main["embed"].arn] },
       { Effect = "Allow", Action = ["s3:DeleteObject"], Resource = ["${aws_s3_bucket.main["files"].arn}/uploads/*", "${aws_s3_bucket.main["files"].arn}/pages/*"] },
       {
-        Effect = "Allow", Action = ["s3:ListBucket"], Resource = [aws_s3_bucket.main["files"].arn]
+        Effect    = "Allow", Action = ["s3:ListBucket"], Resource = [aws_s3_bucket.main["files"].arn]
         Condition = { StringLike = { "s3:prefix" = "pages/*" } }
       },
     ]
@@ -42,31 +48,31 @@ locals {
 }
 
 resource "aws_iam_role" "runtime" {
-  for_each = local.runtimes
+  for_each = local.shared ? toset([]) : local.runtimes
   name     = "${local.prefix}-${each.key}"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect = "Allow", Action = "sts:AssumeRole"
+      Effect    = "Allow", Action = "sts:AssumeRole"
       Principal = { Service = contains(["api", "qa"], each.key) ? "ecs-tasks.amazonaws.com" : "lambda.amazonaws.com" }
     }]
   })
 }
 
 resource "aws_iam_role_policy" "runtime" {
-  for_each = local.runtimes
+  for_each = aws_iam_role.runtime
   name     = "${local.prefix}-${each.key}-data"
-  role     = aws_iam_role.runtime[each.key].id
+  role     = each.value.id
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = concat([
       {
-        Effect = "Allow"
-        Action = ["dynamodb:DescribeTable", "dynamodb:GetItem", "dynamodb:BatchGetItem", "dynamodb:Query", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:BatchWriteItem", "dynamodb:TransactWriteItems"]
+        Effect   = "Allow"
+        Action   = ["dynamodb:DescribeTable", "dynamodb:GetItem", "dynamodb:BatchGetItem", "dynamodb:Query", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:BatchWriteItem", "dynamodb:TransactWriteItems"]
         Resource = local.table_resources
       },
       {
-        Effect = "Allow", Action = ["logs:CreateLogStream", "logs:PutLogEvents"]
+        Effect   = "Allow", Action = ["logs:CreateLogStream", "logs:PutLogEvents"]
         Resource = ["${aws_cloudwatch_log_group.runtime[each.key].arn}:*"]
       },
     ], local.runtime_permissions[each.key])
@@ -74,22 +80,24 @@ resource "aws_iam_role_policy" "runtime" {
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_network" {
-  for_each   = local.workers
+  for_each   = local.shared ? {} : local.workers
   role       = aws_iam_role.runtime[each.key].name
   policy_arn = "arn:${local.partition}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
 resource "aws_iam_role" "ecs_execution" {
-  name = "${local.prefix}-ecs-execution"
+  count = local.shared ? 0 : 1
+  name  = "${local.prefix}-ecs-execution"
   assume_role_policy = jsonencode({
-    Version = "2012-10-17"
+    Version   = "2012-10-17"
     Statement = [{ Effect = "Allow", Action = "sts:AssumeRole", Principal = { Service = "ecs-tasks.amazonaws.com" } }]
   })
 }
 
 resource "aws_iam_role_policy" "ecs_execution" {
-  name = "${local.prefix}-image-pull"
-  role = aws_iam_role.ecs_execution.id
+  count = local.shared ? 0 : 1
+  name  = "${local.prefix}-image-pull"
+  role  = aws_iam_role.ecs_execution[0].id
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
