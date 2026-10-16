@@ -54,11 +54,14 @@ infra-validate:
 	terraform -chdir=infra fmt -check
 	terraform -chdir=infra validate
 
+# Terraform can't refresh this SSO profile's token itself; hand it the CLI's short-lived credentials.
+TF_AWS = creds="$$(aws configure export-credentials --profile $(AWS_PROFILE) --format env)" && eval "$$creds" && AWS_REGION=ap-southeast-2
+
 infra-plan:
-	terraform -chdir=infra plan -input=false -out=stack.tfplan
+	$(TF_AWS) terraform -chdir=infra plan -input=false -out=stack.tfplan
 
 infra-apply: ## Applies only the saved plan produced by infra-plan.
-	terraform -chdir=infra apply stack.tfplan
+	$(TF_AWS) terraform -chdir=infra apply stack.tfplan
 
 cloud-images:
 	cd backend && uv run python ../scripts/deploy.py images --profile $(AWS_PROFILE) --tag "$(IMAGE_TAG)"
