@@ -1,6 +1,23 @@
 qut_username     = "YOUR_QUT_USERNAME@qut.edu.au"
 cognito_pool_id  = "ap-southeast-2_EXISTING_POOL_ID"
 
+# CAB432 shared account: students can't create VPCs, security groups or IAM roles. Use the shared
+# control-tower VPC and these existing groups and roles (see README "CAB432 shared account").
+# existing_network = {
+#   vpc_id             = "vpc-..."
+#   public_subnet_ids  = ["subnet-...", "subnet-..."]
+#   private_subnet_ids = ["subnet-...", "subnet-..."]
+# }
+# shared_account = {
+#   alb_security_group_ids     = ["sg-...", "sg-..."] # CAB432SG + default
+#   runtime_security_group_ids = ["sg-..."]
+#   cache_security_group_ids   = ["sg-..."]
+#   ecs_execution_role_arn     = "arn:aws:iam::ACCOUNT_ID:role/Execution-Role-CAB432-ECS"
+#   ecs_task_role_arn          = "arn:aws:iam::ACCOUNT_ID:role/Task-Role-CAB432-ECS"
+#   lambda_role_arn            = "arn:aws:iam::ACCOUNT_ID:role/CAB432-Lambda-Role"
+#   origin_zone_name           = "cab432.com"
+# }
+
 # Optional: verified shared ECS cluster and existing network with private-subnet egress.
 # existing_cluster_arn = "arn:aws:ecs:ap-southeast-2:ACCOUNT_ID:cluster/EXISTING_CLUSTER"
 # existing_network = {
