@@ -2,7 +2,7 @@ resource "aws_sqs_queue" "dlq" {
   for_each                  = toset(["parse", "embed"])
   name                      = "${local.prefix}-${each.key}-dlq"
   message_retention_seconds = 1209600
-  sqs_managed_sse_enabled    = true
+  sqs_managed_sse_enabled   = true
 }
 
 resource "aws_sqs_queue" "main" {
@@ -11,7 +11,7 @@ resource "aws_sqs_queue" "main" {
   message_retention_seconds  = 1209600
   visibility_timeout_seconds = 5400 # Six times the Lambda 900s timeout.
   receive_wait_time_seconds  = 20
-  sqs_managed_sse_enabled     = true
+  sqs_managed_sse_enabled    = true
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.dlq[each.key].arn
     maxReceiveCount     = 3
@@ -45,7 +45,7 @@ resource "aws_sqs_queue_policy" "parse" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect = "Allow", Principal = { Service = "events.amazonaws.com" }, Action = "sqs:SendMessage"
+      Effect    = "Allow", Principal = { Service = "events.amazonaws.com" }, Action = "sqs:SendMessage"
       Resource  = aws_sqs_queue.main["parse"].arn
       Condition = { ArnEquals = { "aws:SourceArn" = aws_cloudwatch_event_rule.upload.arn }, StringEquals = { "aws:SourceAccount" = local.account_id } }
     }]

@@ -1,9 +1,19 @@
+# Two ways CloudFront reaches the ALB:
+# - default: an internal ALB through a CloudFront VPC origin, so the ALB has no public address;
+# - var.shared_account (no security-group rules can be added): an internet-facing ALB on HTTPS that
+#   forwards only requests carrying CloudFront's secret header. Direct requests get the 404 default,
+#   so the widget rate limit can still trust CloudFront-Viewer-Address.
+locals {
+  origin_domain = local.shared ? "${var.student_id}-ragcat-api.${var.shared_account.origin_zone_name}" : null
+  origin_header = "X-RAGcat-Origin"
+}
+
 resource "aws_lb" "main" {
   name               = "${local.prefix}-alb"
-  internal           = true
+  internal           = !local.shared
   load_balancer_type = "application"
-  subnets            = local.private_subnets
-  security_groups    = [aws_security_group.alb.id]
+  subnets            = local.shared ? local.public_subnets : local.private_subnets
+  security_groups    = local.alb_sgs
   idle_timeout       = 60 # Uvicorn keep-alive is 75s, longer than the ALB's connection reuse window.
 }
 
@@ -21,10 +31,58 @@ resource "aws_lb_target_group" "main" {
   }
 }
 
+resource "random_password" "origin" {
+  count   = local.shared ? 1 : 0
+  length  = 40
+  special = false
+}
+
+data "aws_route53_zone" "origin" {
+  count        = local.shared ? 1 : 0
+  name         = var.shared_account.origin_zone_name
+  private_zone = false
+}
+
+resource "aws_acm_certificate" "origin" {
+  count             = local.shared ? 1 : 0
+  domain_name       = local.origin_domain
+  validation_method = "DNS"
+  lifecycle { create_before_destroy = true }
+}
+
+resource "aws_route53_record" "origin_validation" {
+  for_each = local.shared ? { for o in aws_acm_certificate.origin[0].domain_validation_options : o.domain_name => o } : {}
+  zone_id  = data.aws_route53_zone.origin[0].zone_id
+  name     = each.value.resource_record_name
+  type     = each.value.resource_record_type
+  records  = [each.value.resource_record_value]
+  ttl      = 300
+}
+
+resource "aws_acm_certificate_validation" "origin" {
+  count                   = local.shared ? 1 : 0
+  certificate_arn         = aws_acm_certificate.origin[0].arn
+  validation_record_fqdns = [for record in aws_route53_record.origin_validation : record.fqdn]
+}
+
+resource "aws_route53_record" "origin" {
+  count   = local.shared ? 1 : 0
+  zone_id = data.aws_route53_zone.origin[0].zone_id
+  name    = local.origin_domain
+  type    = "A"
+  alias {
+    name                   = aws_lb.main.dns_name
+    zone_id                = aws_lb.main.zone_id
+    evaluate_target_health = false
+  }
+}
+
 resource "aws_lb_listener" "main" {
   load_balancer_arn = aws_lb.main.arn
-  port             = 80
-  protocol         = "HTTP"
+  port              = local.shared ? 443 : 80
+  protocol          = local.shared ? "HTTPS" : "HTTP"
+  certificate_arn   = local.shared ? aws_acm_certificate_validation.origin[0].certificate_arn : null
+  ssl_policy        = local.shared ? "ELBSecurityPolicy-TLS13-1-2-2021-06" : null
   default_action {
     type = "fixed-response"
     fixed_response {
@@ -45,6 +103,15 @@ resource "aws_lb_listener_rule" "qa" {
   condition {
     path_pattern { values = ["/v1/assistants/*/ask", "/v1/widget/*/ask"] } # owner Test and Website widget
   }
+  dynamic "condition" {
+    for_each = random_password.origin
+    content {
+      http_header {
+        http_header_name = local.origin_header
+        values           = [condition.value.result]
+      }
+    }
+  }
 }
 
 resource "aws_lb_listener_rule" "api" {
@@ -57,9 +124,19 @@ resource "aws_lb_listener_rule" "api" {
   condition {
     path_pattern { values = ["/v1/*"] }
   }
+  dynamic "condition" {
+    for_each = random_password.origin
+    content {
+      http_header {
+        http_header_name = local.origin_header
+        values           = [condition.value.result]
+      }
+    }
+  }
 }
 
 resource "aws_cloudfront_vpc_origin" "main" {
+  count = local.shared ? 0 : 1
   vpc_origin_endpoint_config {
     name                   = "${local.prefix}-alb"
     arn                    = aws_lb.main.arn
@@ -107,11 +184,32 @@ resource "aws_cloudfront_distribution" "main" {
   }
   origin {
     origin_id   = "api"
-    domain_name = aws_lb.main.dns_name
-    vpc_origin_config {
-      vpc_origin_id          = aws_cloudfront_vpc_origin.main.id
-      origin_keepalive_timeout = 5
-      origin_read_timeout      = 60
+    domain_name = local.shared ? local.origin_domain : aws_lb.main.dns_name
+    dynamic "vpc_origin_config" {
+      for_each = aws_cloudfront_vpc_origin.main
+      content {
+        vpc_origin_id            = vpc_origin_config.value.id
+        origin_keepalive_timeout = 5
+        origin_read_timeout      = 60
+      }
+    }
+    dynamic "custom_origin_config" {
+      for_each = random_password.origin
+      content {
+        http_port                = 80
+        https_port               = 443
+        origin_protocol_policy   = "https-only"
+        origin_ssl_protocols     = ["TLSv1.2"]
+        origin_keepalive_timeout = 5
+        origin_read_timeout      = 60
+      }
+    }
+    dynamic "custom_header" {
+      for_each = random_password.origin
+      content {
+        name  = local.origin_header
+        value = custom_header.value.result
+      }
     }
   }
   default_cache_behavior {
@@ -127,14 +225,14 @@ resource "aws_cloudfront_distribution" "main" {
     }
   }
   ordered_cache_behavior {
-    path_pattern           = "/v1/*"
-    target_origin_id       = "api"
-    viewer_protocol_policy = "https-only"
-    allowed_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
-    cached_methods         = ["GET", "HEAD"]
-    cache_policy_id        = data.aws_cloudfront_cache_policy.disabled.id
+    path_pattern             = "/v1/*"
+    target_origin_id         = "api"
+    viewer_protocol_policy   = "https-only"
+    allowed_methods          = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods           = ["GET", "HEAD"]
+    cache_policy_id          = data.aws_cloudfront_cache_policy.disabled.id
     origin_request_policy_id = data.aws_cloudfront_origin_request_policy.api.id
-    compress               = false # Preserve incremental SSE delivery.
+    compress                 = false # Preserve incremental SSE delivery.
   }
   restrictions {
     geo_restriction { restriction_type = "none" }
@@ -148,13 +246,13 @@ resource "aws_s3_bucket_policy" "web" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow", Principal = { Service = "cloudfront.amazonaws.com" }, Action = "s3:GetObject"
-        Resource = "${aws_s3_bucket.main["web"].arn}/*"
+        Effect    = "Allow", Principal = { Service = "cloudfront.amazonaws.com" }, Action = "s3:GetObject"
+        Resource  = "${aws_s3_bucket.main["web"].arn}/*"
         Condition = { StringEquals = { "AWS:SourceArn" = aws_cloudfront_distribution.main.arn } }
       },
       {
-        Effect = "Deny", Principal = "*", Action = "s3:*"
-        Resource = [aws_s3_bucket.main["web"].arn, "${aws_s3_bucket.main["web"].arn}/*"]
+        Effect    = "Deny", Principal = "*", Action = "s3:*"
+        Resource  = [aws_s3_bucket.main["web"].arn, "${aws_s3_bucket.main["web"].arn}/*"]
         Condition = { Bool = { "aws:SecureTransport" = "false" } }
       },
     ]

@@ -1,8 +1,14 @@
 locals {
-  create_network = var.existing_network == null
-  vpc_id         = local.create_network ? aws_vpc.main[0].id : var.existing_network.vpc_id
-  public_subnets = local.create_network ? aws_subnet.public[*].id : var.existing_network.public_subnet_ids
+  create_network  = var.existing_network == null
+  vpc_id          = local.create_network ? aws_vpc.main[0].id : var.existing_network.vpc_id
+  public_subnets  = local.create_network ? aws_subnet.public[*].id : var.existing_network.public_subnet_ids
   private_subnets = local.create_network ? aws_subnet.private[*].id : var.existing_network.private_subnet_ids
+
+  # A restricted account supplies its security groups and roles (var.shared_account).
+  shared      = var.shared_account != null
+  alb_sgs     = local.shared ? var.shared_account.alb_security_group_ids : [aws_security_group.alb[0].id]
+  runtime_sgs = local.shared ? var.shared_account.runtime_security_group_ids : [aws_security_group.runtime[0].id]
+  cache_sgs   = local.shared ? var.shared_account.cache_security_group_ids : [aws_security_group.cache[0].id]
 }
 
 resource "aws_vpc" "main" {
@@ -91,14 +97,16 @@ resource "aws_route_table_association" "private" {
 data "aws_ec2_managed_prefix_list" "cloudfront" { name = "com.amazonaws.global.cloudfront.origin-facing" }
 
 resource "aws_security_group" "alb" {
+  count       = local.shared ? 0 : 1
   name        = "${local.prefix}-alb"
   description = "CloudFront origin traffic only"
   vpc_id      = local.vpc_id
-  tags = { Name = "${local.prefix}-alb" }
+  tags        = { Name = "${local.prefix}-alb" }
 }
 
 resource "aws_vpc_security_group_ingress_rule" "cloudfront_to_alb" {
-  security_group_id = aws_security_group.alb.id
+  count             = local.shared ? 0 : 1
+  security_group_id = aws_security_group.alb[0].id
   prefix_list_id    = data.aws_ec2_managed_prefix_list.cloudfront.id
   from_port         = 80
   to_port           = 80
@@ -106,44 +114,50 @@ resource "aws_vpc_security_group_ingress_rule" "cloudfront_to_alb" {
 }
 
 resource "aws_security_group" "runtime" {
+  count       = local.shared ? 0 : 1
   name        = "${local.prefix}-runtime"
   description = "ECS and Lambda; API ingress only from the ALB"
   vpc_id      = local.vpc_id
-  tags = { Name = "${local.prefix}-runtime" }
+  tags        = { Name = "${local.prefix}-runtime" }
 }
 
 resource "aws_vpc_security_group_ingress_rule" "alb_to_runtime" {
-  security_group_id            = aws_security_group.runtime.id
-  referenced_security_group_id = aws_security_group.alb.id
+  count                        = local.shared ? 0 : 1
+  security_group_id            = aws_security_group.runtime[0].id
+  referenced_security_group_id = aws_security_group.alb[0].id
   from_port                    = 8080
   to_port                      = 8080
   ip_protocol                  = "tcp"
 }
 
 resource "aws_vpc_security_group_egress_rule" "runtime_outbound" {
-  security_group_id = aws_security_group.runtime.id
+  count             = local.shared ? 0 : 1
+  security_group_id = aws_security_group.runtime[0].id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
 }
 
 resource "aws_vpc_security_group_egress_rule" "alb_runtime" {
-  security_group_id            = aws_security_group.alb.id
-  referenced_security_group_id = aws_security_group.runtime.id
+  count                        = local.shared ? 0 : 1
+  security_group_id            = aws_security_group.alb[0].id
+  referenced_security_group_id = aws_security_group.runtime[0].id
   from_port                    = 8080
   to_port                      = 8080
   ip_protocol                  = "tcp"
 }
 
 resource "aws_security_group" "cache" {
+  count       = local.shared ? 0 : 1
   name        = "${local.prefix}-cache"
   description = "TLS Valkey access from RAGcat runtimes only"
   vpc_id      = local.vpc_id
-  tags = { Name = "${local.prefix}-cache" }
+  tags        = { Name = "${local.prefix}-cache" }
 }
 
 resource "aws_vpc_security_group_ingress_rule" "runtime_to_cache" {
-  security_group_id            = aws_security_group.cache.id
-  referenced_security_group_id = aws_security_group.runtime.id
+  count                        = local.shared ? 0 : 1
+  security_group_id            = aws_security_group.cache[0].id
+  referenced_security_group_id = aws_security_group.runtime[0].id
   from_port                    = 6379
   to_port                      = 6379
   ip_protocol                  = "tcp"

@@ -12,8 +12,8 @@ resource "aws_ecr_repository_policy" "worker" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Sid = "LambdaImageRetrieval", Effect = "Allow", Principal = { Service = "lambda.amazonaws.com" }
-      Action = ["ecr:BatchGetImage", "ecr:GetDownloadUrlForLayer"]
+      Sid       = "LambdaImageRetrieval", Effect = "Allow", Principal = { Service = "lambda.amazonaws.com" }
+      Action    = ["ecr:BatchGetImage", "ecr:GetDownloadUrlForLayer"]
       Condition = { ArnLike = { "aws:SourceArn" = "arn:${local.partition}:lambda:${var.region}:${local.account_id}:function:${local.prefix}-*" } }
     }]
   })
@@ -44,33 +44,33 @@ locals {
   cluster_arn  = var.existing_cluster_arn == null ? aws_ecs_cluster.main[0].arn : var.existing_cluster_arn
   cluster_name = element(split("/", local.cluster_arn), length(split("/", local.cluster_arn)) - 1)
   environment = {
-    AWS_REGION            = var.region
-    RAGCAT_TABLE          = aws_dynamodb_table.main.name
-    RAGCAT_STORAGE        = "s3"
-    RAGCAT_BUCKET         = aws_s3_bucket.main["files"].id
-    RAGCAT_QUEUE          = "sqs"
+    AWS_REGION             = var.region
+    RAGCAT_TABLE           = aws_dynamodb_table.main.name
+    RAGCAT_STORAGE         = "s3"
+    RAGCAT_BUCKET          = aws_s3_bucket.main["files"].id
+    RAGCAT_QUEUE           = "sqs"
     RAGCAT_PARSE_QUEUE_URL = aws_sqs_queue.main["parse"].url
     RAGCAT_EMBED_QUEUE_URL = aws_sqs_queue.main["embed"].url
-    RAGCAT_VECTORS        = "s3vectors"
-    RAGCAT_VECTOR_BUCKET  = aws_s3vectors_vector_bucket.main.vector_bucket_name
-    RAGCAT_VECTOR_INDEX   = aws_s3vectors_index.passages.index_name
-    RAGCAT_MODELS         = "bedrock"
-    RAGCAT_EMBED_PROVIDER = "bedrock"
-    RAGCAT_LLM_PROVIDER   = "bedrock"
+    RAGCAT_VECTORS         = "s3vectors"
+    RAGCAT_VECTOR_BUCKET   = aws_s3vectors_vector_bucket.main.vector_bucket_name
+    RAGCAT_VECTOR_INDEX    = aws_s3vectors_index.passages.index_name
+    RAGCAT_MODELS          = "bedrock"
+    RAGCAT_EMBED_PROVIDER  = "bedrock"
+    RAGCAT_LLM_PROVIDER    = "bedrock"
     RAGCAT_VISION_PROVIDER = "bedrock"
-    RAGCAT_EMBED_MODEL_ID = "amazon.titan-embed-text-v2:0"
-    RAGCAT_EMBED_DIMS     = tostring(var.embed_dimensions)
-    RAGCAT_LLM_MODEL_ID   = var.llm_model_id
+    RAGCAT_EMBED_MODEL_ID  = "amazon.titan-embed-text-v2:0"
+    RAGCAT_EMBED_DIMS      = tostring(var.embed_dimensions)
+    RAGCAT_LLM_MODEL_ID    = var.llm_model_id
     RAGCAT_VISION_MODEL_ID = var.vision_model_id
-    RAGCAT_CONTEXTUAL    = "on"
-    RAGCAT_CACHE         = "valkey"
-    RAGCAT_CACHE_URL     = "rediss://${aws_elasticache_replication_group.main.primary_endpoint_address}:6379/0"
-    RAGCAT_AUTH          = "cognito"
+    RAGCAT_CONTEXTUAL      = "on"
+    RAGCAT_CACHE           = "valkey"
+    RAGCAT_CACHE_URL       = "rediss://${aws_elasticache_replication_group.main.primary_endpoint_address}:6379/0"
+    RAGCAT_AUTH            = "cognito"
     # The built Website widget page the api fills in per Assistant (docs/api-design.md §7).
     RAGCAT_WIDGET_TEMPLATE_URL = "https://${aws_cloudfront_distribution.main.domain_name}/widget.html"
-    COGNITO_USER_POOL_ID = var.cognito_pool_id
-    COGNITO_CLIENT_ID    = aws_cognito_user_pool_client.web.id
-    RAGCAT_DATA_DIR      = "/tmp/ragcat"
+    COGNITO_USER_POOL_ID       = var.cognito_pool_id
+    COGNITO_CLIENT_ID          = aws_cognito_user_pool_client.web.id
+    RAGCAT_DATA_DIR            = "/tmp/ragcat"
   }
 }
 
@@ -81,17 +81,17 @@ resource "aws_ecs_task_definition" "main" {
   network_mode             = "awsvpc"
   cpu                      = tostring(each.value.cpu)
   memory                   = tostring(each.value.memory)
-  execution_role_arn       = aws_iam_role.ecs_execution.arn
-  task_role_arn            = aws_iam_role.runtime[each.key].arn
+  execution_role_arn       = local.ecs_execution_role_arn
+  task_role_arn            = local.runtime_role_arns[each.key]
   runtime_platform {
     operating_system_family = "LINUX"
     cpu_architecture        = "ARM64"
   }
   container_definitions = jsonencode([{
-    name      = each.key
-    image     = "${aws_ecr_repository.main["service"].repository_url}@${data.aws_ecr_image.main["service"].image_digest}"
-    essential = true
-    command   = ["uvicorn", "ragcat.apps.${each.key}:app"]
+    name         = each.key
+    image        = "${aws_ecr_repository.main["service"].repository_url}@${data.aws_ecr_image.main["service"].image_digest}"
+    essential    = true
+    command      = ["uvicorn", "ragcat.apps.${each.key}:app"]
     portMappings = [{ containerPort = 8080, hostPort = 8080, protocol = "tcp" }]
     environment  = [for name, value in local.environment : { name = name, value = value }]
     logConfiguration = {
@@ -119,11 +119,11 @@ resource "aws_ecs_service" "main" {
   task_definition                    = aws_ecs_task_definition.main[each.key].arn
   launch_type                        = "FARGATE"
   desired_count                      = 1
-  health_check_grace_period_seconds   = 60
+  health_check_grace_period_seconds  = 60
   deployment_minimum_healthy_percent = 100
   deployment_maximum_percent         = 200
-  wait_for_steady_state               = true
-  enable_ecs_managed_tags             = true
+  wait_for_steady_state              = true
+  enable_ecs_managed_tags            = true
   propagate_tags                     = "SERVICE"
   deployment_circuit_breaker {
     enable   = true
@@ -131,7 +131,7 @@ resource "aws_ecs_service" "main" {
   }
   network_configuration {
     subnets          = local.private_subnets
-    security_groups  = [aws_security_group.runtime.id]
+    security_groups  = local.runtime_sgs
     assign_public_ip = false
   }
   load_balancer {
@@ -176,7 +176,7 @@ resource "aws_lambda_function" "main" {
   package_type  = "Image"
   image_uri     = "${aws_ecr_repository.main["worker"].repository_url}@${data.aws_ecr_image.main["worker"].image_digest}"
   architectures = ["arm64"]
-  role          = aws_iam_role.runtime[each.key].arn
+  role          = local.runtime_role_arns[each.key]
   timeout       = 900
   memory_size   = each.value.memory
   # Keep reserved concurrency unset: the shared account may have insufficient reservable capacity.
@@ -185,7 +185,7 @@ resource "aws_lambda_function" "main" {
   environment { variables = local.environment }
   vpc_config {
     subnet_ids         = local.private_subnets
-    security_group_ids = [aws_security_group.runtime.id]
+    security_group_ids = local.runtime_sgs
   }
   depends_on = [aws_iam_role_policy.runtime, aws_iam_role_policy_attachment.lambda_network, aws_ecr_repository_policy.worker, aws_vpc_security_group_egress_rule.runtime_outbound, aws_vpc_security_group_ingress_rule.runtime_to_cache, aws_route.outbound, aws_route_table_association.private]
 }
