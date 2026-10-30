@@ -2,7 +2,7 @@
 
 **Turn PDFs into a customer-support assistant whose every answer cites its source page.**
 
-RAGcat is a retrieval-augmented generation (RAG) system built for the CAB432 (QUT) cloud computing assessment. A small-business owner uploads PDFs, reviews the extracted passages next to the original pages, embeds them, and publishes an Assistant. Customers then ask questions through a **website chat widget** (built) or a **Discord bot** (planned), and each answer names the document and page it came from.
+RAGcat is a retrieval-augmented generation (RAG) system that runs on AWS. A small-business owner uploads PDFs, reviews the extracted passages next to the original pages, embeds them, and publishes an Assistant. Customers then ask questions through a **website chat widget** (built) or a **Discord bot** (planned), and each answer names the document and page it came from.
 
 ```
 PDF  →  parse  →  review  →  embed  →  publish  →  website widget / Discord bot  →  cited answers
@@ -123,7 +123,7 @@ flowchart TB
 
 Notes:
 - Both ECS services use one `ragcat-service` image with different commands. Both Lambdas use one `ragcat-worker` image.
-- In the CAB432 shared account, CloudFront can't use a private VPC origin, so the ALB is internet-facing on HTTPS and forwards only requests carrying CloudFront's secret header. Details are in [`infra/README.md`](infra/README.md).
+- In a restricted shared account (no security-group or IAM role creation), CloudFront can't use a private VPC origin, so the ALB is internet-facing on HTTPS and forwards only requests carrying CloudFront's secret header. Details are in [`infra/README.md`](infra/README.md).
 - Page thumbnails stay private. The API returns short-lived presigned S3 URLs after checking ownership.
 - Valkey holds the Assistant config (cache-aside), query-embedding and answer caches (answers are keyed by `content_version`, so a new embed invalidates them), widget rate-limit counters and owner-preview vectors.
 
@@ -299,10 +299,9 @@ curl -X POST localhost:9000/2015-03-31/functions/function/invocations \
 
 ## Deploying to AWS
 
-The Terraform stack, bootstrap and workload steps, smoke and load tests, and the permissions that currently block the apply are in [`infra/README.md`](infra/README.md).
+The Terraform stack, bootstrap and workload steps, and the smoke and load tests are in [`infra/README.md`](infra/README.md).
 
 ## Status
 
-- **AWS deployment and verification are unfinished.** The first bootstrap ran on 2026-10-19 and created part of the stack, but the teaching account's IAM denied required actions. The ALB and Valkey are still running, and the Terraform state is preserved. The blocking permissions, the recovery state and the remaining image, web and smoke steps are in [`infra/README.md`](infra/README.md).
-- **Live Cognito verification is pending.** RAGcat's own sign-in page (email and password) calls Cognito through `/v1/auth/*`. Sign-up creates an already-confirmed account in the backend and sends no email. Refresh and logout are implemented and unit tested. A cloud sign-in smoke test is still needed.
+- **Deployed on AWS** with Terraform: CloudFront, ECS Fargate (`api`, `qa`), Lambda workers, DynamoDB, S3 Vectors, Valkey and Bedrock. See [`infra/README.md`](infra/README.md).
 - **Not built yet.** P1: Undo and API keys (their rate limit will reuse the widget's fixed window). P2: the Discord bot.

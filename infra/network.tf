@@ -60,7 +60,7 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public[0].id
 }
 
-# One NAT for the assessment keeps outbound access simple. It is a single-AZ egress dependency.
+# One NAT keeps outbound access simple and cheap. It is a single-AZ egress dependency.
 resource "aws_eip" "nat" {
   count  = local.create_network ? 1 : 0
   domain = "vpc"

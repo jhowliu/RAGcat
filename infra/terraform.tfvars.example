@@ -1,31 +1,29 @@
-qut_username     = "YOUR_QUT_USERNAME@qut.edu.au"
-cognito_pool_id  = "ap-southeast-2_EXISTING_POOL_ID"
+cognito_pool_id = "ap-southeast-2_EXISTING_POOL_ID"
+files_bucket    = "YOUR_PREFIX-files"
+web_bucket      = "YOUR_PREFIX-web"
+# name_prefix   = "ragcat"
+# tags          = { owner = "you@example.com" }
 
-# CAB432 shared account: students can't create VPCs, security groups or IAM roles. Use the shared
-# control-tower VPC and these existing groups and roles (see README "CAB432 shared account").
+# Restricted shared account: when the account forbids creating VPCs, security groups or IAM roles, reuse
+# existing ones (see README "Restricted shared account").
 # existing_network = {
 #   vpc_id             = "vpc-..."
 #   public_subnet_ids  = ["subnet-...", "subnet-..."]
 #   private_subnet_ids = ["subnet-...", "subnet-..."]
 # }
 # shared_account = {
-#   alb_security_group_ids     = ["sg-...", "sg-..."] # CAB432SG + default
+#   alb_security_group_ids     = ["sg-...", "sg-..."] # must allow 443 in
 #   runtime_security_group_ids = ["sg-..."]
 #   cache_security_group_ids   = ["sg-..."]
-#   ecs_execution_role_arn     = "arn:aws:iam::ACCOUNT_ID:role/Execution-Role-CAB432-ECS"
-#   ecs_task_role_arn          = "arn:aws:iam::ACCOUNT_ID:role/Task-Role-CAB432-ECS"
-#   lambda_role_arn            = "arn:aws:iam::ACCOUNT_ID:role/CAB432-Lambda-Role"
-#   origin_zone_name           = "cab432.com"
-#   origin_zone_id             = "ZONE_ID" # optional: lists the hand-made Route 53 records in the submission YAML
+#   ecs_execution_role_arn     = "arn:aws:iam::ACCOUNT_ID:role/ECS_EXECUTION_ROLE"
+#   ecs_task_role_arn          = "arn:aws:iam::ACCOUNT_ID:role/ECS_TASK_ROLE"
+#   lambda_role_arn            = "arn:aws:iam::ACCOUNT_ID:role/LAMBDA_ROLE"
+#   site_domain                = "ragcat.example.com"
+#   origin_domain              = "ragcat-api.example.com"
 # }
 
-# Optional: verified shared ECS cluster and existing network with private-subnet egress.
+# Optional: an existing ECS cluster.
 # existing_cluster_arn = "arn:aws:ecs:ap-southeast-2:ACCOUNT_ID:cluster/EXISTING_CLUSTER"
-# existing_network = {
-#   vpc_id             = "vpc-..."
-#   public_subnet_ids  = ["subnet-...", "subnet-..."]
-#   private_subnet_ids = ["subnet-...", "subnet-..."]
-# }
 
 deploy_workloads = false
 # After publishing both immutable ECR tags, set deploy_workloads = true and image_tag below.

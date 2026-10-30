@@ -17,8 +17,6 @@ web
 
 **Customers (no account):** they ask questions through the website widget, Discord or an API key. They never see the web app. They only see answers and their citations.
 
-**Setting:** RAGcat is built as a CAB432 (QUT) cloud computing assessment and is evaluated through a report and a demo video. Design decisions still target the real owner, and the product is presented as if it were real.
-
 ## Product Purpose
 
 RAGcat turns PDFs into a customer-support Assistant. Every answer cites the Document and page it relied on.

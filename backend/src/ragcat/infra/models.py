@@ -23,7 +23,7 @@ from ragcat.shared.errors import UpstreamUnavailable
 from ragcat.shared.text import CJK_RANGES, join_text, sentences
 
 
-# Bedrock on-demand quotas are small on student accounts: back off and retry on throttling.
+# Bedrock on-demand quotas are small on new accounts: back off and retry on throttling.
 BEDROCK_CONFIG = Config(retries={"mode": "adaptive", "max_attempts": 8}, read_timeout=60)
 
 

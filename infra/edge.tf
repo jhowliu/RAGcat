@@ -4,8 +4,8 @@
 #   forwards only requests carrying CloudFront's secret header. Direct requests get the 404 default,
 #   so the widget rate limit can still trust CloudFront-Viewer-Address.
 locals {
-  origin_domain = local.shared ? "${var.student_id}-ragcat-api.${var.shared_account.origin_zone_name}" : null
-  site_domain   = local.shared ? "${var.student_id}-ragcat.${var.shared_account.origin_zone_name}" : null
+  origin_domain = local.shared ? var.shared_account.origin_domain : null
+  site_domain   = local.shared ? var.shared_account.site_domain : null
   origin_header = "X-RAGcat-Origin"
 }
 
@@ -45,8 +45,8 @@ resource "aws_acm_certificate" "origin" {
   lifecycle { create_before_destroy = true }
 }
 
-# The student role has no route53:GetChange, so Terraform can't wait on Route 53 changes. The DNS records are
-# created by hand in the cab432.com zone: an A alias for local.origin_domain to the ALB, and (only needed
+# The shared account's role has no route53:GetChange, so Terraform can't wait on Route 53 changes. The DNS
+# records are created by hand in the domain's hosted zone: an A alias for local.origin_domain to the ALB, and (only needed
 # for renewal) the ACM validation CNAME. The certificate is already ISSUED; this just waits for that status.
 resource "aws_acm_certificate_validation" "origin" {
   count           = local.shared ? 1 : 0

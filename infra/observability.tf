@@ -1,4 +1,4 @@
-# The student role is denied logs:PutMetricFilter, so there are no log metric filters. The cache and latency
+# The shared account's role is denied logs:PutMetricFilter, so there are no log metric filters. The cache and latency
 # widgets below stay empty; read the `answer_completed` lines in the qa log group with Logs Insights instead.
 resource "aws_cloudwatch_metric_alarm" "dlq" {
   for_each            = aws_sqs_queue.dlq
@@ -72,7 +72,7 @@ resource "aws_cloudwatch_dashboard" "main" {
         type = "metric", x = 12, y = 6, width = 12, height = 6
         properties = {
           title   = "Answer cache hits and misses", region = var.region, period = 60, stat = "Sum"
-          metrics = [["RAGcat/${var.student_id}", "CacheHits"], ["RAGcat/${var.student_id}", "CacheMisses"]]
+          metrics = [["RAGcat/${local.prefix}", "CacheHits"], ["RAGcat/${local.prefix}", "CacheMisses"]]
         }
       },
       {
@@ -86,7 +86,7 @@ resource "aws_cloudwatch_dashboard" "main" {
         type = "metric", x = 12, y = 12, width = 12, height = 6
         properties = {
           title   = "Answer latency", region = var.region, period = 60, stat = "Average"
-          metrics = [["RAGcat/${var.student_id}", "AnswerLatency"]]
+          metrics = [["RAGcat/${local.prefix}", "AnswerLatency"]]
         }
       },
     ]

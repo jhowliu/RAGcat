@@ -25,7 +25,7 @@ data "aws_ecr_image" "main" {
   image_tag       = var.image_tag
 }
 
-# Created earlier by Terraform and kept: the student role is denied logs:PutRetentionPolicy and has no
+# Created earlier by Terraform and kept: the shared account's role is denied logs:PutRetentionPolicy and has no
 # logs:DeleteLogGroup, so Terraform only reads them (retention stays "never expire").
 data "aws_cloudwatch_log_group" "runtime" {
   for_each = local.runtimes

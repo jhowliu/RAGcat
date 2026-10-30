@@ -20,16 +20,16 @@ resource "aws_dynamodb_table" "main" {
   server_side_encryption { enabled = true }
 }
 
-# Both buckets are created by hand (private, public access blocked, AES256): the student role is denied
-# s3:PutBucketNotification, s3:PutBucketPolicy and s3:PutEncryptionConfiguration, so Terraform only reads them.
+# Both buckets are created by hand (private, public access blocked, AES256): a shared account's role may be
+# denied s3:PutBucketNotification, s3:PutBucketPolicy and s3:PutEncryptionConfiguration, so Terraform only reads them.
 # files: EventBridge upload notification is enabled in the console.
 # web: the CloudFront OAC bucket policy is pasted in the console once the distribution exists.
 data "aws_s3_bucket" "files" {
-  bucket = "${var.student_id}-a3-files"
+  bucket = var.files_bucket
 }
 
 data "aws_s3_bucket" "web" {
-  bucket = "${var.student_id}-a3-web"
+  bucket = var.web_bucket
 }
 
 resource "aws_s3_bucket_cors_configuration" "files" {

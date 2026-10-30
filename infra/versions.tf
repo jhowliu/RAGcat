@@ -29,14 +29,8 @@ data "aws_partition" "current" {}
 data "aws_availability_zones" "available" { state = "available" }
 
 locals {
-  tags = {
-    purpose        = "assessment 3"
-    "qut-username" = var.qut_username
-    project        = "RAGcat"
-    student-id     = var.student_id
-    environment    = "a3"
-  }
-  prefix     = "${var.student_id}-ragcat-a3"
+  tags       = merge({ project = "RAGcat" }, var.tags)
+  prefix     = var.name_prefix
   account_id = data.aws_caller_identity.current.account_id
   partition  = data.aws_partition.current.partition
   azs        = slice(data.aws_availability_zones.available.names, 0, 2)

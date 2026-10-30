@@ -25,7 +25,7 @@ CloudFront 作為單一網域入口，SPA 與 API 同源（不需要 CORS）。
 | `embed` | Lambda（同一個 image） | reconcile：embed 有變動的 chunk、刪除向量 | SQS 觸發，最大並行 2（避免 Bedrock 限流） |
 | `discord-bot` | ECS Fargate | Discord Gateway 轉接層（P2） | 固定 1 個 task |
 
-A3 的 auto-scaling 與 load distribution 由 ALB + `api` / `qa` 負責；Lambda 的擴縮不算在內。
+Auto-scaling 與 load distribution 由 ALB + `api` / `qa` 負責；Lambda 由 SQS 觸發，以並行上限控制擴縮。
 
 ### 驗證
 
@@ -262,7 +262,7 @@ POST /v1/assistants/{aid}/documents
   "document": { "id": "doc_...", "status": "awaiting_upload", "...": "..." },
   "upload": {
     "method": "POST",
-    "url": "https://n12218642-a3-uploads.s3.ap-southeast-2.amazonaws.com",
+    "url": "https://ragcat-files.s3.ap-southeast-2.amazonaws.com",
     "fields": { "key": "uploads/ast_.../doc_....pdf", "Content-Type": "application/pdf", "policy": "...", "x-amz-signature": "..." },
     "expires_at": "..."
   }
