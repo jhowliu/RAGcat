@@ -1,8 +1,8 @@
 """Verify upload -> parse -> review/edit -> embed -> publish -> streaming answer/cache.
 
 Set RAGCAT_ACCESS_TOKEN to a Cognito access token. It is never sent to S3 or printed.
-The test deletes only its newly uploaded Document unless --keep is supplied.
-An empty test Assistant remains; pass its ID on later runs to avoid consuming more slots.
+Unless --keep is supplied, the test deletes what it created: its Assistant, or only its Document
+when --assistant-id names an existing Assistant.
 """
 from __future__ import annotations
 
@@ -81,6 +81,7 @@ def main() -> int:
         parser.error("The sample PDF does not exist")
     did = None
     aid = args.assistant_id
+    own_assistant = False
     exit_code = 1
     with httpx.Client(base_url=args.base_url.rstrip("/"), headers={"Authorization": f"Bearer {token}"}, timeout=90) as client:
         try:
@@ -89,7 +90,7 @@ def main() -> int:
             if not aid:
                 response = client.post("/v1/assistants", json={"name": "RAGcat cloud smoke", "fallback_contact": ""})
                 response.raise_for_status()
-                aid = response.json()["id"]
+                aid, own_assistant = response.json()["id"], True
             print(json.dumps({"stage": "assistant", "assistant_id": aid}))
             response = client.post(f"/v1/assistants/{aid}/documents", json={"filename": args.pdf.name, "size_bytes": args.pdf.stat().st_size, "content_type": "application/pdf"})
             response.raise_for_status()
@@ -137,14 +138,15 @@ def main() -> int:
             print(json.dumps({"status": "failed", "assistant_id": aid, "document_id": did, "error": detail}))
             exit_code = 1
         finally:
-            if did and not args.keep:
+            if not args.keep and (did or own_assistant):
                 try:
-                    response = client.delete(f"/v1/documents/{did}")
+                    response = client.delete(f"/v1/assistants/{aid}" if own_assistant else f"/v1/documents/{did}")
                     response.raise_for_status()
-                    wait_document(client, did, "deleted", args.timeout)
-                    print(json.dumps({"stage": "cleanup", "deleted_document_id": did, "retained_assistant_id": aid}))
+                    if did:
+                        wait_document(client, did, "deleted", args.timeout)
+                    print(json.dumps({"stage": "cleanup", "deleted_assistant_id": aid if own_assistant else None, "deleted_document_id": did}))
                 except (httpx.HTTPError, RuntimeError, TimeoutError):
-                    print(json.dumps({"stage": "cleanup_incomplete", "document_id": did}))
+                    print(json.dumps({"stage": "cleanup_incomplete", "assistant_id": aid, "document_id": did}))
                     exit_code = 1
     return exit_code
 

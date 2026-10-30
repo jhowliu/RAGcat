@@ -113,7 +113,7 @@ cd backend
 uv run python ../scripts/smoke_cloud.py --base-url https://YOUR_DISTRIBUTION.cloudfront.net --keep
 ```
 
-The smoke test creates a marked Assistant and Document, waits for parsing, loads a signed page image, edits a Passage with `If-Match`, embeds, publishes, and checks two SSE answers: a cold result with citations followed by a cache hit. S3 requests use a separate client without the owner's Authorization header. `--keep` retains the demonstration Document; without it, only the test's newly uploaded Document is deleted. The empty test Assistant remains because the current API does not support deleting Assistants. Reuse its printed ID with `--assistant-id` on subsequent runs.
+The smoke test creates a marked Assistant and Document, waits for parsing, loads a signed page image, edits a Passage with `If-Match`, embeds, publishes, and checks two SSE answers: a cold result with citations followed by a cache hit. S3 requests use a separate client without the owner's Authorization header. `--keep` retains the demonstration Assistant and Document, for the QA load test below. Without it, the test deletes the Assistant it created, or only its Document when `--assistant-id` names an existing Assistant.
 
 To exercise auto-scaling:
 

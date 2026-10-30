@@ -99,6 +99,13 @@ class AssistantsService:
         self.cache.delete(f"ast:{aid}")
         return assistant
 
+    def delete(self, owner_id: str, aid: str) -> None:
+        """Owner and customers lose the Assistant at once. Its documents must already be marked for
+        deletion: Indexing removes their vectors and files later."""
+        self.get(owner_id, aid)
+        self.repo.remove(aid)
+        self.cache.delete(f"ast:{aid}")
+
     # ------------------------------------------------------------ read model for Answering
 
     def config(self, aid: str) -> AssistantConfig:

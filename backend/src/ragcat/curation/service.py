@@ -171,6 +171,10 @@ class CurationService:
         self.hooks.document_visibility_changed(doc.assistant_id, did, visible=False)
         self.queue.send("embed", {"type": "reconcile", "job_id": new_id("job"), "document_id": did})
 
+    def delete_all(self, owner_id: str, assistant_id: str) -> None:
+        for doc in self.documents(owner_id, assistant_id):
+            self.delete(owner_id, doc.id)
+
     def set_enabled(self, owner_id: str, did: str, enabled: bool) -> Document:
         doc = self.document(owner_id, did)
         if doc.enabled != enabled:

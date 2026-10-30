@@ -287,6 +287,11 @@ export const en = {
   'settings.unpublish': 'Unpublish',
   'settings.unpublishTitle': 'Stop answering customers?',
   'settings.unpublishBody': "Customers can't ask this Assistant until you publish again. Your Documents and Passages stay as they are.",
+  'settings.delete': 'Delete Assistant',
+  'settings.deleteHint': 'Removes its Documents and Passages, and the question button on your website.',
+  'settings.deleteTitle': 'Delete “{name}”?',
+  'settings.deleteBody': "Its Documents and Passages are removed, and customers can't ask it anymore, including through your website. This can't be undone.",
+  'settings.deleting': 'Deleting…',
 
   'website.title': 'Website',
   'website.on': 'On',

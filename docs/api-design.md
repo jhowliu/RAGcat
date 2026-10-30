@@ -236,7 +236,7 @@ parsing → failed
 | POST | `/v1/assistants` | `{ name, fallback_contact }` → `201` | P0 |
 | GET | `/v1/assistants/{aid}` | 單一 Assistant 詳細資料 | P0 |
 | PATCH | `/v1/assistants/{aid}` | `{ name?, fallback_contact?, published?, widget_origins? }`；`published` 見 §5，`widget_origins` 見 §7 | P0 |
-| DELETE | `/v1/assistants/{aid}` | `202`；非同步刪除 S3 檔案與向量 | P1 |
+| DELETE | `/v1/assistants/{aid}` | `202 { assistant: { id, status: "deleting" } }`；Assistant 立即消失（owner 的 API、`ask`、widget 都回 `404`），它的每份文件改成 `deleting` 並排入 embed reconcile，由 reconcile 刪掉向量、頁面圖、原始 PDF 與資料列（同刪除文件） | P1 |
 
 **Quota（P1）**：`ingest` 在步驟 I 先檢查 `pages_read + page_count` 是否超過上限，超過就直接 `failed`（`QUOTA_EXCEEDED`）；步驟 II 每讀一頁用 DynamoDB atomic counter 把 `pages_read + 1`。qa 每次回答都累加 `answers`，超過上限回 `403 QUOTA_EXCEEDED`。
 
@@ -590,5 +590,5 @@ Bot 流程：收到 @mention → 查 channel 綁定（在記憶體 cache 60 秒�
 ## 12. 實作優先順序
 
 - **P0（web MVP）**：`GET /v1/me`、Assistants CRUD、上傳與進度、頁面縮圖、chunk 編輯（list/add/edit/delete/split/merge/restore）、刪除文件、embed（reconcile）、publish 開關、`ask`（SSE）
-- **P1**：jobs、undo、enabled 開關、刪除 Assistant、API keys、quota（Website widget 與它的 rate limit 已完成，見 §7）
+- **P1**：jobs、undo、enabled 開關、刪除 Assistant、API keys、quota（Website widget 與它的 rate limit 已完成，見 §7；刪除 Assistant 已完成，見 §2）
 - **P2**：Discord（排在 widget 之後）、未回答問題紀錄（Questions 分頁）

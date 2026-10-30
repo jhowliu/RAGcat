@@ -2,7 +2,7 @@
 // later) and Settings tabs.
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Link, useParams, useSearchParams } from 'react-router'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { api, type Assistant, type Doc, type Me } from '../api'
 import { TaskRail } from '../components/AppShell'
 import { UsageMeters, answersShare } from '../components/UsageMeters'
@@ -173,12 +173,23 @@ function DocumentsTab({ aid, docs }: { aid: string; docs: Doc[] }) {
 function SettingsTab({ assistant, me }: { assistant: Assistant; me: Me }) {
   const { t } = useI18n()
   const queryClient = useQueryClient()
-  const [confirmOffline, setConfirmOffline] = useState(false)
+  const navigate = useNavigate()
+  const [confirm, setConfirm] = useState<'offline' | 'delete' | null>(null)
   const update = useMutation({
     mutationFn: (patch: Partial<Pick<Assistant, 'name' | 'fallback_contact' | 'published'>>) => api.updateAssistant(assistant.id, patch),
     onSuccess: (a) => {
       queryClient.setQueryData(keys.assistant(a.id), a)
       queryClient.invalidateQueries({ queryKey: keys.assistants })
+    },
+  })
+  const remove = useMutation({
+    mutationFn: () => api.deleteAssistant(assistant.id),
+    onSuccess: () => {
+      navigate('/assistants', { replace: true })
+      queryClient.removeQueries({ queryKey: keys.assistant(assistant.id) })
+      queryClient.removeQueries({ queryKey: keys.documents(assistant.id) })
+      queryClient.invalidateQueries({ queryKey: keys.assistants })
+      queryClient.invalidateQueries({ queryKey: keys.jobs })
     },
   })
 
@@ -200,23 +211,44 @@ function SettingsTab({ assistant, me }: { assistant: Assistant; me: Me }) {
         <span className="lbl">{t('settings.assistant')}</span>
         <InlineEdit value={assistant.name} label={t('details.name')} action={t('settings.rename')} required onSave={(v) => update.mutateAsync({ name: v })} />
         {assistant.published && (
-          <button type="button" className="btn-text small danger" onClick={() => setConfirmOffline(true)}>
+          <button type="button" className="btn-text small danger" onClick={() => setConfirm('offline')}>
             {t('settings.unpublish')}
           </button>
         )}
         {update.error != null && <p className="field-error">{errorText(update.error)}</p>}
       </section>
-      {confirmOffline && (
+      <section className="panel" aria-label={t('settings.delete')}>
+        <span className="lbl">{t('settings.delete')}</span>
+        <span className="hint">{t('settings.deleteHint')}</span>
+        <button type="button" className="btn-text small danger" disabled={remove.isPending} onClick={() => setConfirm('delete')}>
+          {remove.isPending ? t('settings.deleting') : t('settings.delete')}
+        </button>
+        {remove.error != null && <p className="field-error">{errorText(remove.error)}</p>}
+      </section>
+      {confirm === 'offline' && (
         <ConfirmDialog
           title={t('settings.unpublishTitle')}
           confirmLabel={t('settings.unpublish')}
-          onCancel={() => setConfirmOffline(false)}
+          onCancel={() => setConfirm(null)}
           onConfirm={() => {
-            setConfirmOffline(false)
+            setConfirm(null)
             update.mutate({ published: false })
           }}
         >
           <p>{t('settings.unpublishBody')}</p>
+        </ConfirmDialog>
+      )}
+      {confirm === 'delete' && (
+        <ConfirmDialog
+          title={t('settings.deleteTitle', { name: assistant.name })}
+          confirmLabel={t('settings.delete')}
+          onCancel={() => setConfirm(null)}
+          onConfirm={() => {
+            setConfirm(null)
+            remove.mutate()
+          }}
+        >
+          <p>{t('settings.deleteBody')}</p>
         </ConfirmDialog>
       )}
     </div>

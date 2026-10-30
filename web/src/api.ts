@@ -179,6 +179,7 @@ export const api = {
   createAssistant: (name: string, fallback_contact = '') => request<Assistant>('POST', '/v1/assistants', { name, fallback_contact }),
   updateAssistant: (aid: string, patch: Partial<Pick<Assistant, 'name' | 'fallback_contact' | 'published' | 'widget_origins'>>) =>
     request<Assistant>('PATCH', `/v1/assistants/${aid}`, patch),
+  deleteAssistant: (aid: string) => request<unknown>('DELETE', `/v1/assistants/${aid}`),
 
   documents: (aid: string) => request<{ items: Doc[] }>('GET', `/v1/assistants/${aid}/documents`).then((r) => r.items),
   createDocument: (aid: string, file: File) =>

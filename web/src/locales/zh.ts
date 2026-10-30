@@ -289,6 +289,11 @@ export const zh: Messages = {
   'settings.unpublish': '取消發布',
   'settings.unpublishTitle': '要停止回答客人嗎？',
   'settings.unpublishBody': '在你再次發布前，客人無法向這個助理提問。文件與段落都會保留。',
+  'settings.delete': '刪除助理',
+  'settings.deleteHint': '連同它的文件與段落一起刪除，你網站上的提問按鈕也會失效。',
+  'settings.deleteTitle': '要刪除「{name}」嗎？',
+  'settings.deleteBody': '它的文件與段落都會刪除，客人也無法再向它提問，包括透過你網站上的提問按鈕。刪除後無法復原。',
+  'settings.deleting': '刪除中…',
 
   'website.title': '網站',
   'website.on': '已開啟',

@@ -152,6 +152,8 @@ class Table:
             raise
 
     def query_prefix(self, pk: str, sk_prefix: str, *, index: str | None = None) -> list[dict[str, Any]]:
+        """Items whose sort key starts with `sk_prefix`; an empty prefix returns the whole partition
+        (DynamoDB refuses begins_with on an empty string)."""
         pk_name, sk_name = ("GSI1PK", "GSI1SK") if index else ("PK", "SK")
         kwargs: dict[str, Any] = {
             "TableName": self.name,
@@ -159,6 +161,8 @@ class Table:
             "ExpressionAttributeNames": {"#pk": pk_name, "#sk": sk_name},
             "ExpressionAttributeValues": serialize({":pk": pk, ":sk": sk_prefix}),
         }
+        if not sk_prefix:
+            kwargs.update(KeyConditionExpression="#pk = :pk", ExpressionAttributeNames={"#pk": pk_name}, ExpressionAttributeValues=serialize({":pk": pk}))
         if index:
             kwargs["IndexName"] = index
         else:
