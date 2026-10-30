@@ -42,8 +42,9 @@ The student role can't create VPCs, internet gateways, security groups or IAM ro
   - The ALB is internet-facing with HTTPS on `<student>-ragcat-api.cab432.com` (an ACM certificate validated in the `cab432.com` zone).
   - CloudFront connects with HTTPS and sends a random secret header (`X-RAGcat-Origin`). The ALB forwards only requests that carry it; direct requests get the 404 default.
   - So the API still has one entry point, and the widget rate limit can still trust `CloudFront-Viewer-Address`.
+- **Site name:** CloudFront serves the site on `<student>-ragcat.cab432.com` with a us-east-1 ACM certificate. Apply waits until it is ISSUED: in the us-east-1 ACM console, choose "Create records in Route 53" for its validation CNAME. After the apply, add an A alias record for the name to the distribution (no AAAA yet, so IPv6-only clients can't reach it). The `*.cloudfront.net` name keeps working.
 
-`submission-a3-infra.yml` then lists only resources this stack creates and tags. The shared VPC, subnets, security groups and roles are not listed.
+`submission-a3-infra.yml` then lists only resources this stack creates and tags, plus the hand-made Route 53 records when `origin_zone_id` is set. The shared VPC, subnets, security groups and roles are not listed.
 
 Terraform can't refresh the `diana` SSO token itself (`failed to refresh cached credentials`). `make infra-plan` and `make infra-apply` therefore pass it the CLI's short-lived credentials (`aws configure export-credentials`).
 

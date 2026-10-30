@@ -5,6 +5,7 @@
 #   so the widget rate limit can still trust CloudFront-Viewer-Address.
 locals {
   origin_domain = local.shared ? "${var.student_id}-ragcat-api.${var.shared_account.origin_zone_name}" : null
+  site_domain   = local.shared ? "${var.student_id}-ragcat.${var.shared_account.origin_zone_name}" : null
   origin_header = "X-RAGcat-Origin"
 }
 
@@ -50,6 +51,22 @@ resource "aws_acm_certificate" "origin" {
 resource "aws_acm_certificate_validation" "origin" {
   count           = local.shared ? 1 : 0
   certificate_arn = aws_acm_certificate.origin[0].arn
+}
+
+# The site's own name at CloudFront. Its validation CNAME and the A alias to the distribution are also
+# created by hand (ACM console: "Create records in Route 53"); apply waits here until the certificate is ISSUED.
+resource "aws_acm_certificate" "site" {
+  count             = local.shared ? 1 : 0
+  provider          = aws.us_east_1
+  domain_name       = local.site_domain
+  validation_method = "DNS"
+  lifecycle { create_before_destroy = true }
+}
+
+resource "aws_acm_certificate_validation" "site" {
+  count           = local.shared ? 1 : 0
+  provider        = aws.us_east_1
+  certificate_arn = aws_acm_certificate.site[0].arn
 }
 
 resource "aws_lb_listener" "main" {
@@ -151,6 +168,7 @@ resource "aws_cloudfront_distribution" "main" {
   price_class         = "PriceClass_All" # Includes the Sydney edge location.
   http_version        = "http2and3"
   is_ipv6_enabled     = true
+  aliases             = local.shared ? [local.site_domain] : []
 
   origin {
     origin_id                = "web"
@@ -212,7 +230,12 @@ resource "aws_cloudfront_distribution" "main" {
   restrictions {
     geo_restriction { restriction_type = "none" }
   }
-  viewer_certificate { cloudfront_default_certificate = true }
+  viewer_certificate {
+    cloudfront_default_certificate = !local.shared
+    acm_certificate_arn            = local.shared ? aws_acm_certificate_validation.site[0].certificate_arn : null
+    ssl_support_method             = local.shared ? "sni-only" : null
+    minimum_protocol_version       = local.shared ? "TLSv1.2_2021" : null
+  }
 }
 
 # RAGcat's own sign-in page calls the API, which signs in through the Cognito API: no hosted login

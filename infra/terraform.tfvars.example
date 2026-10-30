@@ -16,6 +16,7 @@ cognito_pool_id  = "ap-southeast-2_EXISTING_POOL_ID"
 #   ecs_task_role_arn          = "arn:aws:iam::ACCOUNT_ID:role/Task-Role-CAB432-ECS"
 #   lambda_role_arn            = "arn:aws:iam::ACCOUNT_ID:role/CAB432-Lambda-Role"
 #   origin_zone_name           = "cab432.com"
+#   origin_zone_id             = "ZONE_ID" # optional: lists the hand-made Route 53 records in the submission YAML
 # }
 
 # Optional: verified shared ECS cluster and existing network with private-subnet egress.

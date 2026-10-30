@@ -35,7 +35,7 @@ data "aws_s3_bucket" "web" {
 resource "aws_s3_bucket_cors_configuration" "files" {
   bucket = data.aws_s3_bucket.files.id
   cors_rule {
-    allowed_origins = concat(["https://${aws_cloudfront_distribution.main.domain_name}"], var.extra_cors_origins)
+    allowed_origins = concat(["https://${aws_cloudfront_distribution.main.domain_name}"], local.shared ? ["https://${local.site_domain}"] : [], var.extra_cors_origins)
     allowed_methods = ["POST", "GET", "HEAD"]
     allowed_headers = ["*"]
     expose_headers  = ["ETag"]

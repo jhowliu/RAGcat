@@ -1,4 +1,4 @@
-output "site_url" { value = "https://${aws_cloudfront_distribution.main.domain_name}" }
+output "site_url" { value = "https://${local.shared ? local.site_domain : aws_cloudfront_distribution.main.domain_name}" }
 output "web_bucket" { value = data.aws_s3_bucket.web.id }
 output "cloudfront_distribution_id" { value = aws_cloudfront_distribution.main.id }
 output "region" { value = var.region }
@@ -9,6 +9,14 @@ output "cluster_arn" { value = local.cluster_arn }
 output "service_names" { value = { for key, service in aws_ecs_service.main : key => service.name } }
 output "ecr_repositories" { value = { for key, repo in aws_ecr_repository.main : key => repo.repository_url } }
 output "dashboard_url" { value = "https://${var.region}.console.aws.amazon.com/cloudwatch/home?region=${var.region}#dashboards:name=${aws_cloudwatch_dashboard.main.dashboard_name}" }
+
+# Route 53 records are created by hand (no route53:GetChange), so they are listed only when the zone ID is set.
+locals {
+  dns_records = try(var.shared_account.origin_zone_id, null) == null ? [] : [
+    { name = local.origin_domain, type = "A", description = "Points the ALB origin name that CloudFront connects to at the load balancer." },
+    { name = local.site_domain, type = "A", description = "Points the site's own name at the CloudFront distribution." },
+  ]
+}
 
 # Used by deploy.py to generate the assessment YAML from actual, applied identifiers.
 output "cloud_resources" {
@@ -35,6 +43,8 @@ output "cloud_resources" {
     [for origin in aws_cloudfront_vpc_origin.main : { type = "CloudFront VPC origin", arn = origin.arn, description = "Connects CloudFront privately to the internal ALB." }],
     [for role in aws_iam_role.ecs_execution : { type = "IAM role", arn = role.arn, description = "Allows ECS to pull project images and write runtime logs." }],
     [for cert in aws_acm_certificate.origin : { type = "ACM certificate", arn = cert.arn, description = "Serves HTTPS on the ALB origin name CloudFront connects to." }],
+    [for cert in aws_acm_certificate.site : { type = "ACM certificate", arn = cert.arn, description = "Serves HTTPS on the site's own name at CloudFront, which accepts only us-east-1 certificates." }],
+    [for record in local.dns_records : { type = "Route 53 record", arn = "${var.shared_account.origin_zone_id}/${record.name}/${record.type}", description = record.description }],
     [{ type = "S3 bucket", arn = data.aws_s3_bucket.files.arn, description = "Stores private uploaded PDFs and rendered page images." }],
     [{ type = "S3 bucket", arn = data.aws_s3_bucket.web.arn, description = "Stores the React SPA and public runtime authentication configuration." }],
     [for repo in aws_ecr_repository.main : { type = "ECR repository", arn = repo.arn, description = "Stores immutable ARM64 container images used by RAGcat runtimes." }],
