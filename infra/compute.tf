@@ -25,10 +25,11 @@ data "aws_ecr_image" "main" {
   image_tag       = var.image_tag
 }
 
-resource "aws_cloudwatch_log_group" "runtime" {
-  for_each          = local.runtimes
-  name              = contains(["ingest", "embed"], each.key) ? "/aws/lambda/${local.prefix}-${each.key}" : "/${local.prefix}/${each.key}"
-  retention_in_days = 14
+# Created earlier by Terraform and kept: the student role is denied logs:PutRetentionPolicy and has no
+# logs:DeleteLogGroup, so Terraform only reads them (retention stays "never expire").
+data "aws_cloudwatch_log_group" "runtime" {
+  for_each = local.runtimes
+  name     = contains(["ingest", "embed"], each.key) ? "/aws/lambda/${local.prefix}-${each.key}" : "/${local.prefix}/${each.key}"
 }
 
 resource "aws_ecs_cluster" "main" {
@@ -47,7 +48,7 @@ locals {
     AWS_REGION             = var.region
     RAGCAT_TABLE           = aws_dynamodb_table.main.name
     RAGCAT_STORAGE         = "s3"
-    RAGCAT_BUCKET          = aws_s3_bucket.main["files"].id
+    RAGCAT_BUCKET          = data.aws_s3_bucket.files.id
     RAGCAT_QUEUE           = "sqs"
     RAGCAT_PARSE_QUEUE_URL = aws_sqs_queue.main["parse"].url
     RAGCAT_EMBED_QUEUE_URL = aws_sqs_queue.main["embed"].url
@@ -97,7 +98,7 @@ resource "aws_ecs_task_definition" "main" {
     logConfiguration = {
       logDriver = "awslogs"
       options = {
-        awslogs-group         = aws_cloudwatch_log_group.runtime[each.key].name
+        awslogs-group         = data.aws_cloudwatch_log_group.runtime[each.key].name
         awslogs-region        = var.region
         awslogs-stream-prefix = each.key
       }
@@ -182,12 +183,11 @@ resource "aws_lambda_function" "main" {
   # Keep reserved concurrency unset: the shared account may have insufficient reservable capacity.
   image_config { command = ["ragcat.apps.worker.${each.key}"] }
   ephemeral_storage { size = 1024 }
-  environment { variables = local.environment }
-  vpc_config {
-    subnet_ids         = local.private_subnets
-    security_group_ids = local.runtime_sgs
-  }
-  depends_on = [aws_iam_role_policy.runtime, aws_iam_role_policy_attachment.lambda_network, aws_ecr_repository_policy.worker, aws_vpc_security_group_egress_rule.runtime_outbound, aws_vpc_security_group_ingress_rule.runtime_to_cache, aws_route.outbound, aws_route_table_association.private]
+  # Lambda sets AWS_REGION itself and rejects it as a reserved key. The workers run outside the VPC (the shared
+  # Lambda role has no ec2:CreateNetworkInterface), so they can't reach Valkey and use an in-process cache: the
+  # published-version invalidation reaches the qa service only when its 300 s config TTL expires.
+  environment { variables = merge({ for name, value in local.environment : name => value if name != "AWS_REGION" }, { RAGCAT_CACHE = "memory" }) }
+  depends_on = [aws_iam_role_policy.runtime, aws_ecr_repository_policy.worker]
 }
 
 resource "aws_lambda_event_source_mapping" "main" {

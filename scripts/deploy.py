@@ -27,7 +27,15 @@ def outputs() -> dict:
 
 
 def session_for(profile: str, state: dict):
-    session = boto3.Session(profile_name=profile, region_name=state["region"])
+    # boto3 can't refresh this SSO profile's token (same as Terraform, see TF_AWS in the Makefile), so use the
+    # CLI's short-lived credentials. They are passed to the session only, never printed.
+    exported = json.loads(subprocess.run(["aws", "configure", "export-credentials", "--profile", profile, "--format", "process"], check=True, text=True, capture_output=True).stdout)
+    session = boto3.Session(
+        aws_access_key_id=exported["AccessKeyId"],
+        aws_secret_access_key=exported["SecretAccessKey"],
+        aws_session_token=exported["SessionToken"],
+        region_name=state["region"],
+    )
     identity = session.client("sts", config=Config(connect_timeout=5, read_timeout=10, retries={"max_attempts": 0})).get_caller_identity()
     if identity["Account"] != state["account_id"] or state["region"] != "ap-southeast-2":
         raise ValueError("AWS profile and Terraform state must identify the same Sydney account")

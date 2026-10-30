@@ -13,8 +13,8 @@ locals {
   ])
   runtime_permissions = {
     api = [
-      { Effect = "Allow", Action = ["s3:PutObject"], Resource = ["${aws_s3_bucket.main["files"].arn}/uploads/*"] },
-      { Effect = "Allow", Action = ["s3:GetObject"], Resource = ["${aws_s3_bucket.main["files"].arn}/pages/*"] },
+      { Effect = "Allow", Action = ["s3:PutObject"], Resource = ["${data.aws_s3_bucket.files.arn}/uploads/*"] },
+      { Effect = "Allow", Action = ["s3:GetObject"], Resource = ["${data.aws_s3_bucket.files.arn}/pages/*"] },
       { Effect = "Allow", Action = ["sqs:SendMessage"], Resource = [aws_sqs_queue.main["embed"].arn] },
       # Sign-up creates a confirmed account with a verified email and sends no email (create, set the
       # password, remove it if the password is rejected); sign-in finishes an account left unconfirmed.
@@ -29,8 +29,8 @@ locals {
       { Effect = "Allow", Action = ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"], Resource = local.bedrock_models },
     ]
     ingest = [
-      { Effect = "Allow", Action = ["s3:GetObject"], Resource = ["${aws_s3_bucket.main["files"].arn}/uploads/*"] },
-      { Effect = "Allow", Action = ["s3:PutObject"], Resource = ["${aws_s3_bucket.main["files"].arn}/pages/*"] },
+      { Effect = "Allow", Action = ["s3:GetObject"], Resource = ["${data.aws_s3_bucket.files.arn}/uploads/*"] },
+      { Effect = "Allow", Action = ["s3:PutObject"], Resource = ["${data.aws_s3_bucket.files.arn}/pages/*"] },
       { Effect = "Allow", Action = ["bedrock:InvokeModel"], Resource = ["arn:${local.partition}:bedrock:${var.region}::foundation-model/${var.vision_model_id}"] },
       { Effect = "Allow", Action = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"], Resource = [aws_sqs_queue.main["parse"].arn] },
     ]
@@ -38,9 +38,9 @@ locals {
       { Effect = "Allow", Action = ["s3vectors:PutVectors", "s3vectors:DeleteVectors"], Resource = [aws_s3vectors_index.passages.index_arn] },
       { Effect = "Allow", Action = ["bedrock:InvokeModel"], Resource = local.bedrock_models },
       { Effect = "Allow", Action = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"], Resource = [aws_sqs_queue.main["embed"].arn] },
-      { Effect = "Allow", Action = ["s3:DeleteObject"], Resource = ["${aws_s3_bucket.main["files"].arn}/uploads/*", "${aws_s3_bucket.main["files"].arn}/pages/*"] },
+      { Effect = "Allow", Action = ["s3:DeleteObject"], Resource = ["${data.aws_s3_bucket.files.arn}/uploads/*", "${data.aws_s3_bucket.files.arn}/pages/*"] },
       {
-        Effect    = "Allow", Action = ["s3:ListBucket"], Resource = [aws_s3_bucket.main["files"].arn]
+        Effect    = "Allow", Action = ["s3:ListBucket"], Resource = [data.aws_s3_bucket.files.arn]
         Condition = { StringLike = { "s3:prefix" = "pages/*" } }
       },
     ]
@@ -73,7 +73,7 @@ resource "aws_iam_role_policy" "runtime" {
       },
       {
         Effect   = "Allow", Action = ["logs:CreateLogStream", "logs:PutLogEvents"]
-        Resource = ["${aws_cloudwatch_log_group.runtime[each.key].arn}:*"]
+        Resource = ["${data.aws_cloudwatch_log_group.runtime[each.key].arn}:*"]
       },
     ], local.runtime_permissions[each.key])
   })
@@ -103,7 +103,7 @@ resource "aws_iam_role_policy" "ecs_execution" {
     Statement = [
       { Effect = "Allow", Action = ["ecr:GetAuthorizationToken"], Resource = "*" },
       { Effect = "Allow", Action = ["ecr:BatchCheckLayerAvailability", "ecr:GetDownloadUrlForLayer", "ecr:BatchGetImage"], Resource = [for repo in aws_ecr_repository.main : repo.arn] },
-      { Effect = "Allow", Action = ["logs:CreateLogStream", "logs:PutLogEvents"], Resource = [for name in ["api", "qa"] : "${aws_cloudwatch_log_group.runtime[name].arn}:*"] },
+      { Effect = "Allow", Action = ["logs:CreateLogStream", "logs:PutLogEvents"], Resource = [for name in ["api", "qa"] : "${data.aws_cloudwatch_log_group.runtime[name].arn}:*"] },
     ]
   })
 }

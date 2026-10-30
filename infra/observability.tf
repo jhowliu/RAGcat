@@ -1,29 +1,5 @@
-resource "aws_cloudwatch_log_metric_filter" "cache" {
-  for_each       = { hits = "true", misses = "false" }
-  name           = "${local.prefix}-cache-${each.key}"
-  log_group_name = aws_cloudwatch_log_group.runtime["qa"].name
-  pattern        = "{ ($.event = \"answer_completed\") && ($.cached = ${each.value}) }"
-  metric_transformation {
-    name          = each.key == "hits" ? "CacheHits" : "CacheMisses"
-    namespace     = "RAGcat/${var.student_id}"
-    value         = "1"
-    default_value = 0
-    unit          = "Count"
-  }
-}
-
-resource "aws_cloudwatch_log_metric_filter" "latency" {
-  name           = "${local.prefix}-answer-latency"
-  log_group_name = aws_cloudwatch_log_group.runtime["qa"].name
-  pattern        = "{ $.event = \"answer_completed\" }"
-  metric_transformation {
-    name      = "AnswerLatency"
-    namespace = "RAGcat/${var.student_id}"
-    value     = "$.latency_ms"
-    unit      = "Milliseconds"
-  }
-}
-
+# The student role is denied logs:PutMetricFilter, so there are no log metric filters. The cache and latency
+# widgets below stay empty; read the `answer_completed` lines in the qa log group with Logs Insights instead.
 resource "aws_cloudwatch_metric_alarm" "dlq" {
   for_each            = aws_sqs_queue.dlq
   alarm_name          = "${local.prefix}-${each.key}-dlq"

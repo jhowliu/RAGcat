@@ -1,6 +1,10 @@
 # AWS deployment
 
-This directory defines the RAGcat P0 deployment. It has **not been applied** yet. As of 2026-10-16, `terraform validate` passes and a bootstrap plan against the CAB432 account succeeds (57 resources to add) using the shared-account settings below. Cloud smoke and load tests still need to run after the apply.
+This directory defines the RAGcat P0 deployment. The initial bootstrap apply on **2026-10-19 partially succeeded and is blocked by shared-account IAM policies**. Terraform now records 43 managed instances, including six tainted log-group/DNS instances. ALB and Valkey are provisioned and remain billable; application workloads and the CloudFront distribution are not deployed. Preserve local Terraform state. The original bootstrap plan was 57 creates; formatting/validation and planning passed, but that did not certify write permissions.
+
+The observed denied IAM actions are `s3:PutEncryptionConfiguration`, `s3:PutBucketPolicy`, `s3:PutBucketNotification`, `logs:PutRetentionPolicy` and `route53:GetChange`. The S3 actions and some log actions are explicitly denied by teaching-account policies; an administrator must review those Deny statements as well as missing Allows. Evidence, resource scopes and the read-only reproduction are in [the permission handoff](../.data/aws-bootstrap/20261019T073400Z/permission-request.md).
+
+Read-only verification confirmed private/AES256 S3 buckets, matching DNS records, an issued ACM certificate, active ALB and available encrypted Valkey. Bucket policies/upload notifications and log retention are unfinished. An unapplied recovery plan (20 adds, two tag updates, six replacements/destroys) is archived under `.data/aws-bootstrap/20261019T073400Z/recovery.tfplan`, outside the default `infra/stack.tfplan` apply location. After permissions are corrected, verify/reconcile the tainted instances and review a fresh plan before applying. Cloud smoke/load tests follow workload deployment.
 
 ## Prerequisites and existing resources
 
@@ -141,7 +145,7 @@ This exports the applied Terraform resource identifiers to `infra/submission-a3-
 - Python deployment/verification scripts compile and their CLI help commands work.
 - Local Vite landing page rendered in Chrome. Complete browser workflow still requires the backend/DynamoDB dependency.
 - Required-integration mode correctly fails when DynamoDB cannot be reached.
-- Terraform formatting/provider validation, real cloud resource inventory, image builds and pushes, infrastructure apply, live Cognito sign-in, cloud smoke and scaling/cache evidence remain unverified.
+- Terraform formatting/provider validation, real cloud inventory, configured pool/network checks and the original 57-create bootstrap plan passed. The 2026-10-19 apply partially succeeded, with IAM failures and a verified live partial-state snapshot described above. Image builds/pushes, completed bootstrap/workload apply, runtime IAM/model invocation, live Cognito sign-in, cloud smoke and scaling/cache evidence remain unverified.
 
 ## Documentation used
 

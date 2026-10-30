@@ -1,5 +1,5 @@
 output "site_url" { value = "https://${aws_cloudfront_distribution.main.domain_name}" }
-output "web_bucket" { value = aws_s3_bucket.main["web"].id }
+output "web_bucket" { value = data.aws_s3_bucket.web.id }
 output "cloudfront_distribution_id" { value = aws_cloudfront_distribution.main.id }
 output "region" { value = var.region }
 output "account_id" { value = local.account_id }
@@ -35,7 +35,8 @@ output "cloud_resources" {
     [for origin in aws_cloudfront_vpc_origin.main : { type = "CloudFront VPC origin", arn = origin.arn, description = "Connects CloudFront privately to the internal ALB." }],
     [for role in aws_iam_role.ecs_execution : { type = "IAM role", arn = role.arn, description = "Allows ECS to pull project images and write runtime logs." }],
     [for cert in aws_acm_certificate.origin : { type = "ACM certificate", arn = cert.arn, description = "Serves HTTPS on the ALB origin name CloudFront connects to." }],
-    [for key, bucket in aws_s3_bucket.main : { type = "S3 bucket", arn = bucket.arn, description = key == "files" ? "Stores private uploaded PDFs and rendered page images." : "Stores the React SPA and public runtime authentication configuration." }],
+    [{ type = "S3 bucket", arn = data.aws_s3_bucket.files.arn, description = "Stores private uploaded PDFs and rendered page images." }],
+    [{ type = "S3 bucket", arn = data.aws_s3_bucket.web.arn, description = "Stores the React SPA and public runtime authentication configuration." }],
     [for repo in aws_ecr_repository.main : { type = "ECR repository", arn = repo.arn, description = "Stores immutable ARM64 container images used by RAGcat runtimes." }],
     [for queue in aws_sqs_queue.main : { type = "SQS queue", arn = queue.arn, description = "Buffers asynchronous parsing or vector reconciliation jobs." }],
     [for queue in aws_sqs_queue.dlq : { type = "SQS dead-letter queue", arn = queue.arn, description = "Retains jobs that exhaust three worker deliveries." }],
@@ -47,7 +48,7 @@ output "cloud_resources" {
     [for rule in [aws_lb_listener_rule.api, aws_lb_listener_rule.qa] : { type = "ALB listener rule", arn = rule.arn, description = "Selects the application service by request path." }],
     [for target in aws_appautoscaling_target.main : { type = "Application Auto Scaling target", arn = target.resource_id, description = "Bounds the ECS service minimum and maximum task counts." }],
     [for policy in aws_appautoscaling_policy.main : { type = "Application Auto Scaling policy", arn = policy.arn, description = "Changes ECS task count in response to ALB requests per target." }],
-    [for group in aws_cloudwatch_log_group.runtime : { type = "CloudWatch log group", arn = group.arn, description = "Retains runtime logs for fourteen days." }],
+    [for group in data.aws_cloudwatch_log_group.runtime : { type = "CloudWatch log group", arn = group.arn, description = "Collects runtime logs." }],
     [for alarm in merge(aws_cloudwatch_metric_alarm.dlq, { for key, alarm in aws_cloudwatch_metric_alarm.lambda_errors : "lambda-${key}" => alarm }, { for key, alarm in aws_cloudwatch_metric_alarm.unhealthy : "alb-${key}" => alarm }) : { type = "CloudWatch alarm", arn = alarm.arn, description = "Detects worker errors, dead-letter jobs, or unhealthy application targets." }],
     [for role in aws_iam_role.runtime : { type = "IAM role", arn = role.arn, description = "Grants a project runtime access to its required data and model resources." }],
     [for sg in concat(aws_security_group.alb, aws_security_group.runtime, aws_security_group.cache) : { type = "Security group", arn = sg.arn, description = "Restricts traffic between CloudFront, the ALB, application runtimes, and cache." }],
