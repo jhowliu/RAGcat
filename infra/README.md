@@ -6,7 +6,7 @@ This directory defines RAGcat's AWS deployment in `ap-southeast-2`: CloudFront i
 
 - Terraform 1.12+, AWS provider 6.25+ (below 7), Docker with buildx, Node 22.16+, and the backend Python environment.
 - An AWS CLI profile for the target account in `ap-southeast-2` (`AWS_PROFILE`; the Makefile default is `diana`).
-- An existing Cognito User Pool ID. The pool is not managed by this stack; Terraform only adds RAGcat's own app client (password and refresh-token sign-in, no hosted login page, no callback URLs).
+- An existing Cognito User Pool ID. The pool is not managed by this stack; Terraform only adds RAGcat's own app client (password and refresh-token sign-in, no hosted login page, no callback URLs). The pool must allow self sign-up, auto-verify `email`, and recover accounts through the verified email. Cognito's default sender has a low daily email limit; configure SES on the pool before real traffic.
 - Two private S3 buckets created by hand (public access blocked, AES256), passed as `files_bucket` and `web_bucket`:
   - **files:** enable EventBridge notifications in the console.
   - **web:** paste the CloudFront OAC bucket policy once the distribution exists.
@@ -81,7 +81,7 @@ terraform -chdir=infra output -raw site_url
 
 Image tags are immutable; each release uses a new tag. Terraform resolves the tag to a digest and pins both ECS and Lambda to that digest. `cloud-web` builds and uploads the SPA and invalidates CloudFront. It preserves older static assets rather than deleting potentially active files. The browser holds no AWS secrets and no Cognito settings: it only talks to the API.
 
-Open the site, create an account on RAGcat's own sign-in page, and verify the requested page opens once signed in. Production never falls back to a development token. `/v1/auth/*` signs in through the Cognito API; sign-up creates a confirmed account itself and sends no email. Access tokens are refreshed through `/v1/auth/refresh`, sign-out revokes the refresh token and returns to `/`, and tokens remain in the tab's session storage. The backend verifies RSA signatures, issuer, expiry, required claims, and the app-specific token audience/client ID.
+Open the site, create an account on RAGcat's own sign-in page, enter the emailed code, and verify the requested page opens once signed in. Production never falls back to a development token. `/v1/auth/*` calls Cognito's public API only (sign-up, email verification, password reset, sign-in), so the api needs no Cognito IAM grants. Access tokens are refreshed through `/v1/auth/refresh`, sign-out revokes the refresh token and returns to `/`, and tokens remain in the tab's session storage. The backend verifies RSA signatures, issuer, expiry, required claims, and the app-specific token audience/client ID.
 
 ## Routing and persistence
 
@@ -135,4 +135,4 @@ The CloudWatch dashboard includes ECS CPU/task counts, ALB requests per target, 
 - [CloudFront VPC origin prerequisites](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-vpc-origins.html)
 - [ECS target tracking](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-autoscaling-targettracking.html)
 - [Cognito InitiateAuth (password and refresh-token sign-in)](https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_InitiateAuth.html)
-- [Cognito AdminCreateUser](https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_AdminCreateUser.html)
+- [Cognito SignUp](https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_SignUp.html) and [ForgotPassword](https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_ForgotPassword.html)

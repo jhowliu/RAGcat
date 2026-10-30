@@ -82,26 +82,32 @@ Auto-scaling 與 load distribution 由 ALB + `api` / `qa` 負責；Lambda 由 SQ
 - 註冊、登入、refresh、登出都在 RAGcat 自己的登入頁完成，api 透過 Cognito API 處理（不跳轉到 Cognito 登入頁，所以沒有 callback URL 和網域設定）。見下方「登入」。
 - JIT provisioning：任何 `/v1/*` 請求都會依 JWT 的 `sub` 確保 user 記錄存在（conditional put），所以不需要 Cognito 的 Lambda trigger。登入和註冊時改用 ID token 建立記錄，因為 access token 沒有 email。
 
-### 登入（Cognito 模式；dev 模式這四支回 `404`）
+### 登入（Cognito 模式；dev 模式這些都回 `404`）
 
 ```http
-POST /v1/auth/signup    { "email": "...", "password": "..." }   → 201
-POST /v1/auth/login     { "email": "...", "password": "..." }   → 200
-POST /v1/auth/refresh   { "refresh_token": "..." }              → 200（不回新的 refresh_token）
-POST /v1/auth/logout    { "refresh_token": "..." }              → 204
+POST /v1/auth/signup           { "email": "...", "password": "..." }                 → 202（還不能登入）
+POST /v1/auth/verify-email     { "email": "...", "code": "123456" }                  → 204
+POST /v1/auth/resend-code      { "email": "..." }                                    → 202
+POST /v1/auth/login            { "email": "...", "password": "..." }                 → 200
+POST /v1/auth/forgot-password  { "email": "..." }                                    → 202
+POST /v1/auth/reset-password   { "email": "...", "code": "123456", "password": "..." } → 204
+POST /v1/auth/refresh          { "refresh_token": "..." }                            → 200（不回新的 refresh_token）
+POST /v1/auth/logout           { "refresh_token": "..." }                            → 204
 ```
 
 ```json
 { "access_token": "...", "token_type": "Bearer", "expires_in": 3600, "refresh_token": "...", "user": { "name": "mochi", "email": "mochi@example.com" } }
 ```
 
-- signup：`AdminCreateUser`（`MessageAction=SUPPRESS`，`email_verified = true`）→ `AdminSetUserPassword`（`Permanent`）→ 登入。完全不寄信，所以沒有驗證頁；不用 `SignUp`，因為它會讓 Cognito 自動寄一封用不到的驗證碼。密碼不符合規則時，刪掉剛建立的帳號，讓使用者能用同一個 email 重試。
-- 登入、refresh、撤銷是 Cognito 的公開 API，以不簽章的 client 呼叫，不需要 AWS 憑證；只有建立、確認帳號用 api 的 IAM 角色。app client 開 `USER_PASSWORD_AUTH` 和 `REFRESH_TOKEN_AUTH`；api 的 IAM 多 `AdminCreateUser`、`AdminSetUserPassword`、`AdminDeleteUser`、`AdminConfirmSignUp`、`AdminUpdateUserAttributes`（限這個 pool）。
-- login 遇到還沒確認的帳號（例如其他程式用 `SignUp` 註冊到一半），會先確認再登入（密碼要對才會走到這一步）。
+- 全部都是 Cognito 的公開 API（`SignUp`、`ConfirmSignUp`、`ResendConfirmationCode`、`InitiateAuth`、`ForgotPassword`、`ConfirmForgotPassword`、`RevokeToken`），以不簽章的 client 呼叫，api 不需要 AWS 憑證，也沒有 Cognito 的 IAM 權限。app client 開 `USER_PASSWORD_AUTH` 和 `REFRESH_TOKEN_AUTH`。
+- signup 建立未確認的帳號，Cognito 寄 6 位數驗證碼；verify-email 確認後，登入頁用剛才的密碼直接登入。重複送出已確認的驗證碼當成功。
+- login 遇到未驗證的帳號（密碼要對才會走到這一步）回 `EMAIL_NOT_VERIFIED`（403）；登入頁重寄驗證碼並切到驗證步驟。
+- forgot-password 寄重設碼。app client 開了 `prevent_user_existence_errors`，所以不存在的 email 也回 202，不洩漏帳號是否存在；email 還沒驗證的帳號回 `EMAIL_NOT_VERIFIED`，登入頁先帶去驗證。reset-password 成功後，登入頁用新密碼登入。
+- 寄信由 user pool 的 email 設定決定：Cognito 預設寄件者每天有寄送上限，正式上線要改用 SES。pool 要允許自行註冊、自動驗證 email，帳號復原用已驗證的 email。
+- 會寄信的三個端點（signup、resend-code、forgot-password）依訪客 IP 共用一個 Valkey 固定時間窗：key 為 `rl:mail:{ip}:{小時}`，每小時 10 次，被擋的也算；超過回 `429 RATE_LIMITED` + `Retry-After`，不會呼叫 Cognito。Cognito 只以帳號為單位限制，擋不住一個腳本換 email 把每天的寄信額度用完。IP 取法同 widget（`CloudFront-Viewer-Address`，見 §7）。
 - logout 撤銷 refresh token（`RevokeToken`），失敗也不影響前端已經忘掉 token。
-- 回應都帶 `Cache-Control: no-store`。錯誤碼給登入頁對應文案：`INVALID_CREDENTIALS`（401）、`EMAIL_EXISTS`（409）、`INVALID_PASSWORD`、`INVALID_INPUT`（400）、`TOO_MANY_ATTEMPTS`（429）、`SESSION_EXPIRED`（401，refresh）、`UPSTREAM_UNAVAILABLE`（503）。
+- 回應都帶 `Cache-Control: no-store`。錯誤碼給登入頁對應文案：`INVALID_CREDENTIALS`（401）、`EMAIL_NOT_VERIFIED`（403）、`EMAIL_EXISTS`、`ALREADY_VERIFIED`（409）、`INVALID_PASSWORD`、`INVALID_CODE`、`CODE_EXPIRED`、`INVALID_INPUT`（400）、`TOO_MANY_ATTEMPTS`、`RATE_LIMITED`（429）、`SESSION_EXPIRED`（401，refresh）、`EMAIL_NOT_SENT`、`UPSTREAM_UNAVAILABLE`（503）。
 - 前端把 token 存在分頁的 sessionStorage，以 Bearer header 呼叫 API；過期前用 refresh token 換新，同時多個請求只換一次。
-- 還沒有忘記密碼：重設碼要靠 email 寄送，目前不保證寄得到，所以先不提供。
 
 ### Assistant
 
@@ -458,7 +464,7 @@ data: {"answered":true,"fallback":null,"usage":{"input_tokens":812,"output_token
 - 最多 3 個引用；`edited: true` 對應 RAGcat 的「as edited by you」。
 - 找不到答案時：`answered: false`，`fallback: { "contact": "help@mochipet.example", "message": "..." }`。
 - 錯誤：串流進行中出錯時送 `event: error` `{code, message}`；Bedrock 被限流時回 `503 UPSTREAM_UNAVAILABLE` + `Retry-After`。
-- Rate limit：widget 依 IP 在 Valkey 做固定時間窗（見 §7）；API key 之後沿用同一套，改以 key 為單位。超過回 `429` + `Retry-After`。
+- Rate limit：widget 依 IP 在 Valkey 做固定時間窗（見 §7），會寄信的登入端點也是（見 §1）；API key 之後沿用同一套，改以 key 為單位。超過回 `429` + `Retry-After`。
 
 **內部處理（不影響 API 介面，列出供實作參考）**
 1. Assistant config：`published`、`content_version`、`widget_origins`、要排除的 document id（停用或刪除中）。採 cache-aside，key 為 `ast:{aid}`；api 在相關寫入後刪除這個 key。

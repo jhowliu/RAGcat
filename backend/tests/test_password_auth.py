@@ -20,7 +20,7 @@ from ragcat.apps.dev import create_dev_app
 from ragcat.identity.adapters import CognitoPasswordAuth
 from ragcat.identity.domain import Tokens
 from ragcat.shared.config import get_settings
-from ragcat.shared.errors import Conflict, RateLimited, Unauthenticated, UpstreamUnavailable, ValidationError
+from ragcat.shared.errors import Conflict, Forbidden, RateLimited, Unauthenticated, UpstreamUnavailable, ValidationError
 from ragcat.shared.ids import ulid
 
 POOL, CLIENT = "ap-southeast-2_test", "ragcat-client"
@@ -40,50 +40,75 @@ def password_auth(email: str = "owner@example.test", password: str = "Secret#123
     return {"ClientId": CLIENT, "AuthFlow": "USER_PASSWORD_AUTH", "AuthParameters": {"USERNAME": email, "PASSWORD": password}}
 
 
-def confirms(stub: Stubber, email: str = "owner@example.test") -> None:
-    stub.add_response("admin_confirm_sign_up", {}, {"UserPoolId": POOL, "Username": email})
-    stub.add_response("admin_update_user_attributes", {}, {"UserPoolId": POOL, "Username": email, "UserAttributes": [{"Name": "email_verified", "Value": "true"}]})
-
-
 def test_public_calls_need_no_aws_credentials() -> None:
     from botocore import UNSIGNED
 
     auth = CognitoPasswordAuth(replace(get_settings(), auth="cognito", cognito_pool_id=POOL, cognito_client_id=CLIENT))
     assert auth.client.meta.config.signature_version is UNSIGNED
-    assert auth.admin is not auth.client and auth.admin.meta.config.signature_version is not UNSIGNED
 
 
-def creates(stub: Stubber, email: str = "owner@example.test") -> None:
-    stub.add_response("admin_create_user", {"User": {"Username": "sub"}}, {
-        "UserPoolId": POOL, "Username": email, "MessageAction": "SUPPRESS",
-        "UserAttributes": [{"Name": "email", "Value": email}, {"Name": "email_verified", "Value": "true"}],
-    })
-
-
-def test_sign_up_creates_a_confirmed_account_without_any_email_then_signs_in(cognito) -> None:
+def test_sign_up_leaves_the_account_for_the_emailed_code_to_confirm(cognito) -> None:
     auth, stub = cognito
-    creates(stub)
-    stub.add_response("admin_set_user_password", {}, {"UserPoolId": POOL, "Username": "owner@example.test", "Password": "Secret#123", "Permanent": True})
-    stub.add_response("initiate_auth", RESULT, password_auth())
-    assert auth.sign_up("owner@example.test", "Secret#123") == Tokens("access", 3600, "id", "refresh")
+    delivery = {"UserConfirmed": False, "UserSub": "sub", "CodeDeliveryDetails": {"Destination": "o***@e***", "DeliveryMedium": "EMAIL", "AttributeName": "email"}}
+    stub.add_response("sign_up", delivery, {"ClientId": CLIENT, "Username": "owner@example.test", "Password": "Secret#123", "UserAttributes": [{"Name": "email", "Value": "owner@example.test"}]})
+    auth.sign_up("owner@example.test", "Secret#123")  # no tokens until the email is verified
 
 
-def test_a_rejected_password_removes_the_half_created_account(cognito) -> None:
+def test_verify_email_confirms_once_and_tolerates_a_second_try(cognito) -> None:
     auth, stub = cognito
-    creates(stub)
-    stub.add_client_error("admin_set_user_password", "InvalidPasswordException", "Password does not conform to policy")
-    stub.add_response("admin_delete_user", {}, {"UserPoolId": POOL, "Username": "owner@example.test"})
-    with pytest.raises(ValidationError) as raised:
-        auth.sign_up("owner@example.test", "weak")
-    assert raised.value.code == "INVALID_PASSWORD"
+    stub.add_response("confirm_sign_up", {}, {"ClientId": CLIENT, "Username": "owner@example.test", "ConfirmationCode": "123456"})
+    auth.verify_email("owner@example.test", "123456")
+    stub.add_client_error("confirm_sign_up", "NotAuthorizedException", "User cannot be confirmed. Current status is CONFIRMED")
+    auth.verify_email("owner@example.test", "123456")  # a double submit, not an error
 
 
-def test_sign_in_finishes_a_sign_up_that_stopped_before_confirming(cognito) -> None:
+def test_resend_code_asks_cognito_for_a_new_code(cognito) -> None:
+    auth, stub = cognito
+    stub.add_response("resend_confirmation_code", {"CodeDeliveryDetails": {"Destination": "o***@e***"}}, {"ClientId": CLIENT, "Username": "owner@example.test"})
+    auth.resend_code("owner@example.test")
+
+
+def test_password_reset_sends_a_code_then_sets_the_new_password(cognito) -> None:
+    auth, stub = cognito
+    stub.add_response("forgot_password", {"CodeDeliveryDetails": {"Destination": "o***@e***"}}, {"ClientId": CLIENT, "Username": "owner@example.test"})
+    auth.forgot_password("owner@example.test")
+    stub.add_response("confirm_forgot_password", {}, {"ClientId": CLIENT, "Username": "owner@example.test", "ConfirmationCode": "654321", "Password": "Newer#456"})
+    auth.reset_password("owner@example.test", "654321", "Newer#456")
+
+
+def test_sign_in_to_an_unverified_account_asks_for_the_code(cognito) -> None:
     auth, stub = cognito
     stub.add_client_error("initiate_auth", "UserNotConfirmedException", "User is not confirmed.", expected_params=password_auth())
-    confirms(stub)
-    stub.add_response("initiate_auth", RESULT, password_auth())
-    assert auth.sign_in("owner@example.test", "Secret#123").access_token == "access"
+    with pytest.raises(Forbidden) as raised:
+        auth.sign_in("owner@example.test", "Secret#123")
+    assert raised.value.code == "EMAIL_NOT_VERIFIED"
+
+
+@pytest.mark.parametrize(
+    ("operation", "code", "message", "error", "app_code"),
+    [
+        ("confirm_sign_up", "CodeMismatchException", "Invalid verification code provided", ValidationError, "INVALID_CODE"),
+        ("confirm_sign_up", "ExpiredCodeException", "Invalid code provided, please request a code again.", ValidationError, "CODE_EXPIRED"),
+        ("confirm_sign_up", "AliasExistsException", "An account with the email already exists.", Conflict, "EMAIL_EXISTS"),
+        ("resend_confirmation_code", "InvalidParameterException", "User is already confirmed.", Conflict, "ALREADY_VERIFIED"),
+        ("resend_confirmation_code", "LimitExceededException", "Attempt limit exceeded, please try after some time.", RateLimited, "TOO_MANY_ATTEMPTS"),
+        ("forgot_password", "InvalidParameterException", "Cannot reset password for the user as there is no registered/verified email or phone_number", Forbidden, "EMAIL_NOT_VERIFIED"),
+        ("forgot_password", "CodeDeliveryFailureException", "Unable to deliver message", UpstreamUnavailable, "EMAIL_NOT_SENT"),
+        ("confirm_forgot_password", "InvalidPasswordException", "Password does not conform to policy", ValidationError, "INVALID_PASSWORD"),
+    ],
+)
+def test_code_errors_become_codes_the_page_can_explain(cognito, operation, code, message, error, app_code) -> None:
+    auth, stub = cognito
+    stub.add_client_error(operation, code, message)
+    call = {
+        "confirm_sign_up": lambda: auth.verify_email("owner@example.test", "000000"),
+        "resend_confirmation_code": lambda: auth.resend_code("owner@example.test"),
+        "forgot_password": lambda: auth.forgot_password("owner@example.test"),
+        "confirm_forgot_password": lambda: auth.reset_password("owner@example.test", "000000", "weak"),
+    }[operation]
+    with pytest.raises(error) as raised:
+        call()
+    assert raised.value.code == app_code
 
 
 @pytest.mark.parametrize(
@@ -106,11 +131,16 @@ def test_sign_in_errors_become_codes_the_page_can_explain(cognito, code, message
 
 @pytest.mark.parametrize(
     ("code", "error", "app_code"),
-    [("UsernameExistsException", Conflict, "EMAIL_EXISTS"), ("InvalidParameterException", ValidationError, "INVALID_INPUT"), ("AccessDeniedException", UpstreamUnavailable, "UPSTREAM_UNAVAILABLE")],
+    [
+        ("UsernameExistsException", Conflict, "EMAIL_EXISTS"),
+        ("InvalidPasswordException", ValidationError, "INVALID_PASSWORD"),
+        ("InvalidParameterException", ValidationError, "INVALID_INPUT"),
+        ("CodeDeliveryFailureException", UpstreamUnavailable, "EMAIL_NOT_SENT"),
+    ],
 )
 def test_sign_up_errors(cognito, code, error, app_code) -> None:
     auth, stub = cognito
-    stub.add_client_error("admin_create_user", code, "rejected")
+    stub.add_client_error("sign_up", code, "rejected")
     with pytest.raises(error) as raised:
         auth.sign_up("owner@example.test", "weak")
     assert raised.value.code == app_code
@@ -144,6 +174,8 @@ class FakeCognito:
     def __init__(self, issuer: str, key) -> None:
         self.issuer, self.key = issuer, key
         self.accounts: dict[str, str] = {}
+        self.codes: dict[str, str] = {}
+        self.verified: set[str] = set()
         self.revoked: list[str] = []
 
     def _token(self, **claims) -> str:
@@ -154,15 +186,33 @@ class FakeCognito:
         access = self._token(token_use="access", client_id=CLIENT, username="owner-sub")
         return Tokens(access, 3600, self._token(token_use="id", aud=CLIENT, email=email), refresh)
 
-    def sign_up(self, email: str, password: str) -> Tokens:
+    def sign_up(self, email: str, password: str) -> None:
         if email in self.accounts:
             raise Conflict("An account with this email already exists.", code="EMAIL_EXISTS")
         self.accounts[email] = password
-        return self.sign_in(email, password)
+        self.codes[email] = "123456"
+
+    def verify_email(self, email: str, code: str) -> None:
+        if self.codes.get(email) != code:
+            raise ValidationError("The code is incorrect.", code="INVALID_CODE")
+        self.verified.add(email)
+
+    def resend_code(self, email: str) -> None:
+        self.codes[email] = "222222"
+
+    def forgot_password(self, email: str) -> None:
+        self.codes[email] = "654321"
+
+    def reset_password(self, email: str, code: str, password: str) -> None:
+        if self.codes.get(email) != code:
+            raise ValidationError("The code is incorrect.", code="INVALID_CODE")
+        self.accounts[email] = password
 
     def sign_in(self, email: str, password: str) -> Tokens:
         if self.accounts.get(email) != password:
             raise Unauthenticated("Email or password is incorrect.", code="INVALID_CREDENTIALS")
+        if email not in self.verified:
+            raise Forbidden("Verify your email address first.", code="EMAIL_NOT_VERIFIED")
         return self._tokens(email, "refresh-1")
 
     def refresh(self, refresh_token: str) -> Tokens:
@@ -200,10 +250,19 @@ def cognito_app(dynamodb_endpoint) -> Iterator[tuple[TestClient, Container, Fake
 
 def test_password_sign_in_flow_in_cognito_mode(cognito_app) -> None:
     client, c, fake = cognito_app
-    signed_up = client.post("/v1/auth/signup", json={"email": " Owner@Example.test ", "password": "Secret#123"})
-    assert signed_up.status_code == 201, signed_up.text
-    assert signed_up.headers["cache-control"] == "no-store"
-    session = signed_up.json()
+    owner = {"email": " Owner@Example.test ", "password": "Secret#123"}
+    signed_up = client.post("/v1/auth/signup", json=owner)
+    assert signed_up.status_code == 202 and signed_up.content == b""  # no session before the email is verified
+    unverified = client.post("/v1/auth/login", json=owner)
+    assert unverified.status_code == 403 and unverified.json()["error"]["code"] == "EMAIL_NOT_VERIFIED"
+    wrong_code = client.post("/v1/auth/verify-email", json={"email": owner["email"], "code": "000000"})
+    assert wrong_code.status_code == 400 and wrong_code.json()["error"]["code"] == "INVALID_CODE"
+    assert client.post("/v1/auth/verify-email", json={"email": owner["email"], "code": " 123456 "}).status_code == 204
+
+    signed_in = client.post("/v1/auth/login", json=owner)
+    assert signed_in.status_code == 200, signed_in.text
+    assert signed_in.headers["cache-control"] == "no-store"
+    session = signed_in.json()
     assert session["token_type"] == "Bearer" and session["refresh_token"] == "refresh-1"
     assert session["user"] == {"name": "owner", "email": "owner@example.test"}  # email normalised; record provisioned from the ID token
 
@@ -215,13 +274,38 @@ def test_password_sign_in_flow_in_cognito_mode(cognito_app) -> None:
     assert again.status_code == 409 and again.json()["error"]["code"] == "EMAIL_EXISTS"
     wrong = client.post("/v1/auth/login", json={"email": "owner@example.test", "password": "nope"})
     assert wrong.status_code == 401 and wrong.json()["error"]["code"] == "INVALID_CREDENTIALS"
-    assert client.post("/v1/auth/login", json={"email": "owner@example.test", "password": "Secret#123"}).json()["user"]["email"] == "owner@example.test"
+
+    assert client.post("/v1/auth/forgot-password", json={"email": "owner@example.test"}).status_code == 202
+    reset = client.post("/v1/auth/reset-password", json={"email": "owner@example.test", "code": "654321", "password": "Newer#456"})
+    assert reset.status_code == 204
+    assert client.post("/v1/auth/login", json={"email": "owner@example.test", "password": "Newer#456"}).json()["user"]["email"] == "owner@example.test"
 
     refreshed = client.post("/v1/auth/refresh", json={"refresh_token": "refresh-1"})
     assert refreshed.status_code == 200 and "refresh_token" not in refreshed.json()
     assert client.post("/v1/auth/logout", json={"refresh_token": "refresh-1"}).status_code == 204
     expired = client.post("/v1/auth/refresh", json={"refresh_token": "refresh-1"})
     assert expired.status_code == 401 and expired.json()["error"]["code"] == "SESSION_EXPIRED"
+
+
+def test_emailed_codes_are_limited_per_visitor(cognito_app, monkeypatch) -> None:
+    """Sign-up, resend and forgot-password each email a code: ten an hour per network, so a script
+    can't use up the pool's daily email quota."""
+    client, c, fake = cognito_app
+    monkeypatch.setattr("ragcat.apps.http._now", lambda: 7200.0)
+    a, b = {"email": "a@example.test"}, {"email": "b@example.test"}
+    calls = [("/v1/auth/signup", a | {"password": "Secret#123"})] + [("/v1/auth/resend-code", a)] * 5 + [("/v1/auth/forgot-password", a)] * 4
+    for path, body in calls:
+        assert client.post(path, json=body).status_code == 202
+
+    limited = client.post("/v1/auth/forgot-password", json=b)
+    assert limited.status_code == 429 and limited.headers["retry-after"] == "3600"
+    assert limited.json()["error"] == {"code": "RATE_LIMITED", "message": "Too many emails were sent from this network. Try again later.", "details": {"retry_after": 3600}}
+    assert fake.codes == {"a@example.test": "654321"}  # the refused call never reached Cognito
+    assert client.post("/v1/auth/signup", json=b | {"password": "Secret#123"}).status_code == 429
+    # Typing a code back and signing in send no email; Cognito limits those per account.
+    assert client.post("/v1/auth/login", json=a | {"password": "Secret#123"}).status_code == 403
+    other = client.post("/v1/auth/forgot-password", json=b, headers={"CloudFront-Viewer-Address": "203.0.113.9:4431"})
+    assert other.status_code == 202  # another visitor
 
 
 def test_password_sign_in_is_off_with_development_tokens(dynamodb_endpoint) -> None:

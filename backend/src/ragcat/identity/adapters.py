@@ -16,7 +16,7 @@ from jwt import PyJWKClient
 from ragcat.identity.domain import Principal, Tokens, Usage, User
 from ragcat.infra.dynamo import Table, plain
 from ragcat.shared.config import Settings
-from ragcat.shared.errors import AppError, Conflict, RateLimited, Unauthenticated, UpstreamUnavailable, ValidationError
+from ragcat.shared.errors import AppError, Conflict, Forbidden, RateLimited, Unauthenticated, UpstreamUnavailable, ValidationError
 
 log = logging.getLogger("ragcat.identity")
 
@@ -49,45 +49,39 @@ class DynamoIdentityRepo:
 
 
 class CognitoPasswordAuth:
-    """Email and password sign-in for RAGcat's own sign-in page (USER_PASSWORD_AUTH on the app
-    client). Sign-up creates a confirmed account with a verified email and sends no email at all,
-    so owners can sign in at once."""
+    """Email and password accounts for RAGcat's own sign-in page, all through Cognito's public API:
+    unsigned, so the api needs no AWS credentials or IAM grants for them. Sign-up and password reset
+    email the owner a code; the user pool's email settings decide the sender and the daily limit."""
 
-    def __init__(self, settings: Settings, client: Any | None = None, admin: Any | None = None) -> None:
-        self.pool_id = settings.cognito_pool_id
+    def __init__(self, settings: Settings, client: Any | None = None) -> None:
         self.client_id = settings.cognito_client_id
-        # Sign-in, refresh and revocation are Cognito's public API: unsigned, so they need no AWS
-        # credentials. Creating and confirming accounts are admin calls, signed with the runtime role.
         self.client = client or boto3.client("cognito-idp", region_name=settings.region, config=Config(signature_version=UNSIGNED))
-        self.admin = admin or client or boto3.client("cognito-idp", region_name=settings.region)
 
-    def sign_up(self, email: str, password: str) -> Tokens:
-        # AdminCreateUser rather than SignUp: SignUp makes Cognito email a verification code nobody needs.
+    def sign_up(self, email: str, password: str) -> None:
+        """Creates an unconfirmed account; Cognito emails the code that confirms it."""
+        self._call("sign_up", Username=email, Password=password, UserAttributes=[{"Name": "email", "Value": email}])
+
+    def verify_email(self, email: str, code: str) -> None:
         try:
-            self.admin.admin_create_user(
-                UserPoolId=self.pool_id,
-                Username=email,
-                UserAttributes=[{"Name": "email", "Value": email}, {"Name": "email_verified", "Value": "true"}],
-                MessageAction="SUPPRESS",
-            )
-        except (ClientError, BotoCoreError) as exc:
+            self.client.confirm_sign_up(ClientId=self.client_id, Username=email, ConfirmationCode=code)
+        except ClientError as exc:
+            if not (_code(exc) == "NotAuthorizedException" and "CONFIRMED" in _message(exc)):  # already confirmed
+                raise _auth_error(exc) from exc
+        except BotoCoreError as exc:
             raise _auth_error(exc) from exc
-        try:
-            self.admin.admin_set_user_password(UserPoolId=self.pool_id, Username=email, Password=password, Permanent=True)
-        except (ClientError, BotoCoreError) as exc:
-            self._discard(email)  # e.g. a password the pool rejects: let the owner try again with the same email
-            raise _auth_error(exc) from exc
-        return self.sign_in(email, password)
+
+    def resend_code(self, email: str) -> None:
+        self._call("resend_confirmation_code", Username=email)
+
+    def forgot_password(self, email: str) -> None:
+        """Emails a reset code. With the app client's user-existence errors off, an unknown email
+        looks the same as a known one."""
+        self._call("forgot_password", Username=email)
+
+    def reset_password(self, email: str, code: str, password: str) -> None:
+        self._call("confirm_forgot_password", Username=email, ConfirmationCode=code, Password=password)
 
     def sign_in(self, email: str, password: str) -> Tokens:
-        try:
-            return self._password(email, password)
-        except (ClientError, BotoCoreError) as exc:
-            if _code(exc) != "UserNotConfirmedException":
-                raise _auth_error(exc) from exc
-        # The password was right but the account was never confirmed (a SignUp elsewhere that stopped
-        # halfway, such as before RAGcat created accounts itself): finish it.
-        self._confirm(email)
         try:
             return self._password(email, password)
         except (ClientError, BotoCoreError) as exc:
@@ -112,22 +106,9 @@ class CognitoPasswordAuth:
         response = self.client.initiate_auth(ClientId=self.client_id, AuthFlow="USER_PASSWORD_AUTH", AuthParameters={"USERNAME": email, "PASSWORD": password})
         return _tokens(response)
 
-    def _discard(self, email: str) -> None:
+    def _call(self, operation: str, **params: Any) -> None:
         try:
-            self.admin.admin_delete_user(UserPoolId=self.pool_id, Username=email)
-        except (ClientError, BotoCoreError) as exc:
-            log.warning("Could not remove a half-created account: %s", _code(exc) or type(exc).__name__)
-
-    def _confirm(self, email: str) -> None:
-        try:
-            self.admin.admin_confirm_sign_up(UserPoolId=self.pool_id, Username=email)
-        except ClientError as exc:
-            if not (_code(exc) == "NotAuthorizedException" and "CONFIRMED" in _message(exc)):  # already confirmed
-                raise _auth_error(exc) from exc
-        except BotoCoreError as exc:
-            raise _auth_error(exc) from exc
-        try:
-            self.admin.admin_update_user_attributes(UserPoolId=self.pool_id, Username=email, UserAttributes=[{"Name": "email_verified", "Value": "true"}])
+            getattr(self.client, operation)(ClientId=self.client_id, **params)
         except (ClientError, BotoCoreError) as exc:
             raise _auth_error(exc) from exc
 
@@ -159,10 +140,23 @@ def _auth_error(exc: Exception, *, refreshing: bool = False) -> AppError:
         if refreshing:
             return Unauthenticated("Your session expired. Sign in again.", code="SESSION_EXPIRED")
         return Unauthenticated("Email or password is incorrect.", code="INVALID_CREDENTIALS")
-    if code == "UsernameExistsException":
+    # Only a right password reaches this, so it reveals nothing a wrong one wouldn't.
+    if code == "UserNotConfirmedException":
+        return Forbidden("Verify your email address first.", code="EMAIL_NOT_VERIFIED")
+    if code in ("UsernameExistsException", "AliasExistsException"):
         return Conflict("An account with this email already exists.", code="EMAIL_EXISTS")
     if code == "InvalidPasswordException":
         return ValidationError("The password does not meet the requirements.", code="INVALID_PASSWORD")
+    if code == "CodeMismatchException":
+        return ValidationError("The code is incorrect.", code="INVALID_CODE")
+    if code == "ExpiredCodeException":
+        return ValidationError("The code has expired. Ask for a new one.", code="CODE_EXPIRED")
+    if code == "CodeDeliveryFailureException":
+        return UpstreamUnavailable("The email could not be sent. Try again shortly.", code="EMAIL_NOT_SENT")
+    if code == "InvalidParameterException" and "already confirmed" in message:  # resending to a verified account
+        return Conflict("This email is already verified. Sign in.", code="ALREADY_VERIFIED")
+    if code == "InvalidParameterException" and "no registered/verified email" in message:  # resetting an unverified account
+        return Forbidden("Verify your email address first.", code="EMAIL_NOT_VERIFIED")
     if code == "InvalidParameterException":
         return ValidationError("Check the email address and password.", code="INVALID_INPUT")
     log.warning("Cognito call failed: %s %s", code or type(exc).__name__, message)

@@ -239,7 +239,8 @@ resource "aws_cloudfront_distribution" "main" {
 }
 
 # RAGcat's own sign-in page calls the API, which signs in through the Cognito API: no hosted login
-# page, callback URLs or domain. The api service creates confirmed accounts itself (see iam.tf).
+# page, callback URLs or domain. Sign-up, email verification and password reset are public Cognito calls,
+# so the api needs no Cognito IAM grants. The pool must allow self sign-up and auto-verify email.
 resource "aws_cognito_user_pool_client" "web" {
   name                          = "${local.prefix}-web"
   user_pool_id                  = var.cognito_pool_id
