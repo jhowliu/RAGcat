@@ -21,9 +21,10 @@ from ragcat.assistants.service import AssistantSummary
 from ragcat.curation.domain import ChangeSet, Document, Passage, PassageCounts
 from ragcat.identity.domain import Principal, Tokens, User
 from ragcat.infra.cache import fixed_window
-from ragcat.shared.errors import AppError, NotFound, ValidationError
+from ragcat.shared.errors import AppError, NotFound, RateLimited, ValidationError
 
 WIDGET_ASKS_PER_MINUTE = 10  # per Assistant and visitor IP (api-design.md §7)
+AUTH_EMAILS_PER_HOUR = 10  # sign-up, resend and forgot-password codes per visitor IP
 
 
 def _now() -> float:
@@ -215,7 +216,9 @@ def create_app(c: Container, *, api: bool = True, qa: bool = True) -> FastAPI:
 
     @app.exception_handler(AppError)
     async def app_error(_: Request, exc: AppError) -> JSONResponse:
-        return JSONResponse({"error": {"code": exc.code, "message": exc.message, "details": exc.details}}, status_code=exc.status)
+        wait = exc.details.get("retry_after") if isinstance(exc, RateLimited) else None
+        headers = {"Retry-After": str(wait)} if wait else None
+        return JSONResponse({"error": {"code": exc.code, "message": exc.message, "details": exc.details}}, status_code=exc.status, headers=headers)
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(_: Request, exc: RequestValidationError) -> JSONResponse:
@@ -247,7 +250,14 @@ def create_app(c: Container, *, api: bool = True, qa: bool = True) -> FastAPI:
 
         # -------------------------------------------------------- password sign-in (Cognito)
 
-        @router.post("/auth/signup", status_code=202)
+        def email_limit(request: Request) -> None:
+            """Each call emails a code. Cognito limits codes per account, not per sender, so a script
+            could use up the pool's daily email quota."""
+            wait = fixed_window(c.cache, f"rl:mail:{visitor_ip(request)}", AUTH_EMAILS_PER_HOUR, 3600, _now())
+            if wait:
+                raise RateLimited("Too many emails were sent from this network. Try again later.", details={"retry_after": wait})
+
+        @router.post("/auth/signup", status_code=202, dependencies=[Depends(email_limit)])
         def sign_up(body: Credentials) -> Response:
             c.identity.sign_up(body.email, body.password)
             return Response(status_code=202)
@@ -257,12 +267,12 @@ def create_app(c: Container, *, api: bool = True, qa: bool = True) -> FastAPI:
             c.identity.verify_email(body.email, body.code)
             return Response(status_code=204)
 
-        @router.post("/auth/resend-code", status_code=202)
+        @router.post("/auth/resend-code", status_code=202, dependencies=[Depends(email_limit)])
         def resend_code(body: Email) -> Response:
             c.identity.resend_code(body.email)
             return Response(status_code=202)
 
-        @router.post("/auth/forgot-password", status_code=202)
+        @router.post("/auth/forgot-password", status_code=202, dependencies=[Depends(email_limit)])
         def forgot_password(body: Email) -> Response:
             c.identity.forgot_password(body.email)
             return Response(status_code=202)

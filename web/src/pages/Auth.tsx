@@ -16,6 +16,7 @@ const REFUSALS: Record<string, Key> = {
   INVALID_INPUT: 'auth.error.input',
   VALIDATION_ERROR: 'auth.error.input',
   TOO_MANY_ATTEMPTS: 'auth.error.attempts',
+  RATE_LIMITED: 'auth.error.emails',
   INVALID_CODE: 'auth.error.code',
   CODE_EXPIRED: 'auth.error.codeExpired',
   EMAIL_NOT_SENT: 'auth.error.notSent',

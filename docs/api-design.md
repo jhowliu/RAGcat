@@ -104,8 +104,9 @@ POST /v1/auth/logout           { "refresh_token": "..." }                       
 - login 遇到未驗證的帳號（密碼要對才會走到這一步）回 `EMAIL_NOT_VERIFIED`（403）；登入頁重寄驗證碼並切到驗證步驟。
 - forgot-password 寄重設碼。app client 開了 `prevent_user_existence_errors`，所以不存在的 email 也回 202，不洩漏帳號是否存在；email 還沒驗證的帳號回 `EMAIL_NOT_VERIFIED`，登入頁先帶去驗證。reset-password 成功後，登入頁用新密碼登入。
 - 寄信由 user pool 的 email 設定決定：Cognito 預設寄件者每天有寄送上限，正式上線要改用 SES。pool 要允許自行註冊、自動驗證 email，帳號復原用已驗證的 email。
+- 會寄信的三個端點（signup、resend-code、forgot-password）依訪客 IP 共用一個 Valkey 固定時間窗：key 為 `rl:mail:{ip}:{小時}`，每小時 10 次，被擋的也算；超過回 `429 RATE_LIMITED` + `Retry-After`，不會呼叫 Cognito。Cognito 只以帳號為單位限制，擋不住一個腳本換 email 把每天的寄信額度用完。IP 取法同 widget（`CloudFront-Viewer-Address`，見 §7）。
 - logout 撤銷 refresh token（`RevokeToken`），失敗也不影響前端已經忘掉 token。
-- 回應都帶 `Cache-Control: no-store`。錯誤碼給登入頁對應文案：`INVALID_CREDENTIALS`（401）、`EMAIL_NOT_VERIFIED`（403）、`EMAIL_EXISTS`、`ALREADY_VERIFIED`（409）、`INVALID_PASSWORD`、`INVALID_CODE`、`CODE_EXPIRED`、`INVALID_INPUT`（400）、`TOO_MANY_ATTEMPTS`（429）、`SESSION_EXPIRED`（401，refresh）、`EMAIL_NOT_SENT`、`UPSTREAM_UNAVAILABLE`（503）。
+- 回應都帶 `Cache-Control: no-store`。錯誤碼給登入頁對應文案：`INVALID_CREDENTIALS`（401）、`EMAIL_NOT_VERIFIED`（403）、`EMAIL_EXISTS`、`ALREADY_VERIFIED`（409）、`INVALID_PASSWORD`、`INVALID_CODE`、`CODE_EXPIRED`、`INVALID_INPUT`（400）、`TOO_MANY_ATTEMPTS`、`RATE_LIMITED`（429）、`SESSION_EXPIRED`（401，refresh）、`EMAIL_NOT_SENT`、`UPSTREAM_UNAVAILABLE`（503）。
 - 前端把 token 存在分頁的 sessionStorage，以 Bearer header 呼叫 API；過期前用 refresh token 換新，同時多個請求只換一次。
 
 ### Assistant
@@ -463,7 +464,7 @@ data: {"answered":true,"fallback":null,"usage":{"input_tokens":812,"output_token
 - 最多 3 個引用；`edited: true` 對應 RAGcat 的「as edited by you」。
 - 找不到答案時：`answered: false`，`fallback: { "contact": "help@mochipet.example", "message": "..." }`。
 - 錯誤：串流進行中出錯時送 `event: error` `{code, message}`；Bedrock 被限流時回 `503 UPSTREAM_UNAVAILABLE` + `Retry-After`。
-- Rate limit：widget 依 IP 在 Valkey 做固定時間窗（見 §7）；API key 之後沿用同一套，改以 key 為單位。超過回 `429` + `Retry-After`。
+- Rate limit：widget 依 IP 在 Valkey 做固定時間窗（見 §7），會寄信的登入端點也是（見 §1）；API key 之後沿用同一套，改以 key 為單位。超過回 `429` + `Retry-After`。
 
 **內部處理（不影響 API 介面，列出供實作參考）**
 1. Assistant config：`published`、`content_version`、`widget_origins`、要排除的 document id（停用或刪除中）。採 cache-aside，key 為 `ast:{aid}`；api 在相關寫入後刪除這個 key。

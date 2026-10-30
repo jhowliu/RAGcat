@@ -56,6 +56,7 @@ export const en = {
   'auth.error.password': 'Use at least 8 characters, with upper and lower case letters, a number and a symbol.',
   'auth.error.input': 'Check the email address and password.',
   'auth.error.attempts': 'Too many attempts. Wait a few minutes and try again.',
+  'auth.error.emails': 'Too many emails were sent from this network. Try again in an hour.',
   'auth.error.code': 'That code is incorrect. Use the code from the latest email.',
   'auth.error.codeExpired': 'That code has expired. Send a new one.',
   'auth.error.notSent': "We couldn't send the email. Try again shortly.",

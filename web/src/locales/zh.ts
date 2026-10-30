@@ -58,6 +58,7 @@ export const zh: Messages = {
   'auth.error.password': '密碼至少 8 個字元，並包含大小寫字母、數字和符號。',
   'auth.error.input': '請檢查 email 和密碼。',
   'auth.error.attempts': '嘗試次數太多，請過幾分鐘再試。',
+  'auth.error.emails': '這個網路寄出的信太多了，請一小時後再試。',
   'auth.error.code': '驗證碼不正確，請使用最新一封信裡的驗證碼。',
   'auth.error.codeExpired': '驗證碼已過期，請重新寄送。',
   'auth.error.notSent': '目前無法寄出 email，請稍後再試。',

@@ -287,6 +287,27 @@ def test_password_sign_in_flow_in_cognito_mode(cognito_app) -> None:
     assert expired.status_code == 401 and expired.json()["error"]["code"] == "SESSION_EXPIRED"
 
 
+def test_emailed_codes_are_limited_per_visitor(cognito_app, monkeypatch) -> None:
+    """Sign-up, resend and forgot-password each email a code: ten an hour per network, so a script
+    can't use up the pool's daily email quota."""
+    client, c, fake = cognito_app
+    monkeypatch.setattr("ragcat.apps.http._now", lambda: 7200.0)
+    a, b = {"email": "a@example.test"}, {"email": "b@example.test"}
+    calls = [("/v1/auth/signup", a | {"password": "Secret#123"})] + [("/v1/auth/resend-code", a)] * 5 + [("/v1/auth/forgot-password", a)] * 4
+    for path, body in calls:
+        assert client.post(path, json=body).status_code == 202
+
+    limited = client.post("/v1/auth/forgot-password", json=b)
+    assert limited.status_code == 429 and limited.headers["retry-after"] == "3600"
+    assert limited.json()["error"] == {"code": "RATE_LIMITED", "message": "Too many emails were sent from this network. Try again later.", "details": {"retry_after": 3600}}
+    assert fake.codes == {"a@example.test": "654321"}  # the refused call never reached Cognito
+    assert client.post("/v1/auth/signup", json=b | {"password": "Secret#123"}).status_code == 429
+    # Typing a code back and signing in send no email; Cognito limits those per account.
+    assert client.post("/v1/auth/login", json=a | {"password": "Secret#123"}).status_code == 403
+    other = client.post("/v1/auth/forgot-password", json=b, headers={"CloudFront-Viewer-Address": "203.0.113.9:4431"})
+    assert other.status_code == 202  # another visitor
+
+
 def test_password_sign_in_is_off_with_development_tokens(dynamodb_endpoint) -> None:
     settings = replace(get_settings(), table_name=f"ragcat-test-{ulid().lower()}", dynamodb_endpoint=dynamodb_endpoint, storage="local", queue="local", vectors="local", cache="memory", auth="dev")
     c = build(settings)
