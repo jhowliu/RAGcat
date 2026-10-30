@@ -59,9 +59,21 @@ class IdentityService:
 
     # ------------------------------------------------------------ password sign-in (Cognito)
 
-    def sign_up(self, email: str, password: str) -> tuple[Tokens, User]:
-        tokens = self._password_auth().sign_up(_email(email), password)
-        return tokens, self._provision(tokens)
+    def sign_up(self, email: str, password: str) -> None:
+        """The owner signs in once the emailed code has verified the address."""
+        self._password_auth().sign_up(_email(email), password)
+
+    def verify_email(self, email: str, code: str) -> None:
+        self._password_auth().verify_email(_email(email), code.strip())
+
+    def resend_code(self, email: str) -> None:
+        self._password_auth().resend_code(_email(email))
+
+    def forgot_password(self, email: str) -> None:
+        self._password_auth().forgot_password(_email(email))
+
+    def reset_password(self, email: str, code: str, password: str) -> None:
+        self._password_auth().reset_password(_email(email), code.strip(), password)
 
     def sign_in(self, email: str, password: str) -> tuple[Tokens, User]:
         tokens = self._password_auth().sign_in(_email(email), password)

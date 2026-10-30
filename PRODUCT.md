@@ -55,13 +55,12 @@ A generic chat-over-documents product cannot truthfully claim the review-against
 - Turn a Document off (Paused) without deleting it.
 - **Website widget:** after publishing, the owner lists their websites and pastes one line of code. Customers ask on that site, one question at a time, and every answer names the Document and page. The widget is limited to the listed sites, and each visitor can ask about ten questions a minute. Setup is on Publish (panel 2) and in the Assistant's Channels tab.
 - See usage (pages read, answers) in the account menu.
-- Sign in or create an account on RAGcat's own page, switch EN/中文 in the header (saved per browser), and sign out from the account menu.
+- Sign in or create an account on RAGcat's own page (a code emailed to the owner verifies the address), reset a forgotten password with an emailed code, switch EN/中文 in the header (saved per browser), and sign out from the account menu.
 
 **Not built, hidden in the app UI:** Discord Channels, Questions, Billing, Version history, notifications, Undo, and duplicate-file detection.
 
 **Planned:**
 
-- Live verification of sign-in on AWS. RAGcat has its own sign-in page: email and password through the API to Cognito. Sign-up creates a confirmed account at once and sends no email. Token refresh and sign-out are implemented. There is no password reset yet, because it depends on email delivery.
 - P1: API keys.
 - P2: the Discord bot, after the widget.
 

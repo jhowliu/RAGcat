@@ -18,8 +18,9 @@ export interface AuthOptions {
   now?: () => number
 }
 
-/** A sign-in or sign-up the API refused. `code` picks the message: INVALID_CREDENTIALS, EMAIL_EXISTS,
- * INVALID_PASSWORD, INVALID_INPUT, TOO_MANY_ATTEMPTS, or anything else for "unavailable". */
+/** A request the auth API refused. `code` picks the message: INVALID_CREDENTIALS, EMAIL_EXISTS,
+ * EMAIL_NOT_VERIFIED, ALREADY_VERIFIED, INVALID_CODE, CODE_EXPIRED, EMAIL_NOT_SENT, INVALID_PASSWORD,
+ * INVALID_INPUT, TOO_MANY_ATTEMPTS, or anything else for "unavailable". */
 export class AuthError extends Error {
   readonly code: string
 
@@ -108,28 +109,50 @@ export class AuthClient {
     }
   }
 
-  signIn(email: string, password: string): Promise<void> {
-    return this.passwordAuth('/v1/auth/login', email, password)
-  }
-
-  /** Creates the account and signs in; RAGcat sends no verification email. */
-  signUp(email: string, password: string): Promise<void> {
-    return this.passwordAuth('/v1/auth/signup', email, password)
-  }
-
-  private async passwordAuth(path: string, email: string, password: string): Promise<void> {
+  async signIn(email: string, password: string): Promise<void> {
     await this.start()
-    if (this.options.development) {
-      const name = email.trim().split('@')[0] || 'demo'
-      this.options.setDevUser?.(name)
-      this.options.storage.removeItem(DEV_SIGNED_OUT)
-      this.setState({ status: 'signed-in', mode: 'dev', name, email: null })
-      return
-    }
-    const response = await this.post(path, { email, password })
-    const body: unknown = await response.json().catch(() => null)
-    if (!response.ok) throw refusal(body)
-    this.saveTokens(body)
+    if (this.options.development) return this.devSignIn(email)
+    this.saveTokens(await this.call('/v1/auth/login', { email, password }))
+  }
+
+  /** Creates the account; Cognito emails a code that `verifyEmail` takes before the owner can sign in.
+   * Development builds have no codes and sign straight in. */
+  async signUp(email: string, password: string): Promise<void> {
+    await this.start()
+    if (this.options.development) return this.devSignIn(email)
+    await this.call('/v1/auth/signup', { email, password })
+  }
+
+  async verifyEmail(email: string, code: string): Promise<void> {
+    if (!this.options.development) await this.call('/v1/auth/verify-email', { email, code })
+  }
+
+  async resendCode(email: string): Promise<void> {
+    if (!this.options.development) await this.call('/v1/auth/resend-code', { email })
+  }
+
+  /** Emails a reset code. The API answers the same for an email without an account. */
+  async forgotPassword(email: string): Promise<void> {
+    if (!this.options.development) await this.call('/v1/auth/forgot-password', { email })
+  }
+
+  async resetPassword(email: string, code: string, password: string): Promise<void> {
+    if (!this.options.development) await this.call('/v1/auth/reset-password', { email, code, password })
+  }
+
+  private devSignIn(email: string): void {
+    const name = email.trim().split('@')[0] || 'demo'
+    this.options.setDevUser?.(name)
+    this.options.storage.removeItem(DEV_SIGNED_OUT)
+    this.setState({ status: 'signed-in', mode: 'dev', name, email: null })
+  }
+
+  /** Posts to the auth API and returns the JSON body (null when there is none), or throws its refusal. */
+  private async call(path: string, body: unknown): Promise<unknown> {
+    const response = await this.post(path, body)
+    const parsed: unknown = await response.json().catch(() => null)
+    if (!response.ok) throw refusal(parsed)
+    return parsed
   }
 
   private post(path: string, body: unknown): Promise<Response> {

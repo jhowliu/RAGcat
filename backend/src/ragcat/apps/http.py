@@ -57,6 +57,18 @@ class RefreshToken(BaseModel):
     refresh_token: str = Field(min_length=1, max_length=8192)
 
 
+class Email(BaseModel):
+    email: str = Field(min_length=3, max_length=254)
+
+
+class EmailCode(Email):
+    code: str = Field(min_length=1, max_length=16)
+
+
+class PasswordReset(EmailCode):
+    password: str = Field(min_length=1, max_length=256)
+
+
 class CreateDocument(BaseModel):
     filename: str = Field(min_length=1, max_length=200)
     size_bytes: int = Field(gt=0)
@@ -235,9 +247,30 @@ def create_app(c: Container, *, api: bool = True, qa: bool = True) -> FastAPI:
 
         # -------------------------------------------------------- password sign-in (Cognito)
 
-        @router.post("/auth/signup")
-        def sign_up(body: Credentials) -> JSONResponse:
-            return session_response(*c.identity.sign_up(body.email, body.password), status_code=201)
+        @router.post("/auth/signup", status_code=202)
+        def sign_up(body: Credentials) -> Response:
+            c.identity.sign_up(body.email, body.password)
+            return Response(status_code=202)
+
+        @router.post("/auth/verify-email", status_code=204)
+        def verify_email(body: EmailCode) -> Response:
+            c.identity.verify_email(body.email, body.code)
+            return Response(status_code=204)
+
+        @router.post("/auth/resend-code", status_code=202)
+        def resend_code(body: Email) -> Response:
+            c.identity.resend_code(body.email)
+            return Response(status_code=202)
+
+        @router.post("/auth/forgot-password", status_code=202)
+        def forgot_password(body: Email) -> Response:
+            c.identity.forgot_password(body.email)
+            return Response(status_code=202)
+
+        @router.post("/auth/reset-password", status_code=204)
+        def reset_password(body: PasswordReset) -> Response:
+            c.identity.reset_password(body.email, body.code, body.password)
+            return Response(status_code=204)
 
         @router.post("/auth/login")
         def sign_in(body: Credentials) -> JSONResponse:

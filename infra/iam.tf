@@ -16,13 +16,6 @@ locals {
       { Effect = "Allow", Action = ["s3:PutObject"], Resource = ["${data.aws_s3_bucket.files.arn}/uploads/*"] },
       { Effect = "Allow", Action = ["s3:GetObject"], Resource = ["${data.aws_s3_bucket.files.arn}/pages/*"] },
       { Effect = "Allow", Action = ["sqs:SendMessage"], Resource = [aws_sqs_queue.main["embed"].arn] },
-      # Sign-up creates a confirmed account with a verified email and sends no email (create, set the
-      # password, remove it if the password is rejected); sign-in finishes an account left unconfirmed.
-      {
-        Effect   = "Allow"
-        Action   = ["cognito-idp:AdminCreateUser", "cognito-idp:AdminSetUserPassword", "cognito-idp:AdminDeleteUser", "cognito-idp:AdminConfirmSignUp", "cognito-idp:AdminUpdateUserAttributes"]
-        Resource = ["arn:${local.partition}:cognito-idp:${var.region}:${local.account_id}:userpool/${var.cognito_pool_id}"]
-      },
     ]
     qa = [
       { Effect = "Allow", Action = ["s3vectors:QueryVectors", "s3vectors:GetVectors"], Resource = [aws_s3vectors_index.passages.index_arn] },

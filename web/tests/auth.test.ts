@@ -89,11 +89,48 @@ test('sign-in posts the credentials once and then uses the access token', async 
   assert.equal('password' in stored, false)
 })
 
-test('sign-up creates the account through the API and signs in', async () => {
+test('sign-up waits for the emailed code: verifying it is a separate call, then sign-in starts the session', async () => {
   const env = setup()
   await env.client.signUp('mochi@example.test', 'Secret#123')
-  assert.equal(env.requests[0]?.url, '/v1/auth/signup')
+  assert.equal(env.client.getState().status, 'signed-out')
+  await env.client.verifyEmail('mochi@example.test', '123456')
+  await env.client.resendCode('mochi@example.test')
+  assert.equal(env.client.getState().status, 'signed-out')
+  assert.equal(env.values.has('ragcat-session'), false)
+  await env.client.signIn('mochi@example.test', 'Secret#123')
+  assert.deepEqual(env.requests.map((r) => r.url), ['/v1/auth/signup', '/v1/auth/verify-email', '/v1/auth/resend-code', '/v1/auth/login'])
+  assert.deepEqual(env.requests[1]?.body, { email: 'mochi@example.test', code: '123456' })
   assert.equal(env.client.getState().status, 'signed-in')
+})
+
+test('a password reset posts the code and new password but leaves signing in to the caller', async () => {
+  const env = setup()
+  await env.client.forgotPassword('mochi@example.test')
+  await env.client.resetPassword('mochi@example.test', '654321', 'Newer#456')
+  assert.deepEqual(env.requests, [
+    { url: '/v1/auth/forgot-password', body: { email: 'mochi@example.test' } },
+    { url: '/v1/auth/reset-password', body: { email: 'mochi@example.test', code: '654321', password: 'Newer#456' } },
+  ])
+  assert.equal(env.values.has('ragcat-session'), false)
+})
+
+test('an unverified account and a wrong code surface their reason codes', async () => {
+  const env = setup()
+  env.refuse('EMAIL_NOT_VERIFIED', 403)
+  await assert.rejects(env.client.signIn('mochi@example.test', 'Secret#123'), (error: unknown) => error instanceof AuthError && error.code === 'EMAIL_NOT_VERIFIED')
+  env.refuse('INVALID_CODE', 400)
+  await assert.rejects(env.client.verifyEmail('mochi@example.test', '000000'), (error: unknown) => error instanceof AuthError && error.code === 'INVALID_CODE')
+  assert.equal(env.client.getState().status, 'signed-out')
+})
+
+test('development builds have no codes: sign-up signs straight in and code calls stay local', async () => {
+  const { client, requests } = setup({ development: true })
+  await client.signOut()
+  await client.signUp('mochi@example.test', 'anything')
+  assert.deepEqual(client.getState(), { status: 'signed-in', mode: 'dev', name: 'mochi', email: null })
+  await client.forgotPassword('mochi@example.test')
+  await client.resetPassword('mochi@example.test', '000000', 'anything')
+  assert.equal(requests.length, 0)
 })
 
 test('a refused sign-in keeps the owner signed out and exposes the reason code', async () => {
