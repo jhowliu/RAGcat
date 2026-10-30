@@ -1,16 +1,20 @@
 # AWS deployment
 
-This directory defines the RAGcat P0 deployment. It has **not been applied** yet. As of 2026-10-16, `terraform validate` passes and a bootstrap plan against the CAB432 account succeeds (57 resources to add) using the shared-account settings below. Cloud smoke and load tests still need to run after the apply.
+This directory defines RAGcat's AWS deployment in `ap-southeast-2`: CloudFront in front of an ALB with two ECS Fargate services (`api`, `qa`), two SQS-triggered Lambda workers (`ingest`, `embed`), DynamoDB, S3 Vectors, Valkey and Bedrock.
 
 ## Prerequisites and existing resources
 
 - Terraform 1.12+, AWS provider 6.25+ (below 7), Docker with buildx, Node 22.16+, and the backend Python environment.
-- AWS profile `diana` authenticated to the CAB432 account in `ap-southeast-2`.
-- Your verified QUT email for `qut-username` tags; names default to the existing code's `n12218642` prefix.
-- The existing Cognito User Pool ID. The shared pool is not managed by this stack; Terraform only adds RAGcat's own app client (password and refresh-token sign-in, no hosted login page, no callback URLs).
-- Confirm model invocation permissions for `amazon.titan-embed-text-v2:0` and `google.gemma-3-12b-it`. Seeing models in the catalog does not prove permission to invoke them.
+- An AWS CLI profile for the target account in `ap-southeast-2` (`AWS_PROFILE`; the Makefile default is `diana`).
+- An existing Cognito User Pool ID. The pool is not managed by this stack; Terraform only adds RAGcat's own app client (password and refresh-token sign-in, no hosted login page, no callback URLs).
+- Two private S3 buckets created by hand (public access blocked, AES256), passed as `files_bucket` and `web_bucket`:
+  - **files:** enable EventBridge notifications in the console.
+  - **web:** paste the CloudFront OAC bucket policy once the distribution exists.
+- Model invocation permission for `amazon.titan-embed-text-v2:0` and `google.gemma-3-12b-it`. Seeing models in the catalog does not prove permission to invoke them.
 - Cloud runtimes explicitly select the Bedrock QA, embedding and vision adapters. Local `make backend` instead uses Claude QA/context and OpenAI `text-embedding-3-small` (see the root `.env.local.example`); no local API keys are deployed. Keep query/index embedding models identical, and re-embed documents after a model change.
-- Optional verified ECS cluster ARN and an existing VPC/subnet set. A reused network needs an attached internet gateway, private-subnet outbound access, and subnets in two AZs. A reused ECS cluster needs Container Insights enabled for task-count dashboard metrics; otherwise inspect task counts through ECS scaling activities.
+- Optional: an existing ECS cluster ARN and an existing VPC/subnet set. A reused network needs an attached internet gateway, private-subnet outbound access, and subnets in two AZs. A reused ECS cluster needs Container Insights enabled for task-count dashboard metrics; otherwise inspect task counts through ECS scaling activities.
+
+`name_prefix` (default `ragcat`) prefixes every resource name, and `tags` adds any owner or cost-allocation tags your account requires.
 
 First run:
 
@@ -19,35 +23,34 @@ docker compose up -d dynamodb
 make test-integration
 make test
 make build
-aws sso login --profile diana
+aws sso login --profile "$AWS_PROFILE"
 make cloud-audit
 ```
 
 `cloud-audit` only reads account metadata and writes `infra/inventory.json`. It does not create resources or print credentials. AccessDenied checks are reported separately; a successful catalog/list call does not certify all create/update permissions. Review the existing resources before deciding whether to reuse the network and cluster.
 
-### CAB432 shared account
+### Restricted shared account
 
-The student role can't create VPCs, internet gateways, security groups or IAM roles, and can't add security-group rules (checked with `--dry-run`). Set both `existing_network` and `shared_account` (examples in `terraform.tfvars.example`):
+Some accounts (for example an organization's shared sandbox) don't allow creating VPCs, internet gateways, security groups or IAM roles, or adding security-group rules. Set both `existing_network` and `shared_account` (examples in `terraform.tfvars.example`):
 
-- **Network:** the shared `aws-controltower-VPC`. Its private subnets each route out through their own NAT gateway, so the stack creates no VPC or NAT.
+- **Network:** an existing VPC whose private subnets route out through a NAT gateway, so the stack creates no VPC or NAT.
 - **Security groups:** the account's own.
-  - The ALB uses `CAB432SG` (443 open) plus `default`.
-  - Runtimes and Valkey use `default`, whose members can reach each other, so the ALB reaches tasks on 8080 and tasks reach Valkey on 6379.
-- **IAM:** the shared `Execution-Role-CAB432-ECS`, `Task-Role-CAB432-ECS` and `CAB432-Lambda-Role` replace the per-runtime roles in `iam.tf`. Their grants belong to the account and can't be read. If a call is denied at runtime, raise it with the teaching team.
+  - The ALB uses a group that allows 443 in.
+  - Runtimes and Valkey use a group whose members can reach each other, so the ALB reaches tasks on 8080 and tasks reach Valkey on 6379.
+- **IAM:** the account's existing ECS execution, ECS task and Lambda roles replace the per-runtime roles in `iam.tf`. Their grants belong to the account; if a call is denied at runtime, ask the account administrator to allow it.
 - **ALB:** a private CloudFront VPC origin needs a security-group rule from CloudFront's managed group, which can't be added. Instead:
-  - The ALB is internet-facing with HTTPS on `<student>-ragcat-api.cab432.com` (an ACM certificate validated in the `cab432.com` zone).
+  - The ALB is internet-facing with HTTPS on `origin_domain` (an ACM certificate validated in the domain's Route 53 zone).
   - CloudFront connects with HTTPS and sends a random secret header (`X-RAGcat-Origin`). The ALB forwards only requests that carry it; direct requests get the 404 default.
   - So the API still has one entry point, and the widget rate limit can still trust `CloudFront-Viewer-Address`.
+- **Site name:** CloudFront serves the site on `site_domain` with a us-east-1 ACM certificate. Apply waits until it is ISSUED: in the us-east-1 ACM console, choose "Create records in Route 53" for its validation CNAME. After the apply, add an A alias record for the name to the distribution (no AAAA yet, so IPv6-only clients can't reach it). The `*.cloudfront.net` name keeps working.
 
-`submission-a3-infra.yml` then lists only resources this stack creates and tags. The shared VPC, subnets, security groups and roles are not listed.
+Terraform can't refresh an SSO profile's token itself (`failed to refresh cached credentials`). `make infra-plan` and `make infra-apply` therefore pass it the CLI's short-lived credentials (`aws configure export-credentials`).
 
-Terraform can't refresh the `diana` SSO token itself (`failed to refresh cached credentials`). `make infra-plan` and `make infra-apply` therefore pass it the CLI's short-lived credentials (`aws configure export-credentials`).
-
-Copy `terraform.tfvars.example` to `terraform.tfvars` and replace its placeholders with verified values. The state and tfvars are ignored by Git. Keep the Terraform state: losing it would prevent safe updates to already-created resources. Before multi-user use, configure an approved remote state backend with locking; the initial stack uses local state to avoid assuming ownership of an existing shared bucket.
+Copy `terraform.tfvars.example` to `terraform.tfvars` and replace its placeholders with verified values. The state and tfvars are ignored by Git. Keep the Terraform state: losing it would prevent safe updates to already-created resources. Before multi-user use, configure a remote state backend with locking.
 
 ## Bootstrap and workload deployment
 
-The image repositories must exist before the container images can be pushed. `deploy_workloads = false` creates the infrastructure and authentication client without ECS tasks or Lambda functions. This bootstrap **already provisions** the ALB, cache (and, outside the shared account, a NAT gateway) and other resources with ongoing costs.
+The image repositories must exist before the container images can be pushed. `deploy_workloads = false` creates the infrastructure and authentication client without ECS tasks or Lambda functions. This bootstrap **already provisions** the ALB, cache (and, with a new VPC, a NAT gateway) and other resources with ongoing costs.
 
 ```sh
 make infra-init
@@ -58,7 +61,7 @@ make infra-apply
 make cloud-images IMAGE_TAG=release-20261014-1
 ```
 
-Review the saved plan before `infra-apply`. Do not import or rename shared resources into this stack: reuse the User Pool and optional cluster/network through variables. Outside the shared account, if IAM denies creation of the CloudFront VPC-origin service-linked role, resolve that permission with the teaching team rather than opening the ALB. In the shared account the ALB is public only behind HTTPS and the CloudFront secret header (above).
+Review the saved plan before `infra-apply`. Do not import or rename shared resources into this stack: reuse the User Pool and optional cluster/network through variables. With a new VPC, if IAM denies creation of the CloudFront VPC-origin service-linked role, have that permission granted rather than opening the ALB.
 
 After both images are pushed, set:
 
@@ -85,7 +88,7 @@ Open the site, create an account on RAGcat's own sign-in page, and verify the re
 | Flow | Resources and behavior |
 |---|---|
 | SPA and deep links | Private web S3 bucket → CloudFront OAC; a viewer-request function rewrites SPA paths to `index.html`. |
-| Management | `/v1/*` → CloudFront VPC origin → internal ALB → `api` ECS service. |
+| Management | `/v1/*` → CloudFront VPC origin → internal ALB → `api` ECS service (in a restricted shared account: HTTPS to the public ALB with the secret origin header). |
 | Questions | ALB rule `/v1/assistants/*/ask` and `/v1/widget/*/ask` (Website widget) takes priority and targets the separate `qa` service. API caching and response compression are disabled for SSE. The api reads the built `widget.html` from `RAGCAT_WIDGET_TEMPLATE_URL` (the CloudFront domain) to serve `/v1/widget/{aid}/frame`. |
 | Upload | Browser posts directly to the private files S3 bucket using a presigned POST; bucket CORS permits the site origin. |
 | Parse | Files bucket EventBridge events for `uploads/` → parse SQS → ingest Lambda. Generated `pages/` objects cannot retrigger ingestion. |
@@ -95,13 +98,13 @@ Open the site, create an account on RAGcat's own sign-in page, and verify the re
 | Retrieval | S3 Vectors cosine index matches Titan's configured dimensions. Assistant/Document IDs and `embedding_key` are filterable; large text and citation fields are non-filterable metadata. Queries never mix different embedding spaces. |
 | Cache | TLS Valkey shared by API, QA, and workers preserves cross-process config invalidation, cached query vectors and versioned answer keys. |
 
-All runtimes run in private subnets. For a new VPC there is one NAT gateway, used for AWS APIs, image pulls and Cognito JWKS. This reduces gateway count but makes outbound access depend on one AZ. Valkey uses one small primary and no replica: a cache failure falls back to cache misses, although requests may slow down. These are assessment-scale cost/availability tradeoffs to measure and explain.
+All runtimes run in private subnets. For a new VPC there is one NAT gateway, used for AWS APIs, image pulls and Cognito JWKS. This reduces gateway count but makes outbound access depend on one AZ. Valkey uses one small primary and no replica: a cache failure falls back to cache misses, although requests may slow down. Both are cost/availability tradeoffs to revisit as traffic grows.
 
 API tasks scale from 1–2 and QA tasks from 1–4 using `ALBRequestCountPerTarget`; initial targets are 300 and 60 requests per task per minute, respectively. Tune them from observed service capacity. Desired task count is excluded from Terraform drift correction so applying a deployment does not undo auto-scaling.
 
-Lambda SQS mappings cap concurrency at 5 ingest and 2 embed, with batch size 1. Function timeout is 900 seconds and queue visibility is 5400 seconds. DLQs retain failures after three receives. Reserved Lambda concurrency is not allocated automatically in the shared account.
+Lambda SQS mappings cap concurrency at 5 ingest and 2 embed, with batch size 1. Function timeout is 900 seconds and queue visibility is 5400 seconds. DLQs retain failures after three receives. Reserved Lambda concurrency is not allocated.
 
-## Smoke test and evidence
+## Smoke and load tests
 
 Set `RAGCAT_ACCESS_TOKEN` in your terminal to a current Cognito **access** token without committing or displaying it. Scripts take the credential from the environment and never print it. For local-only testing, `smoke_cloud.py` also accepts `dev:<name>` when the origin is localhost.
 
@@ -112,7 +115,7 @@ uv run python ../scripts/smoke_cloud.py --base-url https://YOUR_DISTRIBUTION.clo
 
 The smoke test creates a marked Assistant and Document, waits for parsing, loads a signed page image, edits a Passage with `If-Match`, embeds, publishes, and checks two SSE answers: a cold result with citations followed by a cache hit. S3 requests use a separate client without the owner's Authorization header. `--keep` retains the demonstration Document; without it, only the test's newly uploaded Document is deleted. The empty test Assistant remains because the current API does not support deleting Assistants. Reuse its printed ID with `--assistant-id` on subsequent runs.
 
-For scaling evidence:
+To exercise auto-scaling:
 
 ```sh
 # API traffic: no per-request model invocations.
@@ -122,26 +125,9 @@ uv run python ../scripts/load_cloud.py --base-url https://YOUR_DISTRIBUTION.clou
 uv run python ../scripts/load_cloud.py --base-url https://YOUR_DISTRIBUTION.cloudfront.net --assistant-id ast_YOUR_SMOKE_ASSISTANT --seconds 300 --requests-per-second 5
 ```
 
-The load tool bounds concurrency, duration and rate. QA load stops if a response stops hitting the cache, to prevent unexpected repeated model calls. It also stops on expired/forbidden credentials. A completed request loop does **not** establish that scaling occurred: record ECS scaling activities and task counts, ALB per-target requests, latency/error rates, then wait for and capture scale-in after traffic stops. Repeat with a justified target/load only if the first run did not trigger the intended policy.
+The load tool bounds concurrency, duration and rate. QA load stops if a response stops hitting the cache, to prevent unexpected repeated model calls. It also stops on expired/forbidden credentials. A completed request loop does **not** establish that scaling occurred: check ECS scaling activities and task counts, ALB per-target requests and latency/error rates, then wait for scale-in after traffic stops.
 
-The CloudWatch dashboard includes ECS CPU/task counts, ALB requests per target, cache hits/misses, answer latency and queue backlog. QA completion logs are JSON with no question, answer text, or authentication token; metric filters derive cache and latency metrics. Alarms flag DLQs, Lambda errors and unhealthy targets. Capture parsing/publishing progress and the queue/worker interaction for asynchronous evidence. Lambda's built-in scaling does not fulfill the assignment's auto-scaling requirement.
-
-Once the applied deployment is verified:
-
-```sh
-make cloud-submission
-```
-
-This exports the applied Terraform resource identifiers to `infra/submission-a3-infra.yml` and refuses a bootstrap-only stack. Some AWS child/global resources do not support ownership tags; verify the assignment's handling of those and reused resources against the provided submission template. Prepare the report, architecture diagrams, Pricing Calculator estimate and 4–5 minute demonstration using measurements from the actual deployment. The assignment requires you to draft the report yourself.
-
-## Checks completed in this session
-
-- Backend tests: 55 passed; five DynamoDB HTTP integration tests still skipped.
-- Thirteen frontend auth tests passed (including refresh/sign-out races); TypeScript with stricter checks and the production build passed.
-- Python deployment/verification scripts compile and their CLI help commands work.
-- Local Vite landing page rendered in Chrome. Complete browser workflow still requires the backend/DynamoDB dependency.
-- Required-integration mode correctly fails when DynamoDB cannot be reached.
-- Terraform formatting/provider validation, real cloud resource inventory, image builds and pushes, infrastructure apply, live Cognito sign-in, cloud smoke and scaling/cache evidence remain unverified.
+The CloudWatch dashboard includes ECS CPU/task counts, ALB requests per target, cache hits/misses, answer latency and queue backlog. QA completion logs are JSON with no question, answer text, or authentication token. Alarms flag DLQs, Lambda errors and unhealthy targets.
 
 ## Documentation used
 

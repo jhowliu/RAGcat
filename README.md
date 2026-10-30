@@ -1,62 +1,249 @@
-# RAGcat (CAB432 A3)
+# RAGcat
 
-上傳 PDF → 切成 passages → owner 審閱、編輯 → embed → 附引用的 RAG 問答。
+**Turn PDFs into a customer-support assistant whose every answer cites its source page.**
 
-- 設計文件：[`docs/api-design.md`](docs/api-design.md)（API）、[`docs/domain-design.md`](docs/domain-design.md)（DDD、程式結構）
-- `backend/`：Python 3.12+、FastAPI、PyMuPDF、boto3
-- `web/`：React + Vite + TypeScript。視覺依 [`DESIGN.md`](DESIGN.md)（2026-10 改版；數值只來自 `web/src/theme/tokens.css`，吉祥物圖在 `web/public/cat/`）；流程、文案、狀態與無障礙仍依 [`designs/`](designs/)（H3）；中英雙語字典在 `web/src/locales/`
+RAGcat is a retrieval-augmented generation (RAG) system that runs on AWS. A small-business owner uploads PDFs, reviews the extracted passages next to the original pages, embeds them, and publishes an Assistant. Customers then ask questions through a **website chat widget** (built) or a **Discord bot** (planned), and each answer names the document and page it came from.
 
-## 介面與後端的對應
-
-- **Publish changes**：把有變動的文件做 embed，第一次發布時再打開 Assistant 的 `published`。客人只看得到已經 embed 的段落，所以沒按 Publish changes 之前，修改不會被客人看到。
-- **Test**（Review & test 頁）：一律用最新的修改。Assistant 尚未發布時，提問前會先發布有變動的文件（此時只有 owner 能問）。已經上線後改用預覽：只對 owner，把有變動的段落當場算出上下文和向量（暫存在 Valkey，不寫入向量庫），和線上段落一起檢索；客人看到的仍是已發布的版本。之後按 Publish changes 會直接寫入預覽算好的向量，不再重算。一次要準備超過 100 段時會請你先發布。
-- **Website widget**（Publish 第 2 區、Assistant 的 Channels 分頁）：發布後填入業主的網站網址，複製一行 `<script>` 貼到網站上。客人在網站上一次問一題，回答附文件名和頁碼。只有清單上的網站能嵌入（`frame-ancestors`），每位訪客每分鐘約 10 題。本機試用：開 `http://localhost:5173/widget-demo.html`（腳本回答，不呼叫模型）；要接真的 Assistant，網址加 `?aid=<Assistant id>`，並在 Channels 加入 `http://localhost:5173`。規格見 `docs/api-design.md` §7。
-- 設計稿裡 backend 還不支援的部分先不顯示：Discord 連接、Questions、Billing、Version history、通知、Undo、重複檔偵測。
-
-## 本機開發
-
-需要 Docker、[uv](https://docs.astral.sh/uv/) 和 Node 22.16+。
-
-```bash
-make deps      # 啟動 DynamoDB Local（:8001）和 Valkey（:6380），安裝 backend 和 web 的套件
-cp -n .env.local.example .env.local  # 首次設定；不覆蓋既有檔案
-# 在 .env.local 填入 ANTHROPIC_API_KEY 和 OPENAI_API_KEY
-make backend   # :8010；api + qa，parse/embed 工作送進 Valkey queue（自動 reload）
-make worker    # 另開一個 terminal：消費 queue，做 parse 和 embed（不會自動 reload，改程式後要重啟）
-make web       # http://localhost:5173，/v1 和 /dev proxy 到 :8010
+```
+PDF  →  parse  →  review  →  embed  →  publish  →  website widget / Discord bot  →  cited answers
 ```
 
-`.env.local` 只在後端載入，不可提交或放入 `VITE_*` 前端環境變數。缺少 API key 時後端 app 會明確報錯，不會偷偷改用假模型。啟動 log 會顯示實際 QA、embedding 和 vision provider，沒有 API key。
-改動 API key、preset 或 model 設定後，要停止並重新執行 `make backend`；既有服務的啟動環境不會因修改 Makefile 或 env 檔自動更新。
+What sets it apart from generic chat-over-documents tools: the owner reviews and edits exactly what the Assistant will read (human-reviewed passages), and every answer points back to its exact source location.
 
-打開 http://localhost:5173 ，建立 Assistant，上傳 `samples/` 裡的範例：`mochi-returns-policy.pdf`（英文、表格）或 `mochi-care-guide-zh.pdf`（中文、雙欄、表格）。重新產生範例：`cd backend && uv run python ../samples/make_samples.py`。
+| Channel | Status |
+|---|---|
+| Website widget (`<script>` tag, origin allowlist, rate limited) | Built |
+| Discord bot (@mention in a bound channel) | Planned (P2). Design in [`docs/api-design.md`](docs/api-design.md) §8; hidden in the UI |
+| API keys for external HTTP clients | Planned (P1) |
 
-`make backend` 不需要 AWS，但會呼叫付費模型 API。只要離線驗證流程，可改用 `make backend-offline`：QA、embedding 和 vision 都明確使用 fakes，也不載入 `.env.local`。直接執行 uvicorn、沒有設定 model preset 時仍預設 fake，讓離線測試不會意外產生費用。
+## Architecture
 
-儲存和 queue 留在本機，模型 provider 可獨立選擇：
+### End-to-end pipeline
 
-| Port | 本機（`make backend`） | AWS | 環境變數 |
+```mermaid
+flowchart LR
+  pdf["PDF<br/>owner uploads"] --> parse["1 Parse<br/>text, tables, figures<br/>into passages"]
+  parse --> review["2 Review<br/>owner edits passages<br/>beside the source page"]
+  review --> embed["3 Embed<br/>context and vectors<br/>into the vector index"]
+  embed --> publish["4 Publish<br/>the Assistant goes live"]
+  publish --> widget["Website widget<br/>built"]
+  publish -.-> discord["Discord bot<br/>planned"]
+  publish -.-> apikey["API key<br/>planned"]
+  widget --> ask["Ask<br/>retrieve, answer, cite"]
+  discord -.-> ask
+  apikey -.-> ask
+```
+
+1. **Parse.** The browser uploads the PDF straight to S3 with a presigned POST (up to 50 MB and 300 pages). An S3 event reaches the `ingest` Lambda through SQS. It uses PyMuPDF to extract text blocks and keeps each table whole as Markdown. It reads two-column pages one column at a time and strips headers, footers and page numbers. Informative figures are described by a vision model. The text is cut into passages, and page thumbnails are rendered for the Review screen.
+2. **Review.** The owner sees every passage beside its source page and can edit, merge, split, add, remove or restore it. Quality warnings flag suspicious passages. Edits use optimistic locking (`If-Match`), so two tabs can't overwrite each other.
+3. **Embed** (the **Publish changes** button). The `embed` Lambda reconciles passages with the vector index by content hash.
+   - It only embeds what changed, so retries are idempotent, edits are never lost, and switching the embedding model re-embeds everything automatically.
+   - With contextual retrieval on (default), an LLM first writes a short context and entity list for each passage from its section. The vector is computed from that context plus the passage text.
+   - Vectors go into S3 Vectors (cosine). Citation data (text, page, paragraph, boxes) is stored in the vector metadata, so answering never needs a database read for citations.
+4. **Publish.** The first publish turns the Assistant on for customers. Later edits go live as soon as they are embedded. Customers only ever see embedded passages. Before an Assistant is live, **Test** publishes changed documents first. After that, the owner can preview unpublished edits privately, and Publish reuses the vectors the preview prepared.
+5. **Ask.** The `qa` service embeds the question and retrieves the top 5 passages for that Assistant. It then asks the LLM to answer using only those passages and turns `[n]` markers into at most 3 citations (document, page, paragraph, boxes). If the documents don't cover the question, it declines and gives the owner's fallback contact.
+
+### AWS deployment
+
+```mermaid
+flowchart TB
+  owner(["Owner<br/>browser"])
+  visitor(["Customer on the<br/>owner's website"])
+  discord(["Discord<br/>planned"])
+
+  subgraph grpEdge ["Edge"]
+    cf["CloudFront<br/>single origin for SPA and API"]
+    webs3[("S3 web bucket<br/>SPA, widget.js")]
+  end
+
+  subgraph grpServices ["ECS Fargate services behind the ALB"]
+    alb["ALB<br/>path routing"]
+    api["api<br/>Assistants, Documents, Passages,<br/>publish, widget frame"]
+    qa["qa<br/>retrieve and answer, SSE"]
+    bot["discord-bot<br/>planned"]
+  end
+
+  subgraph grpPipeline ["Async pipeline: Lambda, one container image"]
+    files[("S3 files bucket<br/>PDFs, page thumbnails")]
+    parseq["SQS parse"]
+    ingest["ingest Lambda<br/>PDF to passages"]
+    embedq["SQS embed"]
+    embedfn["embed Lambda<br/>hash reconcile"]
+  end
+
+  subgraph grpState ["State"]
+    ddb[("DynamoDB<br/>single table")]
+    vec[("S3 Vectors<br/>cosine index")]
+    cache[("Valkey<br/>cache, rate limit")]
+  end
+
+  subgraph grpManaged ["Managed services"]
+    cognito["Cognito<br/>owner sign-in"]
+    bedrock["Bedrock<br/>LLM, embeddings, vision"]
+  end
+
+  owner --> cf
+  visitor -->|"widget.js and iframe"| cf
+  cf -->|"static files"| webs3
+  cf -->|"/v1/*"| alb
+  alb -->|"management API"| api
+  alb -->|"ask routes"| qa
+  discord -.-> bot
+  bot -.-> qa
+
+  owner -->|"presigned upload"| files
+  files -->|"EventBridge"| parseq
+  parseq --> ingest
+  ingest --> files
+  ingest --> ddb
+  ingest --> bedrock
+
+  api --> ddb
+  api --> embedq
+  api --> cognito
+  api --> cache
+  embedq --> embedfn
+  embedfn --> ddb
+  embedfn --> vec
+  embedfn --> bedrock
+
+  qa --> cache
+  qa --> vec
+  qa --> ddb
+  qa --> bedrock
+```
+
+| Runtime | Role | Scaling |
+|---|---|---|
+| `api` (ECS Fargate) | Assistant, Document and Passage CRUD, publish switch, widget frame | Target tracking on ALB requests per target, 1–2 tasks |
+| `qa` (ECS Fargate) | Retrieval and generation, shared by web, widget and HTTP clients (and Discord later) | Same policy, 1–4 tasks. It is I/O bound, so CPU isn't the metric |
+| `ingest` (Lambda) | Parse PDF, describe figures, render thumbnails, cut passages | SQS-triggered, max concurrency 5 |
+| `embed` (Lambda, same image) | Reconcile passages and vectors | SQS-triggered, max concurrency 2 (Bedrock throttling) |
+| `discord-bot` (ECS Fargate) | Discord Gateway relay (planned) | One task |
+
+Notes:
+- Both ECS services use one `ragcat-service` image with different commands. Both Lambdas use one `ragcat-worker` image.
+- In a restricted shared account (no security-group or IAM role creation), CloudFront can't use a private VPC origin, so the ALB is internet-facing on HTTPS and forwards only requests carrying CloudFront's secret header. Details are in [`infra/README.md`](infra/README.md).
+- Page thumbnails stay private. The API returns short-lived presigned S3 URLs after checking ownership.
+- Valkey holds the Assistant config (cache-aside), query-embedding and answer caches (answers are keyed by `content_version`, so a new embed invalidates them), widget rate-limit counters and owner-preview vectors.
+
+### Answering a question
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor C as Customer
+  participant W as Widget iframe
+  participant Q as qa service
+  participant V as Valkey
+  participant S as S3 Vectors
+  participant B as Bedrock or Claude
+
+  C->>W: asks a question
+  W->>Q: POST /v1/widget/{aid}/ask
+  Q->>V: rate limit, Assistant config, answer cache
+  alt answer cached
+    V-->>Q: cached answer
+  else cache miss
+    Q->>B: embed the question
+    Q->>S: top-5 cosine search, filtered to this Assistant
+    S-->>Q: passages with page and box metadata
+    Q->>B: answer using only those passages, streamed
+  end
+  Q-->>W: SSE tokens, then citations
+  W-->>C: answer with document and page
+```
+
+### Website widget
+
+The owner lists their websites on the Publish page and pastes one line:
+
+```html
+<script src="https://<ragcat-domain>/widget.js" data-assistant="ast_..." async></script>
+```
+
+`widget.js` adds a launcher button and loads the chat iframe (`/v1/widget/{aid}/frame`) on first click. The frame's CSP `frame-ancestors` restricts embedding to the listed sites, and an empty list turns the widget off. Visitors need no account and ask one question at a time, limited to about 10 per minute. Widget answers carry only document name, page and paragraph. See [`docs/api-design.md`](docs/api-design.md) §7.
+
+### Design choices
+
+- **Hexagonal, one Python package.** Each bounded context (`curation`, `ingestion`, `indexing`, `answering`, `assistants`, `identity`) has `domain.py`, `service.py` and `adapters.py`. `domain.py` imports no cloud SDK. `apps/container.py` is the only place that picks adapters, so every AWS service has a local stand-in and providers switch with `RAGCAT_*` variables.
+- **One DynamoDB table.** One aggregate maps to one partition and one transaction boundary. A Document and its passages share `DOC#{id}`, and `edit_version` is the optimistic-lock counter.
+- **No event bus.** Work that crosses runtimes uses SQS. Everything else is a direct service call.
+- **Models are replaceable.** The `Llm` and `Embedder` interfaces are the same for Claude, OpenAI, Bedrock and offline fakes. Indexing and Answering share one embedding adapter, and vector metadata records the embedding space so searches never mix incompatible vectors.
+
+## Tech stack
+
+| Layer | Local (`make backend`) | AWS |
+|---|---|---|
+| Web | React, Vite, TypeScript. English and Traditional Chinese | S3 behind CloudFront |
+| API and QA | FastAPI (`ragcat.apps.dev`) | ECS Fargate, ALB, target-tracking auto scaling |
+| Workers | Valkey queue and `make worker` | SQS and Lambda container images |
+| Data | DynamoDB Local, `.data/` files | DynamoDB, S3, S3 Vectors |
+| Models | Claude Haiku 5.5 for QA and context, OpenAI `text-embedding-3-small` | Bedrock: Gemma (QA, vision), Titan Text Embeddings v2 |
+| Auth | `Bearer dev:<name>` | Cognito, with RAGcat's own sign-in page |
+| Infra and ops | Docker Compose | Terraform, CloudWatch dashboard and alarms |
+
+## Repository layout
+
+```
+backend/             Python 3.12+: FastAPI, PyMuPDF, boto3
+  src/ragcat/
+    curation/ ingestion/ indexing/ answering/ assistants/ identity/   bounded contexts
+    infra/           adapters: DynamoDB, storage, queue, vectors, cache, model providers
+    apps/            entry points: api, qa, worker (ingest, embed), dev, widget
+  tests/
+web/                 React SPA and the embeddable widget (web/src/widget)
+infra/               Terraform for the AWS deployment (see infra/README.md)
+scripts/             cloud audit, deploy, smoke test and load test
+samples/             demo PDFs (a returns policy, and a Chinese care guide)
+docs/                api-design.md and domain-design.md (written in Traditional Chinese)
+```
+
+Other documents: [`PRODUCT.md`](PRODUCT.md) (users, scope, vocabulary), [`DESIGN.md`](DESIGN.md) (visual system; values live in `web/src/theme/tokens.css`) and [`designs/`](designs/) (flow, copy, states and accessibility).
+
+## Local development
+
+Requires Docker, [uv](https://docs.astral.sh/uv/) and Node 22.16+.
+
+```bash
+make deps      # start DynamoDB Local (:8001) and Valkey (:6380); install backend and web packages
+cp -n .env.local.example .env.local  # first run only; never overwrites an existing file
+# put ANTHROPIC_API_KEY and OPENAI_API_KEY in .env.local
+make backend   # :8010; api + qa. parse/embed jobs go to the Valkey queue (auto reload)
+make worker    # in another terminal: consumes the queue and does parse and embed (no auto reload; restart after code changes)
+make web       # http://localhost:5173, proxies /v1 and /dev to :8010
+```
+
+Open http://localhost:5173, create an Assistant, and upload a file from `samples/`: `mochi-returns-policy.pdf` (English, tables) or `mochi-care-guide-zh.pdf` (Chinese, two columns, tables). To regenerate them: `cd backend && uv run python ../samples/make_samples.py`.
+
+`.env.local` is loaded by the backend only. Never commit it or expose it through `VITE_*` variables. If an API key is missing, the backend fails with a clear error instead of silently using fake models. The startup log shows the active QA, embedding and vision providers, never the keys. After changing keys, presets or model settings, stop and rerun `make backend`.
+
+`make backend` needs no AWS access but calls paid model APIs. To verify the flow offline, use `make backend-offline`: QA, embedding and vision all use fakes and `.env.local` isn't loaded. Running uvicorn directly with no model preset also defaults to fakes.
+
+Storage and queues stay local while model providers are chosen independently:
+
+| Interface | Local (`make backend`) | AWS | Environment variables |
 |---|---|---|---|
-| Table | DynamoDB Local | DynamoDB | `RAGCAT_DYNAMODB_ENDPOINT`、`RAGCAT_TABLE` |
-| Object store | `.data/objects` + `/dev/s3/upload` | S3 presigned POST | `RAGCAT_STORAGE=local\|s3` |
-| Queue | Valkey list + `make worker`（重試 3 次，失敗進 `queue:<name>:dlq`）；`backend-offline` 用背景 thread | SQS → Lambda | `RAGCAT_QUEUE=local\|redis\|sqs`、`RAGCAT_QUEUE_URL` |
+| Table | DynamoDB Local | DynamoDB | `RAGCAT_DYNAMODB_ENDPOINT`, `RAGCAT_TABLE` |
+| Object store | `.data/objects` and `/dev/s3/upload` | S3 presigned POST | `RAGCAT_STORAGE=local\|s3` |
+| Queue | Valkey list and `make worker` (3 retries, then `queue:<name>:dlq`). `backend-offline` uses a background thread | SQS → Lambda | `RAGCAT_QUEUE=local\|redis\|sqs`, `RAGCAT_QUEUE_URL` |
 | Vector index | `.data/vectors.json` | S3 Vectors | `RAGCAT_VECTORS=local\|s3vectors` |
-| QA / context | Claude Messages（`claude-haiku-5-5`） | Bedrock Converse（Gemma，既有預設） | `RAGCAT_LLM_PROVIDER=fake\|claude\|bedrock`、`RAGCAT_LLM_MODEL_ID` |
-| Embedding | OpenAI `text-embedding-3-small`，1536 維 | Bedrock Titan v2，1024 維 | `RAGCAT_EMBED_PROVIDER=fake\|openai\|bedrock`、`RAGCAT_EMBED_MODEL_ID`、`RAGCAT_EMBED_DIMS` |
-| Vision | fake 圖片描述（這次未改成 Claude） | Bedrock Converse | `RAGCAT_VISION_PROVIDER=fake\|bedrock` |
-| Cache | process 內 dict | ElastiCache Valkey | `RAGCAT_CACHE=memory\|valkey` |
+| QA / context | Claude Messages (`claude-haiku-5-5`) | Bedrock Converse (Gemma, the existing default) | `RAGCAT_LLM_PROVIDER=fake\|claude\|bedrock`, `RAGCAT_LLM_MODEL_ID` |
+| Embedding | OpenAI `text-embedding-3-small`, 1536 dims | Bedrock Titan v2, 1024 dims | `RAGCAT_EMBED_PROVIDER=fake\|openai\|bedrock`, `RAGCAT_EMBED_MODEL_ID`, `RAGCAT_EMBED_DIMS` |
+| Vision | Fake figure descriptions (not switched to Claude) | Bedrock Converse | `RAGCAT_VISION_PROVIDER=fake\|bedrock` |
+| Cache | In-process dict | ElastiCache Valkey | `RAGCAT_CACHE=memory\|valkey` |
 | Auth | `Bearer dev:<name>` | Cognito JWT | `RAGCAT_AUTH=dev\|cognito` |
-| Contextual retrieval | 開（Claude 依章節產生上下文） | 開（Bedrock LLM） | `RAGCAT_CONTEXTUAL=on\|off` |
+| Contextual retrieval | On (Claude writes context from the section) | On (Bedrock LLM) | `RAGCAT_CONTEXTUAL=on\|off` |
 
-`RAGCAT_MODELS` 是簡便 preset：`local` 選 Claude/OpenAI/fake vision，`bedrock` 三者全走 Bedrock，`fake` 三者全離線；各 provider 的環境變數可覆蓋 preset。QA 的 `stream/complete` 和 embedding 的 `embed` 介面不變，Indexing 與 Answering 使用同一個 embedding adapter。
+`RAGCAT_MODELS` is a shortcut preset. `local` selects Claude, OpenAI and fake vision. `bedrock` runs all three on Bedrock. `fake` runs all three offline. Each provider variable overrides the preset. The QA `stream/complete` and embedding `embed` interfaces are unchanged, and Indexing and Answering use the same embedding adapter.
 
-OpenAI adapter 依[官方 OpenAI documentation](https://developers.openai.com/api/reference/resources/embeddings/methods/create)呼叫 `/v1/embeddings`，批次向量依 response index 排回輸入順序，檢查維度與數值。Claude adapter 依[官方 Messages/streaming 文件](https://platform.claude.com/docs/en/build-with-claude/streaming)處理 SSE、usage、context completion 和中途錯誤。預設 Haiku 5.5 關閉 thinking，避免 120-token context / 400-token QA 預算被 thinking 耗盡；[官方說明](https://platform.claude.com/docs/en/models/haiku-5-5/whats-new-haiku-5-5)。其他 Claude model 可用 `RAGCAT_LLM_MODEL_ID` 切換，但其 thinking 規則與小 output budget 需另外驗證。
+The OpenAI adapter calls `/v1/embeddings` per the [OpenAI documentation](https://developers.openai.com/api/reference/resources/embeddings/methods/create). It reorders batch vectors by response index and checks dimensions and values. The Claude adapter handles SSE, usage, context completion and mid-stream errors per the [Messages streaming docs](https://platform.claude.com/docs/en/build-with-claude/streaming). Haiku 5.5 runs with thinking off by default so the 120-token context and 400-token QA budgets aren't consumed by thinking ([model notes](https://platform.claude.com/docs/en/models/haiku-5-5/whats-new-haiku-5-5)). Other Claude models can be selected with `RAGCAT_LLM_MODEL_ID`, but their thinking rules and small output budgets need separate validation.
 
-Contextual retrieval 會額外對每個待更新 passage 呼叫 Claude，QA 也另行計費。OpenAI embedding 費只涵蓋向量化，不含這兩項。正式線上的 Terraform 明確選擇 Bedrock，不使用本機 `.env.local` 或 OpenAI/Anthropic API keys。
+Contextual retrieval makes one extra Claude call per passage that needs updating, and QA is billed separately. The OpenAI embedding cost covers vectorization only. The production Terraform explicitly selects Bedrock and uses neither `.env.local` nor the OpenAI/Anthropic keys.
 
-切換 provider/model/dimensions 後，先按 **Publish changes** 重新 embed 舊文件；draft Assistant 的 **Test** 也會先 embed pending changes。向量 metadata 記錄 embedding space，檢索不會混用舊 hashing 向量或不同維度。舊索引缺少 space 標記時不納入檢索，但不會自動刪除。QA/context model 變更也會更新相關 hash/cache namespace，避免拿到前一個模型的答案。
+After switching provider, model or dimensions, press **Publish changes** to re-embed existing documents. Testing a draft Assistant also embeds pending changes first. Vector metadata records the embedding space, so retrieval never mixes old hashing vectors or different dimensions. Indexes without a space tag are ignored but not deleted. Changing the QA or context model also updates the related hash and cache namespaces, so a new model never serves the previous model's answers.
 
-本機若要 QA 和 embedding 都改走 Bedrock，可不用 `.env.local` 直接執行：
+To run QA and embedding on Bedrock from your machine without `.env.local`:
 
 ```bash
 aws sso login --profile diana
@@ -66,29 +253,42 @@ cd backend && AWS_PROFILE=diana RAGCAT_MODELS=bedrock \
   uv run uvicorn ragcat.apps.dev:app --port 8010 --reload --reload-dir src
 ```
 
-上傳、儲存、背景 worker 和 auth 仍為本機實作；這個命令只將模型改為 Bedrock。
+Uploads, storage, background workers and auth are still the local implementations. This only switches the models to Bedrock.
 
-## 測試
+### Trying the website widget locally
+
+Open `http://localhost:5173/widget-demo.html`. It is a fictional shop whose widget answers from a script and calls no model. To use a real Assistant, add `?aid=<Assistant id>` to the URL and add `http://localhost:5173` to the Assistant's Channels list.
+
+### How the UI maps to the backend
+
+- **Publish changes** embeds the changed documents, and the first publish also switches the Assistant to `published`. Customers only see embedded passages, so edits stay invisible until Publish changes.
+- **Test** (Review & test page) always uses the latest edits.
+  - Before the Assistant is published, it first publishes changed documents, and only the owner can ask.
+  - Once live, it previews instead: only for the owner, changed passages get their context and vectors computed on the spot (kept in Valkey, not written to the vector store) and are searched together with the live passages. Customers still see the published version.
+  - A later Publish changes writes the preview's vectors directly, without recomputing. Preparing more than 100 passages at once asks you to publish first.
+- UI parts that the backend doesn't support yet are hidden: Discord connection, Questions, Billing, Version history, notifications, Undo and duplicate-file detection.
+
+## Tests
 
 ```bash
-make test   # backend：單元/JWT/HTTP 整合測試；web：登入測試與型別檢查
-make test-integration # DynamoDB 無法連線時會失敗，不會默默 skip
+make test             # backend unit, JWT and HTTP integration tests; web login tests and type check
+make test-integration # fails, rather than skips, if DynamoDB is unreachable
 ```
 
 ## Container images
 
 ```bash
-make images   # ragcat-service:dev 和 ragcat-worker:dev（linux/arm64）
+make images   # ragcat-service:dev and ragcat-worker:dev (linux/arm64)
 ```
 
-| Image | 用途 | 選擇進入點 |
+| Image | Used by | Selecting the entry point |
 |---|---|---|
-| `ragcat-service` | ECS：`api`、`qa`（port 8080，health check `/healthz`） | task definition 的 `command`：預設 `uvicorn ragcat.apps.api:app`，qa 改成 `["uvicorn", "ragcat.apps.qa:app"]` |
-| `ragcat-worker` | Lambda：`ingest`、`embed` | `image_config.command`：`ragcat.apps.worker.ingest` / `ragcat.apps.worker.embed` |
+| `ragcat-service` | ECS: `api`, `qa` (port 8080, health check `/healthz`) | Task definition `command`. Defaults to `uvicorn ragcat.apps.api:app`. For qa use `["uvicorn", "ragcat.apps.qa:app"]` |
+| `ragcat-worker` | Lambda: `ingest`, `embed` | `image_config.command`: `ragcat.apps.worker.ingest` or `ragcat.apps.worker.embed` |
 
-兩個 image 都依 `uv.lock` 安裝套件。沒設定的 `RAGCAT_*` 都是本機預設值，部署時要設成 AWS 的值（`RAGCAT_STORAGE=s3` 等）。
+Both images install packages from `uv.lock`. Any `RAGCAT_*` variable left unset keeps its local default, so deployments must set the AWS values (`RAGCAT_STORAGE=s3` and so on).
 
-本機跑 worker image（內建 Lambda Runtime Interface Emulator）：
+To run the worker image locally (it bundles the Lambda Runtime Interface Emulator):
 
 ```bash
 docker run --rm -p 9000:8080 -e RAGCAT_DYNAMODB_ENDPOINT=http://host.docker.internal:8001 \
@@ -97,8 +297,11 @@ curl -X POST localhost:9000/2015-03-31/functions/function/invocations \
   -d '{"Records":[{"body":"{\"document_id\":\"doc_x\"}"}]}'
 ```
 
-## 尚未完成
+## Deploying to AWS
 
-- AWS 實際部署與驗證：[`infra/README.md`](infra/README.md) 已提供 Terraform、bootstrap/image/web 發布流程、CloudWatch、smoke/load test 與 submission YAML 匯出；尚未 apply，亦未在 AWS 驗證。
-- Cognito 正式登入的 live 驗證：RAGcat 自己的登入頁（email + 密碼）經由 `/v1/auth/*` 呼叫 Cognito API，註冊時由後端直接建立已確認的帳號、完全不寄信；refresh/logout 都已實作並有單元測試，仍需完成雲端 sign-in smoke test。
-- P1：undo、API keys（API key 的 rate limit 沿用 widget 的固定時間窗）；P2：Discord
+The Terraform stack, bootstrap and workload steps, and the smoke and load tests are in [`infra/README.md`](infra/README.md).
+
+## Status
+
+- **Deployed on AWS** with Terraform: CloudFront, ECS Fargate (`api`, `qa`), Lambda workers, DynamoDB, S3 Vectors, Valkey and Bedrock. See [`infra/README.md`](infra/README.md).
+- **Not built yet.** P1: Undo and API keys (their rate limit will reuse the widget's fixed window). P2: the Discord bot.

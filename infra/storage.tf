@@ -20,51 +20,22 @@ resource "aws_dynamodb_table" "main" {
   server_side_encryption { enabled = true }
 }
 
-resource "aws_s3_bucket" "main" {
-  for_each      = toset(["files", "web"])
-  bucket        = "${local.prefix}-${local.account_id}-${each.key}"
-  force_destroy = false
+# Both buckets are created by hand (private, public access blocked, AES256): a shared account's role may be
+# denied s3:PutBucketNotification, s3:PutBucketPolicy and s3:PutEncryptionConfiguration, so Terraform only reads them.
+# files: EventBridge upload notification is enabled in the console.
+# web: the CloudFront OAC bucket policy is pasted in the console once the distribution exists.
+data "aws_s3_bucket" "files" {
+  bucket = var.files_bucket
 }
 
-resource "aws_s3_bucket_public_access_block" "main" {
-  for_each                = aws_s3_bucket.main
-  bucket                  = each.value.id
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
-
-resource "aws_s3_bucket_server_side_encryption_configuration" "main" {
-  for_each = aws_s3_bucket.main
-  bucket   = each.value.id
-  rule {
-    apply_server_side_encryption_by_default { sse_algorithm = "AES256" }
-  }
-}
-
-resource "aws_s3_bucket_ownership_controls" "main" {
-  for_each = aws_s3_bucket.main
-  bucket   = each.value.id
-  rule { object_ownership = "BucketOwnerEnforced" }
-}
-
-resource "aws_s3_bucket_policy" "files" {
-  bucket = aws_s3_bucket.main["files"].id
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Sid       = "DenyInsecureTransport", Effect = "Deny", Principal = "*", Action = "s3:*"
-      Resource  = [aws_s3_bucket.main["files"].arn, "${aws_s3_bucket.main["files"].arn}/*"]
-      Condition = { Bool = { "aws:SecureTransport" = "false" } }
-    }]
-  })
+data "aws_s3_bucket" "web" {
+  bucket = var.web_bucket
 }
 
 resource "aws_s3_bucket_cors_configuration" "files" {
-  bucket = aws_s3_bucket.main["files"].id
+  bucket = data.aws_s3_bucket.files.id
   cors_rule {
-    allowed_origins = concat(["https://${aws_cloudfront_distribution.main.domain_name}"], var.extra_cors_origins)
+    allowed_origins = concat(["https://${aws_cloudfront_distribution.main.domain_name}"], local.shared ? ["https://${local.site_domain}"] : [], var.extra_cors_origins)
     allowed_methods = ["POST", "GET", "HEAD"]
     allowed_headers = ["*"]
     expose_headers  = ["ETag"]
@@ -72,13 +43,8 @@ resource "aws_s3_bucket_cors_configuration" "files" {
   }
 }
 
-resource "aws_s3_bucket_notification" "files" {
-  bucket      = aws_s3_bucket.main["files"].id
-  eventbridge = true
-}
-
 resource "aws_s3vectors_vector_bucket" "main" {
-  vector_bucket_name = "${local.prefix}-${local.account_id}-vectors"
+  vector_bucket_name = "${local.prefix}-vectors"
   force_destroy      = false
   encryption_configuration { sse_type = "AES256" }
 }

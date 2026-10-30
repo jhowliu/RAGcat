@@ -5,7 +5,7 @@ UV_CACHE_DIR ?= $(CURDIR)/.data/uv-cache
 export UV_CACHE_DIR
 AWS_PROFILE ?= diana
 
-.PHONY: deps backend worker backend-offline web test test-integration build images cloud-audit infra-init infra-validate infra-plan infra-apply cloud-images cloud-web cloud-submission clean-data
+.PHONY: deps backend worker backend-offline web test test-integration build images cloud-audit infra-init infra-validate infra-plan infra-apply cloud-images cloud-web clean-data
 
 deps:
 	docker compose up -d dynamodb valkey
@@ -68,9 +68,6 @@ cloud-images:
 
 cloud-web:
 	cd backend && uv run python ../scripts/deploy.py web --profile $(AWS_PROFILE)
-
-cloud-submission:
-	cd backend && uv run python ../scripts/deploy.py submission
 
 clean-data: ## wipe local uploads, page images and vectors (DynamoDB Local keeps its own volume)
 	rm -rf .data

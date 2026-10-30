@@ -1,4 +1,4 @@
-"""Publish RAGcat images/static files or export applied resource identifiers for Gradescope."""
+"""Publish RAGcat container images or the static web app."""
 from __future__ import annotations
 
 import argparse
@@ -27,7 +27,15 @@ def outputs() -> dict:
 
 
 def session_for(profile: str, state: dict):
-    session = boto3.Session(profile_name=profile, region_name=state["region"])
+    # boto3 can't refresh this SSO profile's token (same as Terraform, see TF_AWS in the Makefile), so use the
+    # CLI's short-lived credentials. They are passed to the session only, never printed.
+    exported = json.loads(subprocess.run(["aws", "configure", "export-credentials", "--profile", profile, "--format", "process"], check=True, text=True, capture_output=True).stdout)
+    session = boto3.Session(
+        aws_access_key_id=exported["AccessKeyId"],
+        aws_secret_access_key=exported["SecretAccessKey"],
+        aws_session_token=exported["SessionToken"],
+        region_name=state["region"],
+    )
     identity = session.client("sts", config=Config(connect_timeout=5, read_timeout=10, retries={"max_attempts": 0})).get_caller_identity()
     if identity["Account"] != state["account_id"] or state["region"] != "ap-southeast-2":
         raise ValueError("AWS profile and Terraform state must identify the same Sydney account")
@@ -67,37 +75,21 @@ def publish_web(session, state: dict) -> None:
     print(f"Published {state['site_url']}; CloudFront invalidation {response['Invalidation']['Id']} is propagating.")
 
 
-def submission(state: dict, target: Path) -> None:
-    if not state["service_names"]:
-        raise ValueError("Apply the workload stage first; a bootstrap-only stack is not a complete submission")
-    # JSON string literals are valid YAML scalar syntax, so no extra YAML dependency is required.
-    lines = ["cloudInfrastructure:"]
-    for resource in state["cloud_resources"]:
-        lines.extend([f"  - type: {json.dumps(resource['type'])}", f"    arn: {json.dumps(resource['arn'])}", f"    description: {json.dumps(resource['description'])}"])
-    lines.extend(["", "metaData:", f"  qutUsernameTag: {json.dumps(state['qut_username'])}", ""])
-    target.write_text("\n".join(lines))
-    print(f"Exported {len(state['cloud_resources'])} applied resource identifiers to {target}")
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=["images", "web", "submission"])
+    parser.add_argument("action", choices=["images", "web"])
     parser.add_argument("--profile", default="diana")
     parser.add_argument("--tag")
-    parser.add_argument("--output", type=Path, default=ROOT / "infra" / "submission-a3-infra.yml")
     args = parser.parse_args()
     try:
         state = outputs()
-        if args.action == "submission":
-            submission(state, args.output)
+        session = session_for(args.profile, state)
+        if args.action == "images":
+            if not args.tag:
+                raise ValueError("images requires --tag RELEASE_TAG")
+            publish_images(session, state, args.tag)
         else:
-            session = session_for(args.profile, state)
-            if args.action == "images":
-                if not args.tag:
-                    raise ValueError("images requires --tag RELEASE_TAG")
-                publish_images(session, state, args.tag)
-            else:
-                publish_web(session, state)
+            publish_web(session, state)
     except (BotoCoreError, ClientError, OSError, ValueError, subprocess.CalledProcessError) as error:
         print(f"Deployment stopped: {error}")
         return 1

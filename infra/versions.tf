@@ -14,15 +14,14 @@ terraform {
 
 provider "aws" {
   region = var.region
-  default_tags {
-    tags = {
-      purpose        = "assessment 3"
-      "qut-username" = var.qut_username
-      project        = "RAGcat"
-      student-id     = var.student_id
-      environment    = "a3"
-    }
-  }
+  default_tags { tags = local.tags }
+}
+
+# CloudFront only accepts certificates issued in us-east-1.
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
+  default_tags { tags = local.tags }
 }
 
 data "aws_caller_identity" "current" {}
@@ -30,7 +29,8 @@ data "aws_partition" "current" {}
 data "aws_availability_zones" "available" { state = "available" }
 
 locals {
-  prefix     = "${var.student_id}-ragcat-a3"
+  tags       = merge({ project = "RAGcat" }, var.tags)
+  prefix     = var.name_prefix
   account_id = data.aws_caller_identity.current.account_id
   partition  = data.aws_partition.current.partition
   azs        = slice(data.aws_availability_zones.available.names, 0, 2)

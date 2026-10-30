@@ -4,7 +4,8 @@
 #   forwards only requests carrying CloudFront's secret header. Direct requests get the 404 default,
 #   so the widget rate limit can still trust CloudFront-Viewer-Address.
 locals {
-  origin_domain = local.shared ? "${var.student_id}-ragcat-api.${var.shared_account.origin_zone_name}" : null
+  origin_domain = local.shared ? var.shared_account.origin_domain : null
+  site_domain   = local.shared ? var.shared_account.site_domain : null
   origin_header = "X-RAGcat-Origin"
 }
 
@@ -37,12 +38,6 @@ resource "random_password" "origin" {
   special = false
 }
 
-data "aws_route53_zone" "origin" {
-  count        = local.shared ? 1 : 0
-  name         = var.shared_account.origin_zone_name
-  private_zone = false
-}
-
 resource "aws_acm_certificate" "origin" {
   count             = local.shared ? 1 : 0
   domain_name       = local.origin_domain
@@ -50,31 +45,28 @@ resource "aws_acm_certificate" "origin" {
   lifecycle { create_before_destroy = true }
 }
 
-resource "aws_route53_record" "origin_validation" {
-  for_each = local.shared ? { for o in aws_acm_certificate.origin[0].domain_validation_options : o.domain_name => o } : {}
-  zone_id  = data.aws_route53_zone.origin[0].zone_id
-  name     = each.value.resource_record_name
-  type     = each.value.resource_record_type
-  records  = [each.value.resource_record_value]
-  ttl      = 300
-}
-
+# The shared account's role has no route53:GetChange, so Terraform can't wait on Route 53 changes. The DNS
+# records are created by hand in the domain's hosted zone: an A alias for local.origin_domain to the ALB, and (only needed
+# for renewal) the ACM validation CNAME. The certificate is already ISSUED; this just waits for that status.
 resource "aws_acm_certificate_validation" "origin" {
-  count                   = local.shared ? 1 : 0
-  certificate_arn         = aws_acm_certificate.origin[0].arn
-  validation_record_fqdns = [for record in aws_route53_record.origin_validation : record.fqdn]
+  count           = local.shared ? 1 : 0
+  certificate_arn = aws_acm_certificate.origin[0].arn
 }
 
-resource "aws_route53_record" "origin" {
-  count   = local.shared ? 1 : 0
-  zone_id = data.aws_route53_zone.origin[0].zone_id
-  name    = local.origin_domain
-  type    = "A"
-  alias {
-    name                   = aws_lb.main.dns_name
-    zone_id                = aws_lb.main.zone_id
-    evaluate_target_health = false
-  }
+# The site's own name at CloudFront. Its validation CNAME and the A alias to the distribution are also
+# created by hand (ACM console: "Create records in Route 53"); apply waits here until the certificate is ISSUED.
+resource "aws_acm_certificate" "site" {
+  count             = local.shared ? 1 : 0
+  provider          = aws.us_east_1
+  domain_name       = local.site_domain
+  validation_method = "DNS"
+  lifecycle { create_before_destroy = true }
+}
+
+resource "aws_acm_certificate_validation" "site" {
+  count           = local.shared ? 1 : 0
+  provider        = aws.us_east_1
+  certificate_arn = aws_acm_certificate.site[0].arn
 }
 
 resource "aws_lb_listener" "main" {
@@ -176,10 +168,11 @@ resource "aws_cloudfront_distribution" "main" {
   price_class         = "PriceClass_All" # Includes the Sydney edge location.
   http_version        = "http2and3"
   is_ipv6_enabled     = true
+  aliases             = local.shared ? [local.site_domain] : []
 
   origin {
     origin_id                = "web"
-    domain_name              = aws_s3_bucket.main["web"].bucket_regional_domain_name
+    domain_name              = data.aws_s3_bucket.web.bucket_regional_domain_name
     origin_access_control_id = aws_cloudfront_origin_access_control.web.id
   }
   origin {
@@ -237,26 +230,12 @@ resource "aws_cloudfront_distribution" "main" {
   restrictions {
     geo_restriction { restriction_type = "none" }
   }
-  viewer_certificate { cloudfront_default_certificate = true }
-}
-
-resource "aws_s3_bucket_policy" "web" {
-  bucket = aws_s3_bucket.main["web"].id
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect    = "Allow", Principal = { Service = "cloudfront.amazonaws.com" }, Action = "s3:GetObject"
-        Resource  = "${aws_s3_bucket.main["web"].arn}/*"
-        Condition = { StringEquals = { "AWS:SourceArn" = aws_cloudfront_distribution.main.arn } }
-      },
-      {
-        Effect    = "Deny", Principal = "*", Action = "s3:*"
-        Resource  = [aws_s3_bucket.main["web"].arn, "${aws_s3_bucket.main["web"].arn}/*"]
-        Condition = { Bool = { "aws:SecureTransport" = "false" } }
-      },
-    ]
-  })
+  viewer_certificate {
+    cloudfront_default_certificate = !local.shared
+    acm_certificate_arn            = local.shared ? aws_acm_certificate_validation.site[0].certificate_arn : null
+    ssl_support_method             = local.shared ? "sni-only" : null
+    minimum_protocol_version       = local.shared ? "TLSv1.2_2021" : null
+  }
 }
 
 # RAGcat's own sign-in page calls the API, which signs in through the Cognito API: no hosted login

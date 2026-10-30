@@ -3,26 +3,34 @@ variable "region" {
   default = "ap-southeast-2"
   validation {
     condition     = var.region == "ap-southeast-2"
-    error_message = "CAB432 regional resources must use ap-southeast-2."
+    error_message = "The stack is built and tested for ap-southeast-2 only."
   }
 }
 
-variable "student_id" {
-  type    = string
-  default = "n12218642"
-  validation {
-    condition     = can(regex("^n[0-9]{8}$", var.student_id))
-    error_message = "Use the student ID prefix, for example n12218642."
-  }
-}
-
-variable "qut_username" {
-  description = "Verified QUT email for resource ownership tags and the submission YAML."
+variable "name_prefix" {
+  description = "Prefix for the name of every resource this stack creates."
   type        = string
+  default     = "ragcat"
   validation {
-    condition     = can(regex("^[^@]+@qut\\.edu\\.au$", var.qut_username))
-    error_message = "Supply your QUT email."
+    condition     = can(regex("^[a-z][a-z0-9-]{0,22}[a-z0-9]$", var.name_prefix))
+    error_message = "Use 2-24 lowercase letters, digits and hyphens (ALB and target group names are short)."
   }
+}
+
+variable "tags" {
+  description = "Extra tags for every resource, such as the owner or cost-allocation tags your account requires."
+  type        = map(string)
+  default     = {}
+}
+
+variable "files_bucket" {
+  description = "Existing private S3 bucket for uploaded PDFs and page images (created by hand, see README)."
+  type        = string
+}
+
+variable "web_bucket" {
+  description = "Existing private S3 bucket for the built SPA (created by hand, see README)."
+  type        = string
 }
 
 variable "cognito_pool_id" {
@@ -60,8 +68,8 @@ variable "existing_network" {
 
 variable "shared_account" {
   description = <<-EOT
-    For an account that forbids creating security groups and IAM roles (the CAB432 shared account):
-    the existing groups and roles to use, and the public Route 53 zone for the ALB's HTTPS name.
+    For an account that forbids creating security groups and IAM roles (such as an organization's shared
+    sandbox account): the existing groups and roles to use, and the site's and the ALB's HTTPS names.
     The ALB then faces the internet behind a CloudFront secret header, because the security-group
     rule a private CloudFront VPC origin needs can't be added.
   EOT
@@ -72,7 +80,8 @@ variable "shared_account" {
     ecs_execution_role_arn     = string
     ecs_task_role_arn          = string
     lambda_role_arn            = string
-    origin_zone_name           = string
+    site_domain                = string # the site's own name at CloudFront, e.g. ragcat.example.com
+    origin_domain              = string # the ALB's HTTPS name CloudFront connects to, e.g. ragcat-api.example.com
   })
   default = null
 }
