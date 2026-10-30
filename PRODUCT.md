@@ -47,7 +47,7 @@ A generic chat-over-documents product cannot truthfully claim the review-against
 
 **Built:**
 
-- Create an Assistant, with a name and a contact for unanswered questions.
+- Create an Assistant, with a name and a contact for unanswered questions. Delete it from its Settings tab: customers lose it at once, and its Documents, vectors and files are removed in the background.
 - Upload a PDF (up to 50 MB and 300 pages). The backend renders its pages and extracts Passages: tables stay whole, and two-column pages are read one column at a time.
 - Work on Passages: edit, merge, split, add, remove and restore, with quality warnings.
 - **Publish changes:** this embeds changed Documents, and the first publish also makes the Assistant live. There is no separate draft index. Customers never see unpublished edits.

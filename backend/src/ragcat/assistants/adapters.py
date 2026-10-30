@@ -7,6 +7,8 @@ from typing import Any
 from ragcat.assistants.domain import Assistant
 from ragcat.infra.dynamo import Table, plain
 
+EXISTS = "attribute_exists(PK)"
+
 
 def _to_item(a: Assistant) -> dict[str, Any]:
     return {
@@ -59,6 +61,12 @@ class DynamoAssistantRepo:
     def list_for(self, owner_id: str) -> list[Assistant]:
         return [_from_item(i) for i in self.table.query_prefix(f"OWNER#{owner_id}", "AST#", index="GSI1")]
 
+    def remove(self, aid: str) -> None:
+        self.table.delete(f"AST#{aid}", "META")
+
+    # Updates are conditional: a deleted Assistant's documents still report changes while they are
+    # removed, and an unconditional update would recreate the item.
+
     def save_settings(self, a: Assistant) -> None:
         self.table.update(
             f"AST#{a.id}",
@@ -70,13 +78,23 @@ class DynamoAssistantRepo:
                 "widget_origins": a.widget_origins,
                 "updated_at": a.updated_at,
             },
+            condition=EXISTS,
         )
 
     def bump_content_version(self, aid: str, updated_at: str) -> None:
-        self.table.update(f"AST#{aid}", "META", set_fields={"updated_at": updated_at}, add_fields={"content_version": 1})
+        self.table.update(f"AST#{aid}", "META", set_fields={"updated_at": updated_at}, add_fields={"content_version": 1}, condition=EXISTS)
 
     def set_excluded(self, aid: str, did: str, excluded: bool, updated_at: str) -> None:
         if excluded:
-            self.table.update(f"AST#{aid}", "META", set_fields={"updated_at": updated_at}, add_fields={"excluded_document_ids": {did}, "content_version": 1})
+            self.table.update(
+                f"AST#{aid}", "META", set_fields={"updated_at": updated_at}, add_fields={"excluded_document_ids": {did}, "content_version": 1}, condition=EXISTS
+            )
         else:
-            self.table.update(f"AST#{aid}", "META", set_fields={"updated_at": updated_at}, add_fields={"content_version": 1}, delete_from_sets={"excluded_document_ids": {did}})
+            self.table.update(
+                f"AST#{aid}",
+                "META",
+                set_fields={"updated_at": updated_at},
+                add_fields={"content_version": 1},
+                delete_from_sets={"excluded_document_ids": {did}},
+                condition=EXISTS,
+            )

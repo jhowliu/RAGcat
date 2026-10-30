@@ -126,6 +126,7 @@ def test_owner_flow(env) -> None:
     c.queue.drain()
     assert client.get(f"/v1/documents/{did}", headers=H).status_code == 404
     assert c.vectors._items == {}
+    assert c.table.query_prefix(f"DOC#{did}", "") == [] and not c.store.file_path(f"pages/{did}").exists()
     assert client.get(f"/v1/assistants/{aid}", headers=H).json()["status"] == "empty"
 
 
@@ -203,6 +204,38 @@ def test_preview_refuses_more_changes_than_a_test_should_wait_for(env, monkeypat
     r = client.post(f"/v1/assistants/{aid}/ask", json={"question": "Can opened items be returned?", "stream": False, "preview": True}, headers=H)
     assert r.status_code == 409 and r.json()["error"]["code"] == "TOO_MANY_CHANGES"
     assert r.json()["error"]["details"] == {"passages": 3, "limit": 2}
+
+
+def test_deleting_an_assistant_removes_its_documents_vectors_and_files(env) -> None:
+    client, c = env
+    empty = client.post("/v1/assistants", json={"name": "Nothing uploaded"}, headers=H).json()["id"]
+    aid = client.post("/v1/assistants", json={"name": "Mochi Pet Co. support"}, headers=H).json()["id"]
+    did = upload(client, c, aid)
+    client.post(f"/v1/documents/{did}/embed", headers=H)
+    c.queue.drain()
+    client.patch(f"/v1/assistants/{aid}", json={"published": True, "widget_origins": ["https://mochi.example"]}, headers=H)
+    assert ask(client, aid, "Can opened items be returned?")["answered"]
+    waiting = client.post(f"/v1/assistants/{aid}/documents", json={"filename": "later.pdf", "size_bytes": 10, "content_type": "application/pdf"}, headers=H)
+    waiting = waiting.json()["document"]["id"]
+    assert c.vectors._items and c.store.file_path(f"pages/{did}/1.jpg").exists()
+
+    assert client.delete(f"/v1/assistants/{aid}", headers={"Authorization": "Bearer dev:someone-else"}).status_code == 404
+    assert client.delete(f"/v1/assistants/{empty}", headers=H).status_code == 202
+    r = client.delete(f"/v1/assistants/{aid}", headers=H)
+    assert r.status_code == 202 and r.json() == {"assistant": {"id": aid, "status": "deleting"}}
+
+    # Gone at once for the owner and for customers; documents, vectors and files go in the background.
+    assert client.get(f"/v1/assistants/{aid}", headers=H).status_code == 404
+    assert client.get("/v1/assistants", headers=H).json()["items"] == []
+    assert client.post(f"/v1/assistants/{aid}/ask", json={"question": "hi", "stream": False}, headers=H).status_code == 404
+    assert client.post(f"/v1/widget/{aid}/ask", json={"question": "hi", "stream": False}).status_code == 404
+    c.queue.drain()
+    assert client.get(f"/v1/documents/{did}", headers=H).status_code == 404
+    assert client.get(f"/v1/documents/{waiting}", headers=H).status_code == 404
+    assert c.vectors._items == {}
+    assert not c.store.file_path(f"uploads/{aid}/{did}.pdf").exists() and not c.store.file_path(f"pages/{did}").exists()
+    assert c.table.get(f"AST#{aid}", "META") is None  # indexing reports the vector change after the Assistant is gone
+    assert client.delete(f"/v1/assistants/{aid}", headers=H).status_code == 404
 
 
 def test_rejects_non_pdf_and_other_owners(env) -> None:

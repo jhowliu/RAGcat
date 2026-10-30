@@ -85,7 +85,7 @@ function AssistantCard({ a, i18n }: { a: Assistant; i18n: I18n }) {
   const chip = a.status === 'processing' ? <Chip kind="neutral">{t('card.reading')}</Chip> : a.published && a.pending_changes > 0 ? <Chip kind="attn">{t('doc.unpublished')}</Chip> : null
 
   return (
-    <Link className="panel acard" to={a.document_count ? `/assistants/${a.id}` : `/assistants/${a.id}/setup`}>
+    <Link className="panel acard" to={`/assistants/${a.id}`}>
       <div className="acard-top">
         <h2 className="display acard-name">{a.name}</h2>
         <span className="hint">{meta}</span>

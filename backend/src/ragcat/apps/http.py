@@ -307,6 +307,14 @@ def create_app(c: Container, *, api: bool = True, qa: bool = True) -> FastAPI:
             )
             return assistant_view(c.assistants.summarize(a))
 
+        @router.delete("/assistants/{aid}", status_code=202)
+        def delete_assistant(aid: str, p: Principal = Depends(owner)) -> dict[str, Any]:
+            # Documents first: if this stops halfway, the Assistant is still there to delete again.
+            c.assistants.get(p.sub, aid)
+            c.curation.delete_all(p.sub, aid)
+            c.assistants.delete(p.sub, aid)
+            return {"assistant": {"id": aid, "status": "deleting"}}
+
         # -------------------------------------------------------- website widget (public, api-design.md §7)
 
         widget_page = WidgetPage(c.settings.widget_template_url)
